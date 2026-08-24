@@ -1,12 +1,10 @@
-# Cybercrime Predictive Analytics — Stages 0, 1, 2 & 3A
+# Cybercrime Predictive Analytics — Stages 0 to 4
 
-This repository implements the end-to-end data consolidation, graph construction, and machine-learning baseline stages of a predictive analytics framework designed for cybercrime complaints, entity resolution, and financial transaction graph analysis.
+This repository implements an end-to-end predictive analytics framework designed for cybercrime complaints, entity resolution, financial transaction graph construction, Graph Neural Network (GraphSAGE) classification, and terminal cash-withdrawal location prediction.
 
 ---
 
-## 📌 Project Context & Pipeline Architecture
-
-The broader vision of this project is to build transaction graphs, identify suspicious mule account networks, predict illicit cash-withdrawal hubs, and provide actionable intelligence to law enforcement.
+## 📌 Project Architecture & End-to-End Pipeline
 
 ```text
 complaint (complaints.csv)
@@ -21,11 +19,19 @@ resolved entity (predicted_entity_id in resolved_entities.csv & entity_master.cs
    ↓
 NetworkX incident subgraph (MultiDiGraph saved to data/graphs/<complaint_id>.graphml)
    ↓
-graph-level features (data/graph_summary.csv)
+┌────────────────────────────────────────────────────────┐
+│               Stage 3: Predictive Modeling             │
+├───────────────────────────┬────────────────────────────┤
+│ Stage 3A: Tabular Baseline│ Stage 3B: Graph Neural Net │
+│ (XGBoost Classifier)      │ (GraphSAGE GNN Classifier) │
+│ Features: graph_summary   │ Architecture: 2 SAGEConv   │
+│ Test F1: 88.89%           │ Test F1: 90.14%            │
+└───────────────────────────┴────────────────────────────┘
    ↓
-Stage 3A: XGBoost Baseline Classifier (models/xgboost_baseline.json)
+Stage 4: Terminal Node & Cash-Withdrawal Location Prediction (src/terminal_prediction.py)
    ↓
-[Next Stage: Stage 3B — GraphSAGE Graph Neural Network]
+data/top_terminal_predictions.csv (Top 3 Ranked ATMs per high-risk incident + Human-Readable Explanations)
+data/terminal_prediction_map.png (Geospatial Hub Map)
 ```
 
 ---
@@ -94,79 +100,74 @@ Stage 2 (`src/graph_construction.py`) builds temporal, multi-hop incident subgra
 
 ## 🤖 Stage 3A — XGBoost Baseline Classifier
 
-Stage 3A (`src/xgboost_baseline.py`) trains a tabular gradient-boosted decision tree classifier on graph-level and financial features to establish a reliable machine-learning baseline before comparing against Graph Neural Networks (GraphSAGE).
-
-### 1. Problem Formulation & Target
-- **Target**: `contains_suspicious_activity` (0 = Normal Incident Graph, 1 = Suspicious Incident Graph / Potential Laundering Network).
-- **Dataset**: 1,000 incident subgraphs from `data/graph_summary.csv`.
-
-### 2. Strict Data Leakage Prevention
-The model must predict suspicious activity exclusively from structural and financial features. All direct labels and non-feature identifiers are strictly excluded from model inputs:
-- `contains_suspicious_activity` (target)
-- `suspicious_ring_count` (ground truth label)
-- `is_suspicious` / `ring_id` (ground truth metadata)
-- `ground_truth_entity_id` (offline evaluation)
-- `complaint_id`, `incident_entity_id`, `incident_time`, `window_start`, `window_end`
-
-### 3. Model Features (15 Numerical Graph Metrics)
-1. `num_nodes`
-2. `num_edges`
-3. `num_account_nodes`
-4. `num_atm_nodes`
-5. `num_terminal_nodes`
-6. `max_hop`
-7. `total_transaction_value`
-8. `max_transaction_value`
-9. `avg_transaction_value`
-10. `num_cash_out_edges`
-11. `in_degree_incident`
-12. `out_degree_incident`
-13. `density`
-14. `number_of_connected_components`
-15. `average_degree`
-
-### 4. Training Methodology & Class Imbalance
-- **Train / Test Split**: 80% Train (800 samples) / 20% Test (200 samples), strictly stratified on the target label (`random_state = 42`).
-- **Class Imbalance**: The dataset contains 18.6% positive samples. To counter class imbalance, `scale_pos_weight = 4.3691` (derived from the training set only) is applied during tree construction.
-- **Model Parameters**: `n_estimators = 200`, `max_depth = 4`, `learning_rate = 0.05`, `subsample = 0.8`, `colsample_bytree = 0.8`, `eval_metric = "logloss"`.
-
-### 5. Evaluation Performance (Test Set @ Threshold = 0.50)
-- **Accuracy**: **96.00%**
-- **Precision**: **91.43%**
-- **Recall**: **86.49%**
-- **F1 Score**: **88.89%**
-- **ROC-AUC**: **0.9790**
-- **PR-AUC**: **0.9444**
-- **Confusion Matrix**: TN = 160, FP = 3, FN = 5, TP = 32
-
-### 6. Threshold Analysis (`data/xgboost_threshold_analysis.csv`)
-| Threshold | Precision | Recall | F1 Score | Notes |
-| :---: | :---: | :---: | :---: | :--- |
-| **0.10** | 76.74% | 89.19% | 82.50% | High-sensitivity triage |
-| **0.30** | 84.21% | 86.49% | 85.33% | Balanced candidate pool |
-| **0.50** | 91.43% | 86.49% | 88.89% | Standard decision threshold |
-| **0.80** | 100.00% | 83.78% | **91.18%** | *Experimental optimal F1 threshold* |
-| **0.90** | 100.00% | 78.38% | 87.88% | High-confidence alert filter |
-
-### 7. Feature Importance (Gain Metric)
-1. `total_transaction_value` (Gain: 26.21) — Elevated aggregate fund volume in the 72h window.
-2. `num_nodes` (Gain: 13.54) — Network expansion and multi-account involvement.
-3. `max_hop` (Gain: 13.39) — Multi-layering depth away from the incident account.
-4. `num_edges` (Gain: 10.90) — Rapid transfer velocity.
-5. `average_degree` (Gain: 6.65) — Mesh/hub connectivity among participating accounts.
-
-### 8. Secondary Robustness: Chronological Temporal Evaluation
-- Evaluated by training on the earliest 80% incidents (Jan 1 – Jul 6, 2026) and testing on the latest 20% incidents (Jul 6 – Aug 24, 2026).
-- **Temporal Test Accuracy**: 96.00% | **Precision**: 88.57% | **Recall**: 88.57% | **F1 Score**: 88.57% | **ROC-AUC**: 0.9932 | **PR-AUC**: 0.9709.
+Stage 3A (`src/xgboost_baseline.py`) trains a tabular gradient-boosted decision tree classifier on 15 structural and financial features extracted from `data/graph_summary.csv` to establish an empirical benchmark:
+- **Features Used**: `num_nodes`, `num_edges`, `num_account_nodes`, `num_atm_nodes`, `num_terminal_nodes`, `max_hop`, `total_transaction_value`, `max_transaction_value`, `avg_transaction_value`, `num_cash_out_edges`, `in_degree_incident`, `out_degree_incident`, `density`, `number_of_connected_components`, `average_degree`.
+- **Leakage Prevention**: All ground truth labels and identifiers are strictly excluded from input features.
+- **Class Imbalance**: Managed via `scale_pos_weight = 4.3691` on the 80% training set.
+- **Test Performance (@ 0.50)**: Accuracy = 96.00%, Precision = 91.43%, Recall = 86.49%, F1 Score = 88.89%, ROC-AUC = 0.9790, PR-AUC = 0.9444.
 
 ---
 
-## ⚠️ Limitations & Real-World Considerations
+## 🧠 Stage 3B — GraphSAGE Graph Neural Network Classifier
 
-1. **Synthetic Nature**: All complaints, bank accounts, transactions, and mule rings are synthetically generated for prototype development and hackathon evaluation.
-2. **Benchmark Scope**: The XGBoost baseline demonstrates strong performance on this structured benchmark; however, real-world cybercrime involves complex adversarial obfuscation, smurfing, and cross-border crypto off-ramps.
-3. **Threshold Context**: The 0.50 threshold is standard for benchmarking, while the 0.80 threshold yielded the highest experimental F1. In real-world law enforcement triage, operational thresholds must be calibrated based on analyst caseload capacity and tolerance for false positives.
-4. **Relational Limitation of Tabular Models**: XGBoost operates on aggregated graph-level summary metrics. It cannot learn topological node-level embeddings, localized edge orientations, or directional flow dynamics natively. This serves as the primary motivation for **Stage 3B: GraphSAGE Graph Neural Network**.
+Stage 3B (`src/graphsage_classifier.py`) implements an inductive **GraphSAGE Graph Neural Network** (PyTorch + PyTorch Geometric) that directly operates on the topological graph structures and localized node relational contexts.
+
+### 1. Node Features (13 Dimensional)
+1. `node_type_account`, 2. `node_type_atm`, 3. `hop_distance`, 4. `in_degree`, 5. `out_degree`, 6. `total_incoming_amount`, 7. `total_outgoing_amount`, 8. `average_incoming_amount`, 9. `average_outgoing_amount`, 10. `transaction_count`, 11. `is_incident`, 12. `is_terminal`, 13. `city_code`.
+
+### 2. Architecture & Performance
+- 2 SAGEConv layers (dim=64) $\rightarrow$ Global Mean Pooling $\rightarrow$ Linear Classifier.
+- **Test Set Performance (@ 0.50)**:
+  - **Accuracy**: **96.50%**
+  - **Precision**: **94.12%** (+2.69% over XGBoost)
+  - **Recall**: **86.49%**
+  - **F1 Score**: **90.14%** (+1.25% over XGBoost)
+  - **ROC-AUC**: **0.9829**
+  - **PR-AUC**: **0.9515**
+  - **False Positives**: 2 (33% reduction vs. XGBoost)
+
+---
+
+## 🎯 Stage 4 — Terminal Node & Cash-Withdrawal Location Prediction
+
+Stage 4 (`src/terminal_prediction.py`) bridges graph analytics with tactical law-enforcement intelligence by ranking the most probable ATM cash-out terminals for each high-risk incident graph.
+
+### 1. Candidate Identification
+For every cybercrime complaint, candidate ATM nodes are identified directly within its extracted 72-hour 3-hop incident subgraph ($G$).
+
+### 2. Interpretable Terminal Risk Scoring Formulation
+For each candidate ATM ($a$), a composite risk score $\text{terminal\_score} \in [0, 1]$ is computed from 7 normalized factors:
+1. **$S_{\text{gnn}}$ (25%)**: GraphSAGE incident probability $P_{\text{GNN}} \in [0, 1]$.
+2. **$S_{\text{hop}}$ (20%)**: Graph topological distance from incident entity ($\text{Hop } 1 \rightarrow 1.0, \text{Hop } 2 \rightarrow 0.75, \text{Hop } 3 \rightarrow 0.50$).
+3. **$S_{\text{cw}}$ (20%)**: Observed cash-withdrawal transaction flag ($1.0$ if $\text{count} \ge 1$ else $0.0$).
+4. **$S_{\text{volume}}$ (15%)**: Cumulative cash withdrawal volume scaled relative to ₹250,000.
+5. **$S_{\text{recency}}$ (10%)**: Temporal proximity of the withdrawal relative to incident reference time within the 72h window.
+6. **$S_{\text{upstream}}$ (5%)**: Upstream feeding entity convergence at the terminal.
+7. **$S_{\text{geo}}$ (5%)**: Geographic proximity to the incident entity.
+
+$$\text{terminal\_score} = 0.25 S_{\text{gnn}} + 0.20 S_{\text{hop}} + 0.20 S_{\text{cw}} + 0.15 S_{\text{vol}} + 0.10 S_{\text{rec}} + 0.05 S_{\text{up}} + 0.05 S_{\text{geo}}$$
+
+### 3. Evaluation & Ranking Benchmark
+Evaluated strictly against synthetic ground-truth cash-out activity:
+- **Total Incidents Processed**: 1,000
+- **Incidents with ATM Candidates**: 148
+- **Evaluable Incidents with Actual Laundering Cash-Outs**: 101
+- **Top-1 Hit Rate**: **100.00%** (Rank 1 candidate matches actual exit terminal)
+- **Top-3 Hit Rate**: **100.00%**
+- **Mean Reciprocal Rank (MRR)**: **1.0000**
+- **Average Candidate ATMs per Graph**: **1.30**
+
+### 4. Human-Readable Case Explanations
+For each top-ranked candidate terminal, an automated human-readable investigative explanation is generated (e.g., in [`data/top_terminal_predictions.csv`](file:///home/rd/Repositories/SIH/sihmodel/data/top_terminal_predictions.csv)):
+> *"Immediate 1-hop terminal connection; direct cash withdrawal observed (₹183,797.37 across 2 tx); 2 upstream feeding entities converged at terminal in Bengaluru; activity occurred within 10.1h of incident reference time."*
+
+---
+
+## ⚠️ Limitations & Disclaimers
+
+1. **Synthetic Proof-of-Concept**: All complaints, entities, transactions, and cash-outs are synthetically generated for hackathon prototyping and evaluation.
+2. **Fixed Graph Horizons**: Graph construction is bounded by a fixed 72-hour window and 3-hop cutoff.
+3. **Production Deployment Requirements**: Real-world deployment would require live banking transaction feeds (e.g. NPCI/RBI switch integration), operational ATM telemetry, historical mule ring intelligence, and a scalable geospatial GIS infrastructure.
 
 ---
 
@@ -184,72 +185,67 @@ sihmodel/
 │   ├── entity_locations.csv               # Geographic coordinates for 700 entities
 │   ├── transactions.csv                   # 15,000 synthetic financial transactions
 │   ├── graph_summary.csv                  # 1,000 incident subgraph metrics
-│   ├── xgboost_predictions.csv            # Model test set predictions & probabilities
-│   ├── xgboost_threshold_analysis.csv     # Threshold sweep evaluation
-│   ├── xgboost_feature_importance.csv     # Gain-based feature importances
-│   ├── xgboost_temporal_evaluation.csv    # Chronological temporal evaluation
-│   ├── xgboost_pr_curve.png               # Precision-Recall curve
-│   ├── xgboost_roc_curve.png              # ROC curve
-│   ├── xgboost_feature_importance.png     # Feature importance plot
-│   └── graphs/                            # Extracted incident subgraphs (GraphML)
+│   ├── model_split_ids.csv                # Aligned 80/20 train/test split IDs
+│   ├── xgboost_predictions.csv            # Stage 3A XGBoost test predictions
+│   ├── xgboost_threshold_analysis.csv     # Stage 3A threshold sweep
+│   ├── xgboost_feature_importance.csv     # Stage 3A gain feature importances
+│   ├── xgboost_temporal_evaluation.csv    # Stage 3A chronological evaluation
+│   ├── graphsage_predictions.csv          # Stage 3B GraphSAGE test predictions
+│   ├── graphsage_threshold_analysis.csv   # Stage 3B threshold sweep
+│   ├── graph_embeddings.csv               # 64-dim GraphSAGE embeddings for 1,000 graphs
+│   ├── graphsage_training_history.csv     # Training loss and validation history
+│   ├── model_comparison.csv               # 1-to-1 comparison table (XGBoost vs GraphSAGE)
+│   ├── terminal_predictions.csv           # Full ranked candidate ATM predictions
+│   ├── top_terminal_predictions.csv       # Top-3 candidate terminals with reasons
+│   ├── terminal_prediction_evaluation.csv # Hit rates and MRR evaluation table
+│   ├── terminal_ranking_examples.csv      # 12 detailed case ranking breakdowns
+│   ├── terminal_prediction_map.png        # Geospatial map of predicted cash-out hubs
+│   ├── graphsage_training_loss.png        # Training loss curve
+│   ├── graphsage_validation_f1.png        # Validation F1 evolution curve
+│   ├── model_comparison.png               # Comparative metric visualization
+│   └── graphs/                            # 1,000 GraphML subgraphs
 │       ├── C000001.graphml ... C001000.graphml
-│       └── demo_graph.png                 # Demonstration subgraph visualization
+│       └── demo_graph.png                 # Demonstration incident visualization
 │
 ├── models/
-│   ├── xgboost_baseline.json              # Serialized trained XGBoost model
-│   └── xgboost_features.json              # Feature schema definition
+│   ├── xgboost_baseline.json              # Trained XGBoost baseline model
+│   ├── xgboost_features.json              # Feature schema list
+│   ├── graphsage_model.pt                 # Trained PyTorch GraphSAGE checkpoint
+│   └── graphsage_config.json              # GNN hyperparameter configuration
 │
 ├── src/
 │   ├── entity_resolution.py               # Stage 0 Entity Resolution engine
 │   ├── generate_transactions.py           # Stage 1 Transaction dataset generator
 │   ├── graph_construction.py              # Stage 2 Incident subgraph extraction engine
-│   └── xgboost_baseline.py                # Stage 3A XGBoost baseline classifier
+│   ├── xgboost_baseline.py                # Stage 3A XGBoost baseline classifier
+│   ├── graphsage_classifier.py            # Stage 3B GraphSAGE GNN classifier
+│   └── terminal_prediction.py             # Stage 4 Terminal node prediction engine
 │
-├── generate_complaints_dataset.py         # Synthetic complaint generator
+├── generate_complaints_dataset.py         # Synthetic complaint dataset generator
 ├── requirements.txt                       # Project dependencies
-└── README.md                              # System documentation
+└── README.md                              # Complete system documentation
 ```
 
 ---
 
-## 🚀 How to Run
+## 🚀 How to Run the Full Pipeline
 
-### 1. Run Entity Resolution (Stage 0)
 ```bash
+# 1. Run Entity Resolution (Stage 0)
 python3 src/entity_resolution.py
-```
 
-### 2. Generate Synthetic Transactions & Locations (Stage 1)
-```bash
+# 2. Generate Synthetic Transactions & Locations (Stage 1)
 python3 src/generate_transactions.py
-```
 
-### 3. Extract Incident Subgraphs & Graph Features (Stage 2)
-```bash
+# 3. Extract Incident Subgraphs & Graph Features (Stage 2)
 python3 src/graph_construction.py
-```
 
-### 4. Train & Evaluate XGBoost Baseline (Stage 3A)
-```bash
+# 4. Train & Evaluate XGBoost Baseline (Stage 3A)
 python3 src/xgboost_baseline.py
+
+# 5. Train & Evaluate GraphSAGE GNN (Stage 3B)
+python3 src/graphsage_classifier.py
+
+# 6. Predict & Rank Terminal Cash-Out Locations (Stage 4)
+python3 src/terminal_prediction.py
 ```
-
----
-
-## 📊 Summary Performance Across Stages
-
-| Stage | Task / Model | Primary Metric | Result | Status |
-| :--- | :--- | :---: | :---: | :---: |
-| **Stage 0** | Deterministic + Fuzzy Entity Resolution | Pairwise F1 Score | **100.00%** | COMPLETE |
-| **Stage 1** | Synthetic Financial Transaction Dataset | Transaction Volume | **15,000 Tx** | COMPLETE |
-| **Stage 2** | 72h 3-Hop Incident Subgraph Extraction | Incident Graphs | **1,000 Graphs** | COMPLETE |
-| **Stage 3A** | Tabular XGBoost Baseline Classifier | Test PR-AUC / F1 | **0.9444 / 88.89%** | COMPLETE |
-| **Stage 3B** | GraphSAGE Graph Neural Network | Graph Classification | *Pending* | NEXT |
-
----
-
-## ⚡ Engineering & Scalability Notes
-
-1. **NetworkX vs Production Graph Stores**: NetworkX is used for prototype-scale graph construction and feature extraction. At national transaction scale, an indexed graph store (e.g., Neo4j) or distributed graph framework (e.g., Apache Spark GraphX / PyG) would handle temporal neighbor sampling.
-2. **Feature Explainability**: Rule-based feature summaries provide human-interpretable rationale alongside model probabilities for investigating officers.
-3. **Reproducibility**: All data generation, splitting, and model training routines use fixed random seeds (`seed = 42`).

@@ -1,0 +1,26 @@
+{
+  "model_type": "GraphSAGE",
+  "input_feature_dimension": 13,
+  "hidden_dimension": 64,
+  "dropout": 0.2,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "number_of_layers": 2,
+  "random_seed": 42,
+  "pooling": "global_mean_pool",
+  "feature_names": [
+    "node_type_account",
+    "node_type_atm",
+    "hop_distance",
+    "in_degree",
+    "out_degree",
+    "total_incoming_amount",
+    "total_outgoing_amount",
+    "average_incoming_amount",
+    "average_outgoing_amount",
+    "transaction_count",
+    "is_incident",
+    "is_terminal",
+    "city_code"
+  ]
+}
