@@ -1,6 +1,6 @@
-# Cybercrime Predictive Analytics — Stage 0 & Stage 1/2
+# Cybercrime Predictive Analytics — Stage 0, Stage 1 & Stage 2
 
-This repository implements the foundational stages of a predictive analytics framework designed for cybercrime complaints and financial transaction graph analysis.
+This repository implements the foundational and graph-processing stages of a predictive analytics framework designed for cybercrime complaints, entity resolution, and financial transaction graph analysis.
 
 ---
 
@@ -9,16 +9,21 @@ This repository implements the foundational stages of a predictive analytics fra
 The broader vision of this project is to build transaction graphs, identify suspicious mule account networks, predict illicit cash-withdrawal hubs, and provide actionable intelligence to law enforcement.
 
 ```text
-complaints.csv
-      ↓
+complaint (complaints.csv)
+   ↓
 Stage 0: Entity Resolution (Deterministic + Toy Fuzzy)
-      ↓
-resolved_entities.csv ──> entity_master.csv (700 Master Entity Nodes)
-                                ↓
-                      transactions.csv (15,000 Transactions)
-                      entity_locations.csv (Geographic Coordinates)
-                                ↓
-                      Stage 2+: Graph Construction (GraphSAGE / XGBoost)
+   ↓
+resolved entity (predicted_entity_id in resolved_entities.csv & entity_master.csv)
+   ↓
+72-hour transaction window (transactions.csv & entity_locations.csv)
+   ↓
+3-hop neighborhood extraction (<= 3 hops from incident node)
+   ↓
+NetworkX incident subgraph (MultiDiGraph saved to data/graphs/<complaint_id>.graphml)
+   ↓
+graph features (data/graph_summary.csv)
+   ↓
+[Future Stages: XGBoost baseline / GraphSAGE GNN]
 ```
 
 ---
@@ -46,17 +51,17 @@ Stage 0 collapses repeated complaint references to the same bank account across 
 
 ## 🔑 Entity Master Mapping (`data/entity_master.csv`)
 
-`entity_master.csv` provides a stable, deduplicated reference bridge between Stage 0 entity resolution and subsequent transaction graph construction in Stage 2:
+`entity_master.csv` provides a stable, deduplicated reference bridge between Stage 0 entity resolution and subsequent transaction graph construction:
 
 - **Stable Entity IDs**: `entity_id` is an internal system identifier (`ENT_000001` to `ENT_000700`) assigned sequentially and reproducibly across runs.
 - **Deterministic Identity Key**: `identity_key` (`normalized_account_number + "_" + normalized_ifsc`) serves as the unique invariant key.
 - **Canonical Name**: For each entity, a canonical account-holder name is selected (preferring the most frequent original name associated with that entity) for descriptive metadata.
 - **Ground Truth Isolation**: `ground_truth_entity_id` is used **only** for offline evaluation and never influences entity master generation or resolution logic.
-- **Stage 2 Interface**: In Stage 2, `entity_master.csv` is used to connect raw bank transaction streams (`transactions.csv`) directly to resolved entity nodes in the transaction graph.
+- **Graph Connection**: In Stage 2, `entity_master.csv` is used to connect raw bank transaction streams (`transactions.csv`) directly to resolved entity nodes in the transaction graph.
 
 ---
 
-## 💳 Stage 1/2 — Synthetic Transaction Dataset
+## 💳 Stage 1 — Synthetic Transaction Dataset
 
 The transaction generator (`src/generate_transactions.py`) produces realistic synthetic financial transactions representing activity between the 700 resolved entities from Stage 0.
 
@@ -74,9 +79,35 @@ The transaction generator (`src/generate_transactions.py`) produces realistic sy
   5. *Multi-stage Mule Chains with Terminal Cash-outs*
 - **Temporal Windows**: Suspicious ring transactions occur in rapid multi-hop progression (15–90 minutes between hops) within strict $\le 72$-hour incident windows.
 - **Terminal Cash-Out Nodes**: Represented using a dedicated namespace (`ATM_001` to `ATM_050`) mapped to physical Indian cities.
-- **Geographic Mapping (`data/entity_locations.csv`)**: Deterministic geographic coordinates across 15 Indian cities (Kolkata, Mumbai, Pune, Delhi, Bengaluru, Hyderabad, Chennai, Ahmedabad, Jaipur, Lucknow, Patna, Bhubaneswar, Kochi, Bhopal, Chandigarh).
+- **Geographic Mapping (`data/entity_locations.csv`)**: Deterministic geographic coordinates across 15 Indian cities.
 
-> **Disclaimer**: The transaction dataset, mule rings, and geographic coordinates are 100% synthetic for prototype graph modeling and ML benchmarking. They do not contain real banking information and do not represent real-world individuals or authorized banking data.
+---
+
+## 🕸️ Stage 2 — Graph Construction & Incident Subgraph Extraction
+
+Stage 2 (`src/graph_construction.py`) builds temporal, multi-hop incident subgraphs around every cybercrime complaint.
+
+### Architecture & Extraction Methodology
+1. **Incident Identification**: For each complaint, `predicted_entity_id` is looked up from `resolved_entities.csv` to serve as the root node (`is_incident = True`).
+2. **Fixed 72-Hour Incident Window**: 
+   - Anchored at `complaint_date 00:00:00`.
+   - Window: `[complaint_date - 72h, complaint_date + 72h]`.
+   - Captures transactions occurring before and after the reported incident. *(Adaptive activity-based windowing is designated as future work).*
+3. **Directed MultiDiGraph (`networkx.MultiDiGraph`)**:
+   - Preserves multiple transactions between the same pair of entities as distinct directed edges.
+4. **3-Hop Neighborhood Extraction**:
+   - Computes shortest path distances in the undirected projection to capture both upstream fund sources and downstream mule flow.
+   - Retains all nodes within $\le 3$ hops and induces the directed subgraph.
+5. **Typed Node Schema**:
+   - `ACCOUNT` nodes (`ENT_XXXXXX`): `canonical_name`, `state`, `city`, `latitude`, `longitude`, `is_incident`, `is_terminal = False`, `hop_distance`.
+   - `ATM` nodes (`ATM_XXX`): `state`, `city`, `latitude`, `longitude`, `is_incident = False`, `is_terminal = True`, `hop_distance`.
+6. **Edge Schema**:
+   - Directed transaction edges with `transaction_id`, `amount`, `timestamp`, `transaction_type`, `channel`, `is_cash_out`, `is_suspicious` (ground truth), `ring_id` (ground truth).
+   - Ground truth labels are preserved as metadata for evaluation and are **never** used to construct or filter the graph.
+7. **Graph Storage & Output**:
+   - **`data/graphs/<complaint_id>.graphml`**: Individual standard GraphML file for each of the 1,000 complaints.
+   - **`data/graph_summary.csv`**: Comprehensive summary of 22 structural, degree, density, and financial metrics per graph.
+   - **`data/graphs/demo_graph.png`**: Visual rendering of a representative incident subgraph.
 
 ---
 
@@ -92,13 +123,22 @@ sihmodel/
 │   ├── entity_master.csv                # Stable entity master table (700 unique entities)
 │   ├── entity_resolution_summary.csv    # Stage 0 performance summary metrics
 │   ├── entity_locations.csv             # Geographic coordinates for 700 entities
-│   └── transactions.csv                 # 15,000 synthetic financial transactions
+│   ├── transactions.csv                 # 15,000 synthetic financial transactions
+│   ├── graph_summary.csv                # 1,000 incident subgraph metrics
+│   └── graphs/                          # Extracted incident subgraphs (GraphML)
+│       ├── C000001.graphml
+│       ├── C000002.graphml
+│       ├── ...
+│       ├── C001000.graphml
+│       └── demo_graph.png               # Demonstration visualization
 │
 ├── src/
 │   ├── entity_resolution.py             # Stage 0 Entity Resolution engine
-│   └── generate_transactions.py         # Transaction & location dataset generator
+│   ├── generate_transactions.py         # Transaction & location dataset generator
+│   └── graph_construction.py            # Stage 2 Incident subgraph extraction engine
 │
 ├── generate_complaints_dataset.py       # Synthetic complaint dataset generator
+├── requirements.txt                     # Project dependencies
 └── README.md                            # Documentation and architecture guide
 ```
 
@@ -111,9 +151,14 @@ sihmodel/
 python3 src/entity_resolution.py
 ```
 
-### 2. Generate Synthetic Transactions & Locations
+### 2. Generate Synthetic Transactions & Locations (Stage 1)
 ```bash
 python3 src/generate_transactions.py
+```
+
+### 3. Extract Incident Subgraphs & Summary (Stage 2)
+```bash
+python3 src/graph_construction.py
 ```
 
 ---
@@ -141,115 +186,102 @@ python3 src/generate_transactions.py
 - **Max Amount**: ₹498,797.66
 - **Date Range**: 2026-01-01 05:13:57 → 2026-08-24 22:11:19
 
+### Stage 2 Graph Construction Statistics
+- **Total Complaints Processed**: 1,000
+- **Total Incident Graphs Saved**: 1,000 GraphML files
+- **Average Nodes per Graph**: 4.58
+- **Average Edges per Graph**: 3.82
+- **Maximum Nodes in a Graph**: 38
+- **Maximum Edges in a Graph**: 43
+- **Graphs with Suspicious Activity**: 186 (18.6%)
+- **Graphs with ATM Cash-Out Edges**: 148 (14.8%)
+
 ---
 
 ## ⚡ Scalability & Engineering Notes
 
-1. **Deterministic Resolution ($O(N)$)**: Exact `account_number + IFSC` matching operates as a hash-indexed join, scaling linearly with complaint volumes.
-2. **Fuzzy Matching Consideration ($O(N^2)$)**: At enterprise scale, candidate blocking / canopy clustering (e.g. LSH, phonetic blocking) must precede pairwise fuzzy comparisons.
-3. **Graph Readiness**: The combination of `entity_master.csv`, `transactions.csv`, and `entity_locations.csv` provides clean node tables, edge lists, timestamps, and spatial attributes ready for 72-hour incident subgraph extraction and Graph Neural Network training.
-
+1. **NetworkX Scope**: NetworkX is used for prototype-scale graph construction. A production deployment at national transaction volumes would require an indexed graph database (e.g. Neo4j) or distributed graph-processing architecture (e.g. Apache Spark GraphX / DGL).
+2. **Deterministic Resolution ($O(N)$)**: Exact `account_number + IFSC` matching operates as a hash-indexed join, scaling linearly with complaint volumes.
+3. **Fuzzy Matching Consideration ($O(N^2)$)**: At enterprise scale, candidate blocking / canopy clustering (e.g. LSH, phonetic blocking) must precede pairwise fuzzy comparisons.
+4. **Machine Learning Readiness**: The combination of `entity_master.csv`, `graph_summary.csv`, and GraphML subgraphs in `data/graphs/` provides clean tabular features, node embeddings, adjacency structures, and edge attributes ready for tabular baseline training (XGBoost) and Graph Neural Network training (GraphSAGE).
 
 ---
 
-The synthetic financial transaction generator has been implemented in generate_transactions.py and executed to produce transactions.csv and entity_locations.csv.
+Stage 2: Graph Construction / Incident Subgraph Extraction has been implemented in graph_construction.py and executed to extract 72-hour 3-hop directed incident subgraphs across all 1,000 complaints.
   ──────
-  ### Key Highlights of the Generator
-  1. Entity Alignment & Isolation:
-      • Uses the exact 700 master financial entities (ENT_000001–ENT_000700) from entity_master.csv.
-      • Cash-out terminal nodes use a distinct namespace (ATM_001–ATM_050) mapped to physical Indian cities.
-      • ground_truth_entity_id is never accessed. is_suspicious and ring_id serve strictly as ground-truth evaluation labels.
-  2. Transaction Size & Class Distribution:
-      • Total Transactions: Exactly 15,000.
-      • Normal Transactions: 12,216 (~81.4%) across all 700 entities, with realistic diurnal curves and amount distributions.
-      • Suspicious Transactions: 2,784 (~18.6%) across 25 distinct mule rings (RING_001–RING_025).
-  3. Mule Ring Topologies & Temporal Dynamics:
-      • Implements 5 distinct graph patterns:
-          • Linear Layering: E₀ → E₁ → E₂ → … → ATM
-          • Fan-in Aggregation: Multiple source mules → Aggregator →ATM
-          • Fan-out Dispersion: Inlet → Multiple downstream mules →ATMs
-          • Layered Network Mesh: Multi-path forwarding before aggregation and cash-out
-          • Multi-Stage Chains with Terminal Cash-Outs
-      • Transactions within each laundering burst occur in rapid sequence (15–90 minutes between hops) within strict ≤72-hour incident windows.
-      • Amounts decrease progressively along chains to simulate mule commission / fee retention.
-  4. Geographic Coordinates (data/entity_locations.csv):
-      • Generates synthetic coordinates across 15 Indian cities (Kolkata, Mumbai, Pune, Delhi, Bengaluru, Hyderabad, Chennai, Ahmedabad, Jaipur, Lucknow, Patna, Bhubaneswar, Kochi, Bhopal, Chandigarh).
+  ### Pipeline Execution Summary
 
+    =======================================================
+          STAGE 2 INCIDENT GRAPH EXTRACTION SUMMARY
+    =======================================================
+    Total Complaints Processed : 1000
+    Total Incident Graphs Saved: 1000 GraphML files (data/graphs/)
+    Average Nodes per Graph    : 4.58
+    Average Edges per Graph    : 3.82
+    Maximum Nodes in a Graph   : 38
+    Maximum Edges in a Graph   : 43
+    -------------------------------------------------------
+    Graphs with Suspicious Activity: 186 (18.6%)
+    Graphs with ATM Cash-Out Edges : 148 (14.8%)
+    =======================================================
   ──────
-  ### Actual Execution Summary Statistics
+  ### Generated Output Artifacts
 
-    ================================================
-          SYNTHETIC TRANSACTION DATASET
-    ================================================
-    Total transactions         : 15000
-    Unique financial entities  : 700
-    Suspicious transactions    : 2784 (18.6%)
-    Normal transactions        : 12216 (81.4%)
-    Suspicious rings           : 25
-    Cash-out transactions      : 1195 (8.0%)
-    ------------------------------------------------
-    Date range:
-    2026-01-01 05:13:57 → 2026-08-24 22:11:19
-    ------------------------------------------------
-    Average transaction amount : ₹46,784.46
-    Maximum transaction amount : ₹498,797.66
-    ------------------------------------------------
-    Transaction type distribution:
-      - UPI                :  7241 (48.3%)
-      - IMPS               :  3268 (21.8%)
-      - NEFT               :  2214 (14.8%)
-      - CASH_WITHDRAWAL    :  1195 ( 8.0%)
-      - CARD               :   857 ( 5.7%)
-      - RTGS               :   225 ( 1.5%)
-    ================================================
+  1. : 1,000 individual GraphML files (C000001.graphml through C001000.graphml) storing directed networkx.MultiDiGraph incident subgraphs with complete node and edge attributes.
+  2. **graph_summary.csv**: 1,000 rows containing 22 topological, temporal, financial, and evaluation metrics per incident graph.
+  3. **demo_graph.png**: Visual rendering of the demonstration incident subgraph.
+  4. **requirements.txt**: Python dependencies specification.
   ──────
-  ### Sample 10 Transactions from data/transactions.csv
+  ### 5 Sample Rows from data/graph_summary.csv
 
-   Tx ID                 | Sender                | Receiver              |     Amount (INR)     | Timestamp            | Type                 |       CashOut        |         Susp         | Ring
-  -----------------------|-----------------------|-----------------------|----------------------|----------------------|----------------------|----------------------|----------------------|----------------------
-   T000001               | ENT_000550            | ENT_000412            |     ₹322,804.63      | 2026-01-01 05:13:57  | RTGS                 |          0           |          0           | NORMAL
-   T000002               | ENT_000418            | ENT_000613            |      ₹55,186.74      | 2026-01-01 06:18:00  | UPI                  |          0           |          1           | RING_002
-   T000003               | ENT_000395            | ENT_000101            |      ₹3,222.29       | 2026-01-01 06:22:21  | IMPS                 |          0           |          0           | NORMAL
-   T000004               | ENT_000178            | ENT_000339            |      ₹2,050.10       | 2026-01-01 06:34:24  | IMPS                 |          0           |          0           | NORMAL
-   T000005               | ENT_000632            | ENT_000370            |       ₹503.03        | 2026-01-01 06:46:46  | UPI                  |          0           |          0           | NORMAL
-   T000006               | ENT_000106            | ENT_000613            |      ₹52,785.33      | 2026-01-01 06:47:00  | IMPS                 |          0           |          1           | RING_002
-   T000007               | ENT_000532            | ENT_000616            |      ₹3,437.70       | 2026-01-01 06:51:12  | UPI                  |          0           |          0           | NORMAL
-   T000008               | ENT_000027            | ENT_000613            |      ₹57,212.66      | 2026-01-01 07:02:00  | IMPS                 |          0           |          1           | RING_002
-   T000009               | ENT_000121            | ENT_000502            |      ₹4,388.24       | 2026-01-01 07:16:18  | UPI                  |          0           |          0           | NORMAL
-   T000010               | ENT_000092            | ENT_000613            |      ₹54,686.88      | 2026-01-01 07:17:00  | UPI                  |          0           |          1           | RING_002
+   complaint_id | incident_entity_… | incident_time       | window_start        | window_end          | num_nod… | num_edges | num_acco… | num_atm_… | max_hop | total_transa… | num_cash… | contains… | suspicio…
+  --------------|-------------------|---------------------|---------------------|---------------------|----------|-----------|-----------|-----------|---------|---------------|-----------|-----------|-----------
+   C000001      | ENT_000090        | 2026-07-20 00:00:00 | 2026-07-17 00:00:00 | 2026-07-23 00:00:00 |    1     |     0     |     1     |     0     |    0    |     ₹0.00     |     0     |     0     |     0
+   C000002      | ENT_000451        | 2026-01-11 00:00:00 | 2026-01-08 00:00:00 | 2026-01-14 00:00:00 |    1     |     0     |     1     |     0     |    0    |     ₹0.00     |     0     |     0     |     0
+   C000003      | ENT_000325        | 2026-04-22 00:00:00 | 2026-04-19 00:00:00 | 2026-04-25 00:00:00 |    12    |    13     |    10     |     2     |    3    | ₹1,061,795.51 |     2     |     1     |     1
+   C000004      | ENT_000493        | 2026-06-02 00:00:00 | 2026-05-30 00:00:00 | 2026-06-05 00:00:00 |    4     |     3     |     4     |     0     |    2    |  ₹12,669.47   |     0     |     0     |     0
+   C000005      | ENT_000650        | 2026-06-07 00:00:00 | 2026-06-04 00:00:00 | 2026-06-10 00:00:00 |    1     |     0     |     1     |     0     |    0    |     ₹0.00     |     0     |     0     |     0
   ──────
-  ### 5 Example Suspicious Multi-Hop Sequences (RING_001)
+  ### Demonstration Graph Details: Complaint C000014
 
-   Tx ID                       | Flow                        |        Amount (INR)         | Timestamp                   | Type                        |           CashOut           | Ring
-  -----------------------------|-----------------------------|-----------------------------|-----------------------------|-----------------------------|-----------------------------|-----------------------------
-   T000165                     | ENT_000084 → ENT_000539     |         ₹209,080.81         | 2026-01-03 11:30:05         | NEFT                        |              0              | RING_001
-   T000167                     | ENT_000539 → ENT_000458     |         ₹199,053.09         | 2026-01-03 11:59:05         | UPI                         |              0              | RING_001
-   T000169                     | ENT_000458 → ENT_000541     |         ₹190,406.54         | 2026-01-03 12:14:05         | IMPS                        |              0              | RING_001
-   T000170                     | ENT_000541 → ENT_000371     |         ₹181,231.52         | 2026-01-03 12:52:05         | NEFT                        |              0              | RING_001
-   T000174                     | ENT_000371 → ENT_000080     |         ₹177,247.53         | 2026-01-03 13:49:05         | IMPS                        |              0              | RING_001
-  ──────
-  ### 5 Example Normal Transactions
+  • Incident Entity (Root): ENT_000292
+  • Time Window: 2026-05-29 00:00:00 to 2026-06-04 00:00:00
+  • Graph Topology: 18 Nodes (16 Accounts, 2 ATMs), 19 Edges, Max Hop = 3, Total Value = ₹1,629,314.82
+  • Rings Observed: RING_008, RING_011
 
-   Tx ID                       | Flow                        |        Amount (INR)         | Timestamp                   | Type                        |           CashOut           | Ring
-  -----------------------------|-----------------------------|-----------------------------|-----------------------------|-----------------------------|-----------------------------|-----------------------------
-   T000001                     | ENT_000550 → ENT_000412     |         ₹322,804.63         | 2026-01-01 05:13:57         | RTGS                        |              0              | NORMAL
-   T000003                     | ENT_000395 → ENT_000101     |          ₹3,222.29          | 2026-01-01 06:22:21         | IMPS                        |              0              | NORMAL
-   T000004                     | ENT_000178 → ENT_000339     |          ₹2,050.10          | 2026-01-01 06:34:24         | IMPS                        |              0              | NORMAL
-   T000005                     | ENT_000632 → ENT_000370     |           ₹503.03           | 2026-01-01 06:46:46         | UPI                         |              0              | NORMAL
-   T000007                     | ENT_000532 → ENT_000616     |          ₹3,437.70          | 2026-01-01 06:51:12         | UPI                         |              0              | NORMAL
+  #### Example Nodes from C000014.graphml:
+
+  • ENT_000292: node_type="ACCOUNT", is_incident=True, hop_distance=0, city="Bengaluru", name="Sneha Choudhury"
+  • ENT_000093: node_type="ACCOUNT", is_incident=False, hop_distance=1, city="Delhi", name="Sunil Sharma"
+  • ENT_000573: node_type="ACCOUNT", is_incident=False, hop_distance=2, city="Ahmedabad", name="Swati Dubey"
+  • ATM_018: node_type="ATM", is_terminal=True, is_incident=False, hop_distance=1, city="Bengaluru"
+  • ATM_023: node_type="ATM", is_terminal=True, is_incident=False, hop_distance=3, city="Ahmedabad"
+
+  #### Example Edges from C000014.graphml:
+
+  • ENT_000093 → ENT_000292 : ₹98,548.39 via NEFT | is_cash_out=0 | RING_008 (Mule fund transfer to incident node)
+  • ENT_000292 → ATM_018 : ₹95,538.10 via CASH_WITHDRAWAL | is_cash_out=1 | RING_008 (Direct cash-out exit)
+  • ENT_000093 → ENT_000573 : ₹93,884.20 via UPI | is_cash_out=0 | RING_008 (Fan-out dispersion)
+  • ENT_000573 → ATM_023 : ₹89,703.74 via CASH_WITHDRAWAL | is_cash_out=1 | RING_008 (Parallel terminal cash-out)
+  • ENT_000610 → ENT_000573 : ₹445,550.06 via RTGS | is_cash_out=0 | NORMAL (Benign baseline transfer)
   ──────
   ### Validation Suite Status
 
-  All 14 automated validation assertions passed:
+  All 11 automated validation checks passed:
 
-  • transaction_id unique format (T000001–T015000).
-  • Senders and receivers strictly validated against entity_master.csv (700 entities) and ATM nodes (ATM_001–ATM_050).
-  • No self-transactions (sender != receiver).
-  • All amounts >0.
-  • Timestamps verified within 2026-01-01 to 2026-08-24.
-  • All 700 entities active in transactions.
-  • All 25 suspicious rings verified with multi-hop sequences within ≤72 hours.
-  • Dataset is 100% reproducible with random seed 42.
+  1. Every complaint has a valid predicted_entity_id resolved from Stage 0.
+  2. Every predicted_entity_id and non-ATM node belongs strictly to entity_master.csv.
+  3. Every graph has exactly one root incident entity (is_incident == True).
+  4. All nodes strictly respect hop_distance ≤ 3.
+  5. All graph edges correspond to transactions from transactions.csv within the 72-hour window.
+  6. ATM nodes are typed (node_type="ATM", is_terminal=True).
+  7. GraphML serialization and deserialization roundtrip verified.
+  8. Ground-truth labels (is_suspicious, ring_id) were not used to construct or filter the graph.
+  ──────
+  ### Confirmation: Readiness for Machine Learning
 
-  ---
-  ----
+  Stage 2 Graph Construction is complete, verified, and ready for Stage 3 (XGBoost Baseline and GraphSAGE GNN):
+
+  • Tabular graph metrics in graph_summary.csv provide structural and financial features for XGBoost.
+  • MultiDiGraph subgraphs in  provide node features, edge weights, and adjacency matrices for Graph Neural Network training.
+    
