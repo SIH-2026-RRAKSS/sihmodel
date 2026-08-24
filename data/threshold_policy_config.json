@@ -1,0 +1,38 @@
+{
+  "module_name": "Stage 7 Threshold Policy & Alert Tunability",
+  "version": "1.0.0",
+  "primary_model": "GraphSAGE GNN",
+  "baseline_model": "XGBoost Baseline",
+  "default_threshold": 0.5,
+  "supported_thresholds": [
+    0.1,
+    0.3,
+    0.5,
+    0.7,
+    0.8,
+    0.9
+  ],
+  "policy_tiers": {
+    "HIGH_SENSITIVITY": {
+      "threshold_range": "[0.00, 0.30)",
+      "operational_mode": "Intake Triage & Maximum Recall",
+      "description": "Surfaces potential early-stage or low-volume suspicious patterns; acceptable higher false-positive rate."
+    },
+    "BALANCED_TRIAGE": {
+      "threshold_range": "[0.30, 0.70)",
+      "operational_mode": "Standard Operational Baseline",
+      "description": "Optimal equilibrium between detection recall and investigator caseload capacity."
+    },
+    "HIGH_PRECISION": {
+      "threshold_range": "[0.70, 0.90)",
+      "operational_mode": "Targeted Escalation",
+      "description": "High-confidence alerts for priority case assignment with minimal false alarms."
+    },
+    "HIGH_CONFIDENCE_ALERT": {
+      "threshold_range": "[0.90, 1.00]",
+      "operational_mode": "Automated Intervention Recommendation",
+      "description": "Zero or near-zero false-positive alerts suitable for expedited interbank fund freezing."
+    }
+  },
+  "runtime_policy_function": "apply_threshold(probability, threshold)"
+}

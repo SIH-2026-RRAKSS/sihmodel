@@ -1,6 +1,6 @@
-# Cybercrime Predictive Analytics — Stages 0 to 5
+# Cybercrime Predictive Analytics — Stages 0 to 7
 
-This repository implements an end-to-end predictive analytics framework designed for cybercrime complaints, entity resolution, financial transaction graph construction, Graph Neural Network (GraphSAGE) classification, terminal cash-withdrawal location prediction, and confidence-tier uncertainty calibration.
+This repository implements an end-to-end predictive analytics framework designed for cybercrime complaints, entity resolution, financial transaction graph construction, Graph Neural Network (GraphSAGE) classification, terminal cash-withdrawal location prediction, confidence calibration, human-interpretable explainability, and dynamic alert policy threshold tuning.
 
 ---
 
@@ -32,7 +32,11 @@ Stage 4: Terminal Node & Cash-Withdrawal Location Prediction (src/terminal_predi
    ↓
 Stage 5: Confidence Tiers & Novelty Detection (src/confidence_tiers.py)
    ↓
-data/confidence_tiers.csv (HIGH_CONFIDENCE, MEDIUM_CONFIDENCE, FIRST_TIME_RING, NORMAL)
+Stage 6: Explainability Layer (src/explainability.py)
+   ↓
+Stage 7: Alert Threshold & Policy Tunability (src/threshold_policy.py)
+   ↓
+data/threshold_policy_analysis.csv & data/threshold_policy_config.json (FastAPI & Slider Ready)
 ```
 
 ---
@@ -148,30 +152,41 @@ Stage 4 (`src/terminal_prediction.py`) bridges graph analytics with tactical law
 
 Stage 5 (`src/confidence_tiers.py`) establishes an uncertainty calibration framework that categorizes flagged incidents into actionable operational confidence tiers and detects novel / emerging ring topologies.
 
-### 1. Motivation for Confidence Calibration
-In real-world cybercrime operations, raw model probabilities do not capture structural novelty or evidentiary completeness. Labeling an incident as an established ring without historical pattern evidence risks investigative misdirection. Stage 5 separates known high-confidence topologies from emerging first-time rings.
+- **`HIGH_CONFIDENCE`**: $P_{\text{GNN}} \ge 0.70$, $\ge 2$ supporting signals, terminal evidence or multi-hop structure, and reference similarity $\ge 0.85$.
+- **`MEDIUM_CONFIDENCE`**: Elevated risk with partial supporting evidence.
+- **`FIRST_TIME_RING_CANDIDATE`**: $P_{\text{GNN}} \ge 0.50$ but low similarity ($< 0.85$) to cataloged reference patterns.
+- **`NORMAL`**: $P_{\text{GNN}} < 0.50$.
+- **Tier Distribution**: 713 Normal (71.3%), 226 High Confidence (22.6%, 72.57% precision, captures 88.17% of all laundering), 61 Medium Confidence (6.1%).
 
-### 2. Confidence Tier Categories
-1. **`HIGH_CONFIDENCE`**:
-   - $P_{\text{GNN}} \ge 0.70$
-   - $\ge 2$ independent supporting signals (multi-hop path, elevated volume, complex graph, cash-out terminal)
-   - Verified terminal evidence or multi-hop structure
-   - Reference embedding similarity $\ge 0.85$ (closely matches cataloged reference patterns)
-2. **`MEDIUM_CONFIDENCE`**:
-   - $P_{\text{GNN}} \ge 0.70$ with elevated activity, but partial terminal/structural evidence.
-3. **`FIRST_TIME_RING_CANDIDATE`**:
-   - $P_{\text{GNN}} \ge 0.50$ (elevated risk)
-   - Reference embedding similarity $< 0.85$ (divergent from previously cataloged training rings)
-   - *Operational Directive*: Surface as a new-pattern investigative lead.
-4. **`NORMAL`**:
-   - $P_{\text{GNN}} < 0.50$ (below suspicious action threshold).
+---
 
-### 3. Tier Distribution & Offline Performance
-- **Total Incidents Processed**: 1,000
-- **Normal Tier**: 713 incidents (71.3%)
-- **High Confidence**: 226 incidents (22.6%) — captures **88.17%** of all actual laundering networks with **72.57% precision**.
-- **Medium Confidence**: 61 incidents (6.1%)
-- **Combined Suspicious Tiers**: 287 incidents — captures **89.25%** of all laundering activity.
+## 💡 Stage 6 — Explainability Layer
+
+Stage 6 (`src/explainability.py`) converts complex multi-modal graph and machine learning outputs into structured, human-readable explanations and executive summaries for cybercrime investigating officers.
+
+- **Tabular Storage**: [`data/explanations.csv`](file:///home/rd/Repositories/SIH/sihmodel/data/explanations.csv) containing incident explanations for all 1,000 complaints.
+- **API & UI Ready**: [`data/explainability_examples.json`](file:///home/rd/Repositories/SIH/sihmodel/data/explainability_examples.json) formatted for direct consumption by FastAPI and web dashboards.
+
+---
+
+## 🎛️ Stage 7 — Alert Threshold & Policy Tunability
+
+Stage 7 (`src/threshold_policy.py`) implements a dynamic, investigator-tunable alert decision layer over the GraphSAGE risk probabilities to navigate operational tradeoffs between detection sensitivity and alert fatigue.
+
+### 1. Operational Policy Tiers
+- **`HIGH_SENSITIVITY`** ($\tau < 0.30$): Intake triage & maximum recall (Recall = 91.89%, Precision = 72.34%).
+- **`BALANCED_TRIAGE`** ($0.30 \le \tau < 0.70$): Standard operational baseline (Default $\tau = 0.50$: Recall = 86.49%, Precision = 94.12%, F1 = 90.14%).
+- **`HIGH_PRECISION`** ($0.70 \le \tau < 0.90$): Targeted case escalation with minimal false alarms ($\tau = 0.70$: Recall = 86.49%, Precision = 96.97%, F1 = 91.43%).
+- **`HIGH_CONFIDENCE_ALERT`** ($\tau \ge 0.90$): Zero false alarms for automated freezing recommendations (Precision = 100.00%, Recall = 81.08%, F1 = 89.55%).
+
+### 2. Runtime Decision Interface
+```python
+from src.threshold_policy import apply_threshold
+
+# Evaluates risk score at user-selected policy cutoff
+decision = apply_threshold(probability=0.88, threshold=0.70)
+# Returns: {'risk_probability': 0.88, 'threshold': 0.70, 'alert': True, 'alert_status': 'ALERT', 'policy_tier': 'HIGH_PRECISION'}
+```
 
 ---
 
@@ -210,6 +225,15 @@ sihmodel/
 │   ├── confidence_summary.csv             # Stage 5 Tier distribution and novelty summary
 │   ├── confidence_examples.csv            # Stage 5 Representative case breakdowns
 │   ├── confidence_tier_evaluation.csv     # Stage 5 Offline evaluation against ground truth
+│   ├── explanations.csv                   # Stage 6 Full incident explanations and summaries
+│   ├── explanation_examples.csv           # Stage 6 Representative explanation breakdowns
+│   ├── explainability_summary.csv         # Stage 6 Summary metrics on generated explanations
+│   ├── explainability_examples.json       # Stage 6 Structured JSON for REST API / Frontend
+│   ├── threshold_policy_analysis.csv      # Stage 7 Offline evaluation across thresholds
+│   ├── threshold_policy_config.json       # Stage 7 Runtime config for FastAPI / UI slider
+│   ├── threshold_examples.csv             # Stage 7 Representative decisions at 0.30–0.90
+│   ├── threshold_policy_summary.csv       # Stage 7 Concise threshold comparison metrics
+│   ├── threshold_policy_curve.png         # Stage 7 Precision/Recall tradeoff curve plot
 │   └── graphs/                            # 1,000 GraphML subgraphs
 │       ├── C000001.graphml ... C001000.graphml
 │       └── demo_graph.png                 # Demonstration incident visualization
@@ -227,7 +251,9 @@ sihmodel/
 │   ├── xgboost_baseline.py                # Stage 3A XGBoost baseline classifier
 │   ├── graphsage_classifier.py            # Stage 3B GraphSAGE GNN classifier
 │   ├── terminal_prediction.py             # Stage 4 Terminal node prediction engine
-│   └── confidence_tiers.py                # Stage 5 Confidence tiers & novelty detection
+│   ├── confidence_tiers.py                # Stage 5 Confidence tiers & novelty detection
+│   ├── explainability.py                  # Stage 6 Human-readable explainability engine
+│   └── threshold_policy.py                # Stage 7 Dynamic alert threshold policy layer
 │
 ├── generate_complaints_dataset.py         # Synthetic complaint dataset generator
 ├── requirements.txt                       # Project dependencies
@@ -259,4 +285,10 @@ python3 src/terminal_prediction.py
 
 # 7. Assign Confidence Tiers & Detect Novel Ring Patterns (Stage 5)
 python3 src/confidence_tiers.py
+
+# 8. Generate Human-Readable Investigative Explanations (Stage 6)
+python3 src/explainability.py
+
+# 9. Evaluate & Configure Dynamic Alert Threshold Policies (Stage 7)
+python3 src/threshold_policy.py
 ```

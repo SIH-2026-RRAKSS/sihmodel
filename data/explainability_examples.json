@@ -1,0 +1,1336 @@
+[
+  {
+    "complaint_id": "C000001",
+    "incident_entity_id": "ENT_000090",
+    "graphsage_probability": 0.0003,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0003, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000002",
+    "incident_entity_id": "ENT_000451",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000003",
+    "incident_entity_id": "ENT_000325",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.997,
+    "graph_metrics": {
+      "num_nodes": 12,
+      "num_edges": 13,
+      "max_hop": 3,
+      "total_transaction_value": 1061795.51,
+      "max_transaction_value": 241832.58,
+      "average_degree": 2.17
+    },
+    "terminal_prediction": {
+      "atm_id": "ATM_014",
+      "city": "Kochi",
+      "terminal_score": 0.8093,
+      "hop_distance": 2,
+      "total_cash_withdrawal": 222229.06,
+      "withdrawal_count": 1,
+      "hours_from_incident": 26.32
+    },
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b91,061,795.51 with a peak single transfer of \u20b9241,832.58.",
+      "Subnetwork connects 12 entities across 13 directed transaction edges (average node degree: 2.17, incident in-degree: 1, out-degree: 1).",
+      "Likely downstream cash exit identified at terminal ATM_014 in Kochi (terminal risk score: 0.81, \u20b9222,229.06 withdrawn across 1 transaction(s)).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with downstream cash-out behavior was detected. Priority investigation recommended for root entity ENT_000325 and exit terminal ATM_014 (Kochi)."
+  },
+  {
+    "complaint_id": "C000004",
+    "incident_entity_id": "ENT_000493",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "nearest_reference_similarity": 0.994,
+    "graph_metrics": {
+      "num_nodes": 4,
+      "num_edges": 3,
+      "max_hop": 2,
+      "total_transaction_value": 12669.47,
+      "max_transaction_value": 7162.25,
+      "average_degree": 1.5
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: MEDIUM_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 2 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b912,669.47 with a peak single transfer of \u20b97,162.25.",
+      "Subnetwork connects 4 entities across 3 directed transaction edges (average node degree: 1.50, incident in-degree: 1, out-degree: 1).",
+      "Graph topology exhibits high structural similarity (0.99) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "Elevated transaction risk detected around entity ENT_000493. Multi-hop activity observed, but supporting terminal or structural reference evidence remains partial."
+  },
+  {
+    "complaint_id": "C000005",
+    "incident_entity_id": "ENT_000650",
+    "graphsage_probability": 0.0054,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0054, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000006",
+    "incident_entity_id": "ENT_000669",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9996,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 2461.42,
+      "max_transaction_value": 2461.42,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b92,461.42 (average transfer: \u20b92,461.42).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000007",
+    "incident_entity_id": "ENT_000487",
+    "graphsage_probability": 0.0001,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0001, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000008",
+    "incident_entity_id": "ENT_000630",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.999,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 2867.29,
+      "max_transaction_value": 2867.29,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b92,867.29 (average transfer: \u20b92,867.29).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000009",
+    "incident_entity_id": "ENT_000659",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "nearest_reference_similarity": 0.9976,
+    "graph_metrics": {
+      "num_nodes": 3,
+      "num_edges": 2,
+      "max_hop": 1,
+      "total_transaction_value": 3452.92,
+      "max_transaction_value": 2739.84,
+      "average_degree": 1.33
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: MEDIUM_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "Direct 1-hop transaction activity observed adjacent to the incident account.",
+      "Cumulative transaction volume reached \u20b93,452.92 with a peak single transfer of \u20b92,739.84.",
+      "Subnetwork connects 3 entities across 2 directed transaction edges (average node degree: 1.33, incident in-degree: 1, out-degree: 1).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "Elevated transaction risk detected around entity ENT_000659. Multi-hop activity observed, but supporting terminal or structural reference evidence remains partial."
+  },
+  {
+    "complaint_id": "C000010",
+    "incident_entity_id": "ENT_000348",
+    "graphsage_probability": 0.0001,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0001, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000011",
+    "incident_entity_id": "ENT_000467",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9999,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 3368.11,
+      "max_transaction_value": 3368.11,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b93,368.11 (average transfer: \u20b93,368.11).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000012",
+    "incident_entity_id": "ENT_000220",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000013",
+    "incident_entity_id": "ENT_000461",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9807,
+    "graph_metrics": {
+      "num_nodes": 3,
+      "num_edges": 2,
+      "max_hop": 2,
+      "total_transaction_value": 47600.7,
+      "max_transaction_value": 44546.66,
+      "average_degree": 1.33
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (3 entity node(s), 2 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b947,600.70 (average transfer: \u20b923,800.35).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 2).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000014",
+    "incident_entity_id": "ENT_000292",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.9994,
+    "graph_metrics": {
+      "num_nodes": 18,
+      "num_edges": 19,
+      "max_hop": 3,
+      "total_transaction_value": 1629314.82,
+      "max_transaction_value": 445550.06,
+      "average_degree": 2.11
+    },
+    "terminal_prediction": {
+      "atm_id": "ATM_018",
+      "city": "Bengaluru",
+      "terminal_score": 0.9045,
+      "hop_distance": 1,
+      "total_cash_withdrawal": 183797.37,
+      "withdrawal_count": 2,
+      "hours_from_incident": 10.1
+    },
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b91,629,314.82 with a peak single transfer of \u20b9445,550.06.",
+      "Subnetwork connects 18 entities across 19 directed transaction edges (average node degree: 2.11, incident in-degree: 1, out-degree: 1).",
+      "Likely downstream cash exit identified at terminal ATM_018 in Bengaluru (terminal risk score: 0.90, \u20b9183,797.37 withdrawn across 2 transaction(s)).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with downstream cash-out behavior was detected. Priority investigation recommended for root entity ENT_000292 and exit terminal ATM_018 (Bengaluru)."
+  },
+  {
+    "complaint_id": "C000015",
+    "incident_entity_id": "ENT_000252",
+    "graphsage_probability": 0.0003,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0003, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000016",
+    "incident_entity_id": "ENT_000598",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.9956,
+    "graph_metrics": {
+      "num_nodes": 20,
+      "num_edges": 24,
+      "max_hop": 3,
+      "total_transaction_value": 446762.95,
+      "max_transaction_value": 45539.22,
+      "average_degree": 2.4
+    },
+    "terminal_prediction": {
+      "atm_id": "ATM_011",
+      "city": "Kolkata",
+      "terminal_score": 0.7021,
+      "hop_distance": 2,
+      "total_cash_withdrawal": 45630.25,
+      "withdrawal_count": 2,
+      "hours_from_incident": 63.13
+    },
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b9446,762.95 with a peak single transfer of \u20b945,539.22.",
+      "Subnetwork connects 20 entities across 24 directed transaction edges (average node degree: 2.40, incident in-degree: 1, out-degree: 1).",
+      "Likely downstream cash exit identified at terminal ATM_011 in Kolkata (terminal risk score: 0.70, \u20b945,630.25 withdrawn across 2 transaction(s)).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with downstream cash-out behavior was detected. Priority investigation recommended for root entity ENT_000598 and exit terminal ATM_011 (Kolkata)."
+  },
+  {
+    "complaint_id": "C000017",
+    "incident_entity_id": "ENT_000676",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9995,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 2827.43,
+      "max_transaction_value": 2827.43,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b92,827.43 (average transfer: \u20b92,827.43).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000018",
+    "incident_entity_id": "ENT_000610",
+    "graphsage_probability": 0.0026,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0026, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000019",
+    "incident_entity_id": "ENT_000534",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9998,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 2776.33,
+      "max_transaction_value": 2776.33,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b92,776.33 (average transfer: \u20b92,776.33).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000020",
+    "incident_entity_id": "ENT_000659",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.9953,
+    "graph_metrics": {
+      "num_nodes": 9,
+      "num_edges": 8,
+      "max_hop": 3,
+      "total_transaction_value": 28964.0,
+      "max_transaction_value": 4829.24,
+      "average_degree": 1.78
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b928,964.00 with a peak single transfer of \u20b94,829.24.",
+      "Subnetwork connects 9 entities across 8 directed transaction edges (average node degree: 1.78, incident in-degree: 2, out-degree: 0).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with strong graph evidence was detected. Priority investigation recommended for root entity ENT_000659 and connected intermediaries."
+  },
+  {
+    "complaint_id": "C000021",
+    "incident_entity_id": "ENT_000201",
+    "graphsage_probability": 0.0218,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0218, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000022",
+    "incident_entity_id": "ENT_000458",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.999,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 1004.91,
+      "max_transaction_value": 1004.91,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b91,004.91 (average transfer: \u20b91,004.91).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000023",
+    "incident_entity_id": "ENT_000658",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.992,
+    "graph_metrics": {
+      "num_nodes": 3,
+      "num_edges": 2,
+      "max_hop": 2,
+      "total_transaction_value": 8836.74,
+      "max_transaction_value": 6301.83,
+      "average_degree": 1.33
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (3 entity node(s), 2 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b98,836.74 (average transfer: \u20b94,418.37).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 2).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000024",
+    "incident_entity_id": "ENT_000425",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.9975,
+    "graph_metrics": {
+      "num_nodes": 19,
+      "num_edges": 18,
+      "max_hop": 3,
+      "total_transaction_value": 1231957.14,
+      "max_transaction_value": 403355.82,
+      "average_degree": 1.89
+    },
+    "terminal_prediction": {
+      "atm_id": "ATM_015",
+      "city": "Chandigarh",
+      "terminal_score": 0.8358,
+      "hop_distance": 2,
+      "total_cash_withdrawal": 403355.82,
+      "withdrawal_count": 1,
+      "hours_from_incident": 22.79
+    },
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b91,231,957.14 with a peak single transfer of \u20b9403,355.82.",
+      "Subnetwork connects 19 entities across 18 directed transaction edges (average node degree: 1.89, incident in-degree: 0, out-degree: 3).",
+      "Likely downstream cash exit identified at terminal ATM_015 in Chandigarh (terminal risk score: 0.84, \u20b9403,355.82 withdrawn across 1 transaction(s)).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with downstream cash-out behavior was detected. Priority investigation recommended for root entity ENT_000425 and exit terminal ATM_015 (Chandigarh)."
+  },
+  {
+    "complaint_id": "C000025",
+    "incident_entity_id": "ENT_000072",
+    "graphsage_probability": 0.0686,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0686, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000026",
+    "incident_entity_id": "ENT_000371",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000027",
+    "incident_entity_id": "ENT_000548",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "nearest_reference_similarity": 0.995,
+    "graph_metrics": {
+      "num_nodes": 4,
+      "num_edges": 3,
+      "max_hop": 3,
+      "total_transaction_value": 10106.03,
+      "max_transaction_value": 4332.71,
+      "average_degree": 1.5
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: MEDIUM_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b910,106.03 with a peak single transfer of \u20b94,332.71.",
+      "Subnetwork connects 4 entities across 3 directed transaction edges (average node degree: 1.50, incident in-degree: 0, out-degree: 1).",
+      "Graph topology exhibits high structural similarity (0.99) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "Elevated transaction risk detected around entity ENT_000548. Multi-hop activity observed, but supporting terminal or structural reference evidence remains partial."
+  },
+  {
+    "complaint_id": "C000028",
+    "incident_entity_id": "ENT_000640",
+    "graphsage_probability": 0.0003,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0003, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000029",
+    "incident_entity_id": "ENT_000665",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000030",
+    "incident_entity_id": "ENT_000063",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.9979,
+    "graph_metrics": {
+      "num_nodes": 18,
+      "num_edges": 22,
+      "max_hop": 3,
+      "total_transaction_value": 403200.67,
+      "max_transaction_value": 38411.45,
+      "average_degree": 2.44
+    },
+    "terminal_prediction": {
+      "atm_id": "ATM_011",
+      "city": "Kolkata",
+      "terminal_score": 0.6586,
+      "hop_distance": 2,
+      "total_cash_withdrawal": 45630.25,
+      "withdrawal_count": 2,
+      "hours_from_incident": 63.13
+    },
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b9403,200.67 with a peak single transfer of \u20b938,411.45.",
+      "Subnetwork connects 18 entities across 22 directed transaction edges (average node degree: 2.44, incident in-degree: 1, out-degree: 1).",
+      "Likely downstream cash exit identified at terminal ATM_011 in Kolkata (terminal risk score: 0.66, \u20b945,630.25 withdrawn across 2 transaction(s)).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with downstream cash-out behavior was detected. Priority investigation recommended for root entity ENT_000063 and exit terminal ATM_011 (Kolkata)."
+  },
+  {
+    "complaint_id": "C000031",
+    "incident_entity_id": "ENT_000593",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9571,
+    "graph_metrics": {
+      "num_nodes": 8,
+      "num_edges": 7,
+      "max_hop": 3,
+      "total_transaction_value": 561119.3,
+      "max_transaction_value": 494545.31,
+      "average_degree": 1.75
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (8 entity node(s), 7 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b9561,119.30 (average transfer: \u20b980,159.90).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 3).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000032",
+    "incident_entity_id": "ENT_000378",
+    "graphsage_probability": 0.0054,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0054, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000033",
+    "incident_entity_id": "ENT_000242",
+    "graphsage_probability": 0.0001,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0001, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000034",
+    "incident_entity_id": "ENT_000219",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000035",
+    "incident_entity_id": "ENT_000387",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.998,
+    "graph_metrics": {
+      "num_nodes": 12,
+      "num_edges": 11,
+      "max_hop": 3,
+      "total_transaction_value": 1178962.62,
+      "max_transaction_value": 204811.19,
+      "average_degree": 1.83
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b91,178,962.62 with a peak single transfer of \u20b9204,811.19.",
+      "Subnetwork connects 12 entities across 11 directed transaction edges (average node degree: 1.83, incident in-degree: 2, out-degree: 1).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with strong graph evidence was detected. Priority investigation recommended for root entity ENT_000387 and connected intermediaries."
+  },
+  {
+    "complaint_id": "C000036",
+    "incident_entity_id": "ENT_000532",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9998,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 4767.7,
+      "max_transaction_value": 4767.7,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b94,767.70 (average transfer: \u20b94,767.70).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000037",
+    "incident_entity_id": "ENT_000237",
+    "graphsage_probability": 0.0112,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0112, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000038",
+    "incident_entity_id": "ENT_000483",
+    "graphsage_probability": 0.0001,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0001, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000039",
+    "incident_entity_id": "ENT_000466",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.983,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 316987.91,
+      "max_transaction_value": 316987.91,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b9316,987.91 (average transfer: \u20b9316,987.91).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000040",
+    "incident_entity_id": "ENT_000453",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9993,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 1244.96,
+      "max_transaction_value": 1244.96,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b91,244.96 (average transfer: \u20b91,244.96).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000041",
+    "incident_entity_id": "ENT_000013",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000042",
+    "incident_entity_id": "ENT_000406",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9963,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 31941.64,
+      "max_transaction_value": 31941.64,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b931,941.64 (average transfer: \u20b931,941.64).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000043",
+    "incident_entity_id": "ENT_000351",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9931,
+    "graph_metrics": {
+      "num_nodes": 7,
+      "num_edges": 6,
+      "max_hop": 3,
+      "total_transaction_value": 70736.66,
+      "max_transaction_value": 34019.75,
+      "average_degree": 1.71
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (7 entity node(s), 6 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b970,736.66 (average transfer: \u20b911,789.44).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 3).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000044",
+    "incident_entity_id": "ENT_000677",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.9986,
+    "graph_metrics": {
+      "num_nodes": 13,
+      "num_edges": 12,
+      "max_hop": 3,
+      "total_transaction_value": 655267.94,
+      "max_transaction_value": 208247.92,
+      "average_degree": 1.85
+    },
+    "terminal_prediction": {
+      "atm_id": "ATM_002",
+      "city": "Bhubaneswar",
+      "terminal_score": 0.7986,
+      "hop_distance": 3,
+      "total_cash_withdrawal": 208247.92,
+      "withdrawal_count": 1,
+      "hours_from_incident": 6.88
+    },
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b9655,267.94 with a peak single transfer of \u20b9208,247.92.",
+      "Subnetwork connects 13 entities across 12 directed transaction edges (average node degree: 1.85, incident in-degree: 1, out-degree: 0).",
+      "Likely downstream cash exit identified at terminal ATM_002 in Bhubaneswar (terminal risk score: 0.80, \u20b9208,247.92 withdrawn across 1 transaction(s)).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with downstream cash-out behavior was detected. Priority investigation recommended for root entity ENT_000677 and exit terminal ATM_002 (Bhubaneswar)."
+  },
+  {
+    "complaint_id": "C000045",
+    "incident_entity_id": "ENT_000109",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.999,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 2513.52,
+      "max_transaction_value": 2513.52,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b92,513.52 (average transfer: \u20b92,513.52).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000046",
+    "incident_entity_id": "ENT_000108",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9992,
+    "graph_metrics": {
+      "num_nodes": 2,
+      "num_edges": 1,
+      "max_hop": 1,
+      "total_transaction_value": 4952.17,
+      "max_transaction_value": 4952.17,
+      "average_degree": 1.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (2 entity node(s), 1 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b94,952.17 (average transfer: \u20b94,952.17).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000047",
+    "incident_entity_id": "ENT_000185",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.9987,
+    "graph_metrics": {
+      "num_nodes": 10,
+      "num_edges": 9,
+      "max_hop": 3,
+      "total_transaction_value": 826762.78,
+      "max_transaction_value": 190406.54,
+      "average_degree": 1.8
+    },
+    "terminal_prediction": {
+      "atm_id": "ATM_029",
+      "city": "Mumbai",
+      "terminal_score": 0.6172,
+      "hop_distance": 3,
+      "total_cash_withdrawal": 49904.9,
+      "withdrawal_count": 1,
+      "hours_from_incident": 57.56
+    },
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b9826,762.78 with a peak single transfer of \u20b9190,406.54.",
+      "Subnetwork connects 10 entities across 9 directed transaction edges (average node degree: 1.80, incident in-degree: 2, out-degree: 0).",
+      "Likely downstream cash exit identified at terminal ATM_029 in Mumbai (terminal risk score: 0.62, \u20b949,904.90 withdrawn across 1 transaction(s)).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with downstream cash-out behavior was detected. Priority investigation recommended for root entity ENT_000185 and exit terminal ATM_029 (Mumbai)."
+  },
+  {
+    "complaint_id": "C000048",
+    "incident_entity_id": "ENT_000047",
+    "graphsage_probability": 1.0,
+    "predicted_risk_class": 1,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "nearest_reference_similarity": 0.9971,
+    "graph_metrics": {
+      "num_nodes": 7,
+      "num_edges": 6,
+      "max_hop": 3,
+      "total_transaction_value": 914442.79,
+      "max_transaction_value": 309967.24,
+      "average_degree": 1.71
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "GraphSAGE GNN assessed an elevated risk probability of 1.0000 (Tier: HIGH_CONFIDENCE).",
+      "Unusual concentration of transaction activity observed within the 72-hour incident window.",
+      "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
+      "Cumulative transaction volume reached \u20b9914,442.79 with a peak single transfer of \u20b9309,967.24.",
+      "Subnetwork connects 7 entities across 6 directed transaction edges (average node degree: 1.71, incident in-degree: 0, out-degree: 1).",
+      "Graph topology exhibits high structural similarity (1.00) to cataloged reference laundering patterns."
+    ],
+    "investigator_summary": "High-risk multi-hop transaction activity with strong graph evidence was detected. Priority investigation recommended for root entity ENT_000047 and connected intermediaries."
+  },
+  {
+    "complaint_id": "C000049",
+    "incident_entity_id": "ENT_000439",
+    "graphsage_probability": 0.0001,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 1.0,
+    "graph_metrics": {
+      "num_nodes": 1,
+      "num_edges": 0,
+      "max_hop": 0,
+      "total_transaction_value": 0.0,
+      "max_transaction_value": 0.0,
+      "average_degree": 0.0
+    },
+    "terminal_prediction": null,
+    "reasons": [
+      "Model-derived risk probability is 0.0001, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (1 entity node(s), 0 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b90.00 (average transfer: \u20b90.00).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 0).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  },
+  {
+    "complaint_id": "C000050",
+    "incident_entity_id": "ENT_000080",
+    "graphsage_probability": 0.0,
+    "predicted_risk_class": 0,
+    "confidence_tier": "NORMAL",
+    "nearest_reference_similarity": 0.9888,
+    "graph_metrics": {
+      "num_nodes": 3,
+      "num_edges": 2,
+      "max_hop": 1,
+      "total_transaction_value": 87380.7,
+      "max_transaction_value": 49904.9,
+      "average_degree": 1.33
+    },
+    "terminal_prediction": {
+      "atm_id": "ATM_029",
+      "city": "Mumbai",
+      "terminal_score": 0.5006,
+      "hop_distance": 1,
+      "total_cash_withdrawal": 49904.9,
+      "withdrawal_count": 1,
+      "hours_from_incident": 33.56
+    },
+    "reasons": [
+      "Model-derived risk probability is 0.0000, remaining well below the 0.50 suspicious triage threshold.",
+      "Incident subgraph contains minimal structural connectivity (3 entity node(s), 2 directed edge(s)).",
+      "Total transaction volume within the 72-hour incident window is \u20b987,380.70 (average transfer: \u20b943,690.35).",
+      "No multi-hop fund routing or complex layering chains detected (max hop distance: 1).",
+      "No illicit ATM cash-withdrawal terminal connections identified in the incident window."
+    ],
+    "investigator_summary": "No significant laundering pattern was detected at the configured risk threshold. Activity consistent with benign peer-to-peer transfers."
+  }
+]
