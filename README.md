@@ -1,6 +1,6 @@
-# Cybercrime Predictive Analytics — Stages 0 to 4
+# Cybercrime Predictive Analytics — Stages 0 to 5
 
-This repository implements an end-to-end predictive analytics framework designed for cybercrime complaints, entity resolution, financial transaction graph construction, Graph Neural Network (GraphSAGE) classification, and terminal cash-withdrawal location prediction.
+This repository implements an end-to-end predictive analytics framework designed for cybercrime complaints, entity resolution, financial transaction graph construction, Graph Neural Network (GraphSAGE) classification, terminal cash-withdrawal location prediction, and confidence-tier uncertainty calibration.
 
 ---
 
@@ -30,8 +30,9 @@ NetworkX incident subgraph (MultiDiGraph saved to data/graphs/<complaint_id>.gra
    ↓
 Stage 4: Terminal Node & Cash-Withdrawal Location Prediction (src/terminal_prediction.py)
    ↓
-data/top_terminal_predictions.csv (Top 3 Ranked ATMs per high-risk incident + Human-Readable Explanations)
-data/terminal_prediction_map.png (Geospatial Hub Map)
+Stage 5: Confidence Tiers & Novelty Detection (src/confidence_tiers.py)
+   ↓
+data/confidence_tiers.csv (HIGH_CONFIDENCE, MEDIUM_CONFIDENCE, FIRST_TIME_RING, NORMAL)
 ```
 
 ---
@@ -132,34 +133,45 @@ Stage 3B (`src/graphsage_classifier.py`) implements an inductive **GraphSAGE Gra
 
 Stage 4 (`src/terminal_prediction.py`) bridges graph analytics with tactical law-enforcement intelligence by ranking the most probable ATM cash-out terminals for each high-risk incident graph.
 
-### 1. Candidate Identification
-For every cybercrime complaint, candidate ATM nodes are identified directly within its extracted 72-hour 3-hop incident subgraph ($G$).
+- **Candidate ATM Identification**: Directly within the 72h 3-hop subgraph.
+- **Multi-Criteria Scoring Formula**:
+  $$\text{terminal\_score} = 0.25 S_{\text{gnn}} + 0.20 S_{\text{hop}} + 0.20 S_{\text{cw}} + 0.15 S_{\text{vol}} + 0.10 S_{\text{rec}} + 0.05 S_{\text{up}} + 0.05 S_{\text{geo}}$$
+- **Benchmark Performance**:
+  - **Top-1 Hit Rate**: **100.00%**
+  - **Top-3 Hit Rate**: **100.00%**
+  - **Mean Reciprocal Rank (MRR)**: **1.0000**
+  - **Average Candidates per Graph**: 1.30
 
-### 2. Interpretable Terminal Risk Scoring Formulation
-For each candidate ATM ($a$), a composite risk score $\text{terminal\_score} \in [0, 1]$ is computed from 7 normalized factors:
-1. **$S_{\text{gnn}}$ (25%)**: GraphSAGE incident probability $P_{\text{GNN}} \in [0, 1]$.
-2. **$S_{\text{hop}}$ (20%)**: Graph topological distance from incident entity ($\text{Hop } 1 \rightarrow 1.0, \text{Hop } 2 \rightarrow 0.75, \text{Hop } 3 \rightarrow 0.50$).
-3. **$S_{\text{cw}}$ (20%)**: Observed cash-withdrawal transaction flag ($1.0$ if $\text{count} \ge 1$ else $0.0$).
-4. **$S_{\text{volume}}$ (15%)**: Cumulative cash withdrawal volume scaled relative to ₹250,000.
-5. **$S_{\text{recency}}$ (10%)**: Temporal proximity of the withdrawal relative to incident reference time within the 72h window.
-6. **$S_{\text{upstream}}$ (5%)**: Upstream feeding entity convergence at the terminal.
-7. **$S_{\text{geo}}$ (5%)**: Geographic proximity to the incident entity.
+---
 
-$$\text{terminal\_score} = 0.25 S_{\text{gnn}} + 0.20 S_{\text{hop}} + 0.20 S_{\text{cw}} + 0.15 S_{\text{vol}} + 0.10 S_{\text{rec}} + 0.05 S_{\text{up}} + 0.05 S_{\text{geo}}$$
+## 🛡️ Stage 5 — Confidence Tiers & First-Time Ring Detection
 
-### 3. Evaluation & Ranking Benchmark
-Evaluated strictly against synthetic ground-truth cash-out activity:
+Stage 5 (`src/confidence_tiers.py`) establishes an uncertainty calibration framework that categorizes flagged incidents into actionable operational confidence tiers and detects novel / emerging ring topologies.
+
+### 1. Motivation for Confidence Calibration
+In real-world cybercrime operations, raw model probabilities do not capture structural novelty or evidentiary completeness. Labeling an incident as an established ring without historical pattern evidence risks investigative misdirection. Stage 5 separates known high-confidence topologies from emerging first-time rings.
+
+### 2. Confidence Tier Categories
+1. **`HIGH_CONFIDENCE`**:
+   - $P_{\text{GNN}} \ge 0.70$
+   - $\ge 2$ independent supporting signals (multi-hop path, elevated volume, complex graph, cash-out terminal)
+   - Verified terminal evidence or multi-hop structure
+   - Reference embedding similarity $\ge 0.85$ (closely matches cataloged reference patterns)
+2. **`MEDIUM_CONFIDENCE`**:
+   - $P_{\text{GNN}} \ge 0.70$ with elevated activity, but partial terminal/structural evidence.
+3. **`FIRST_TIME_RING_CANDIDATE`**:
+   - $P_{\text{GNN}} \ge 0.50$ (elevated risk)
+   - Reference embedding similarity $< 0.85$ (divergent from previously cataloged training rings)
+   - *Operational Directive*: Surface as a new-pattern investigative lead.
+4. **`NORMAL`**:
+   - $P_{\text{GNN}} < 0.50$ (below suspicious action threshold).
+
+### 3. Tier Distribution & Offline Performance
 - **Total Incidents Processed**: 1,000
-- **Incidents with ATM Candidates**: 148
-- **Evaluable Incidents with Actual Laundering Cash-Outs**: 101
-- **Top-1 Hit Rate**: **100.00%** (Rank 1 candidate matches actual exit terminal)
-- **Top-3 Hit Rate**: **100.00%**
-- **Mean Reciprocal Rank (MRR)**: **1.0000**
-- **Average Candidate ATMs per Graph**: **1.30**
-
-### 4. Human-Readable Case Explanations
-For each top-ranked candidate terminal, an automated human-readable investigative explanation is generated (e.g., in [`data/top_terminal_predictions.csv`](file:///home/rd/Repositories/SIH/sihmodel/data/top_terminal_predictions.csv)):
-> *"Immediate 1-hop terminal connection; direct cash withdrawal observed (₹183,797.37 across 2 tx); 2 upstream feeding entities converged at terminal in Bengaluru; activity occurred within 10.1h of incident reference time."*
+- **Normal Tier**: 713 incidents (71.3%)
+- **High Confidence**: 226 incidents (22.6%) — captures **88.17%** of all actual laundering networks with **72.57% precision**.
+- **Medium Confidence**: 61 incidents (6.1%)
+- **Combined Suspicious Tiers**: 287 incidents — captures **89.25%** of all laundering activity.
 
 ---
 
@@ -187,22 +199,17 @@ sihmodel/
 │   ├── graph_summary.csv                  # 1,000 incident subgraph metrics
 │   ├── model_split_ids.csv                # Aligned 80/20 train/test split IDs
 │   ├── xgboost_predictions.csv            # Stage 3A XGBoost test predictions
-│   ├── xgboost_threshold_analysis.csv     # Stage 3A threshold sweep
-│   ├── xgboost_feature_importance.csv     # Stage 3A gain feature importances
-│   ├── xgboost_temporal_evaluation.csv    # Stage 3A chronological evaluation
 │   ├── graphsage_predictions.csv          # Stage 3B GraphSAGE test predictions
-│   ├── graphsage_threshold_analysis.csv   # Stage 3B threshold sweep
 │   ├── graph_embeddings.csv               # 64-dim GraphSAGE embeddings for 1,000 graphs
-│   ├── graphsage_training_history.csv     # Training loss and validation history
 │   ├── model_comparison.csv               # 1-to-1 comparison table (XGBoost vs GraphSAGE)
-│   ├── terminal_predictions.csv           # Full ranked candidate ATM predictions
-│   ├── top_terminal_predictions.csv       # Top-3 candidate terminals with reasons
-│   ├── terminal_prediction_evaluation.csv # Hit rates and MRR evaluation table
-│   ├── terminal_ranking_examples.csv      # 12 detailed case ranking breakdowns
-│   ├── terminal_prediction_map.png        # Geospatial map of predicted cash-out hubs
-│   ├── graphsage_training_loss.png        # Training loss curve
-│   ├── graphsage_validation_f1.png        # Validation F1 evolution curve
-│   ├── model_comparison.png               # Comparative metric visualization
+│   ├── terminal_predictions.csv           # Stage 4 Full ranked candidate ATM predictions
+│   ├── top_terminal_predictions.csv       # Stage 4 Top-3 candidate terminals with reasons
+│   ├── terminal_prediction_evaluation.csv # Stage 4 Hit rates and MRR evaluation table
+│   ├── terminal_prediction_map.png        # Stage 4 Geospatial map of predicted cash-out hubs
+│   ├── confidence_tiers.csv               # Stage 5 Incident confidence tier assignments
+│   ├── confidence_summary.csv             # Stage 5 Tier distribution and novelty summary
+│   ├── confidence_examples.csv            # Stage 5 Representative case breakdowns
+│   ├── confidence_tier_evaluation.csv     # Stage 5 Offline evaluation against ground truth
 │   └── graphs/                            # 1,000 GraphML subgraphs
 │       ├── C000001.graphml ... C001000.graphml
 │       └── demo_graph.png                 # Demonstration incident visualization
@@ -219,7 +226,8 @@ sihmodel/
 │   ├── graph_construction.py              # Stage 2 Incident subgraph extraction engine
 │   ├── xgboost_baseline.py                # Stage 3A XGBoost baseline classifier
 │   ├── graphsage_classifier.py            # Stage 3B GraphSAGE GNN classifier
-│   └── terminal_prediction.py             # Stage 4 Terminal node prediction engine
+│   ├── terminal_prediction.py             # Stage 4 Terminal node prediction engine
+│   └── confidence_tiers.py                # Stage 5 Confidence tiers & novelty detection
 │
 ├── generate_complaints_dataset.py         # Synthetic complaint dataset generator
 ├── requirements.txt                       # Project dependencies
@@ -248,4 +256,7 @@ python3 src/graphsage_classifier.py
 
 # 6. Predict & Rank Terminal Cash-Out Locations (Stage 4)
 python3 src/terminal_prediction.py
+
+# 7. Assign Confidence Tiers & Detect Novel Ring Patterns (Stage 5)
+python3 src/confidence_tiers.py
 ```
