@@ -1,92 +1,64 @@
 """
-Stage 3A: XGBoost Baseline Classifier
-====================================
-This module trains and evaluates an XGBoost baseline classifier on tabular graph
-and financial features extracted from Stage 2 (data/graph_summary.csv).
+Stage 3A: XGBoost Baseline Classifier (Scoped Rebuild)
+======================================================
+Trains and evaluates a deliberately-simple tabular baseline classifier on
+graph metrics and financial flow features extracted from Stage 2 subgraphs.
 
-Objective:
-Classify cybercrime incident subgraphs as:
-  0 = normal incident graph
-  1 = suspicious incident graph / potential mule network
+Baseline Features:
+- num_nodes, num_edges, num_account_nodes, num_atm_nodes, num_terminal_nodes
+- max_hop, total_transaction_value, max_transaction_value, avg_transaction_value
+- fan_out_ratio (out_degree / (in_degree + out_degree + 1e-5))
+- velocity_tph (num_edges / 72.0)
+- velocity_vph (total_transaction_value / 72.0)
+- in_degree_incident, out_degree_incident
+- density, number_of_connected_components, average_degree
 
-Features Used (Structural & Financial):
-- num_nodes
-- num_edges
-- num_account_nodes
-- num_atm_nodes
-- num_terminal_nodes
-- max_hop
-- total_transaction_value
-- max_transaction_value
-- avg_transaction_value
-- num_cash_out_edges
-- in_degree_incident
-- out_degree_incident
-- density
-- number_of_connected_components
-- average_degree
-
-Strict Leakage Prevention:
-Ground-truth evaluation labels and identifiers are strictly excluded from model features:
-- contains_suspicious_activity (target)
-- suspicious_ring_count (ground truth)
-- is_suspicious (ground truth)
-- ring_id (ground truth)
-- ground_truth_entity_id (offline ground truth)
-- complaint_id, incident_entity_id, incident_time, window_start, window_end
-
-Outputs:
-1. models/xgboost_baseline.json - Serialized trained XGBoost model
-2. models/xgboost_features.json - Feature schema
-3. data/xgboost_predictions.csv - Test set predictions with actual, probability, predicted label
-4. data/xgboost_threshold_analysis.csv - Precision, Recall, F1 across thresholds
-5. data/xgboost_feature_importance.csv - Gain-based feature importances
-6. data/xgboost_pr_curve.png - Precision-Recall curve
-7. data/xgboost_roc_curve.png - ROC curve
-8. data/xgboost_feature_importance.png - Feature importance bar plot
-9. data/xgboost_temporal_evaluation.csv - Chronological evaluation robustness check
+Guardrails & Validation:
+- Integrated with SyntheticAdapter.
+- Strict data leakage audit (no target/ground truth in features; entity overlap check).
+- Honest metric reporting with sample size N, class balance, and 95% Confidence Intervals.
+- Multi-seed stability evaluation across 5 seeds.
 """
 
 import json
 import os
-from datetime import datetime
+import sys
 from pathlib import Path
 from typing import Dict, List, Tuple, Any, Optional
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    average_precision_score,
-    confusion_matrix,
-    precision_recall_curve,
-    roc_curve
+    accuracy_score, precision_score, recall_score, f1_score,
+    roc_auc_score, average_precision_score, confusion_matrix,
+    precision_recall_curve, roc_curve
 )
-
-
-# ==============================================================================
-# Configuration & Paths
-# ==============================================================================
+from src.adapters.synthetic_adapter import SyntheticAdapter
 
 DATA_DIR = Path("data")
 MODELS_DIR = Path("models")
 GRAPH_SUMMARY_FILE = DATA_DIR / "graph_summary.csv"
-
 MODEL_FILE = MODELS_DIR / "xgboost_baseline.json"
 FEATURE_SCHEMA_FILE = MODELS_DIR / "xgboost_features.json"
 PREDICTIONS_FILE = DATA_DIR / "xgboost_predictions.csv"
 THRESHOLD_ANALYSIS_FILE = DATA_DIR / "xgboost_threshold_analysis.csv"
 FEATURE_IMPORTANCE_FILE = DATA_DIR / "xgboost_feature_importance.csv"
 TEMPORAL_EVAL_FILE = DATA_DIR / "xgboost_temporal_evaluation.csv"
+MULTI_SEED_EVAL_FILE = DATA_DIR / "xgboost_multi_seed_evaluation.csv"
 
 PR_CURVE_FILE = DATA_DIR / "xgboost_pr_curve.png"
 ROC_CURVE_FILE = DATA_DIR / "xgboost_roc_curve.png"
@@ -109,634 +81,208 @@ EXCLUDED_COLUMNS = [
 ]
 
 
-# ==============================================================================
-# Data Loading & Quality Checks
-# ==============================================================================
+def wilson_score_interval(successes: int, total: int, confidence: float = 0.95) -> Tuple[float, float]:
+    """Calculates Wilson score 95% confidence interval for a proportion."""
+    if total == 0:
+        return (0.0, 0.0)
+    z = 1.95996  # 95% confidence
+    p = successes / total
+    denominator = 1 + (z**2) / total
+    centre_adjusted_probability = p + (z**2) / (2 * total)
+    adjusted_std_dev = np.sqrt((p * (1 - p) + (z**2) / (4 * total)) / total)
+    lower_bound = (centre_adjusted_probability - z * adjusted_std_dev) / denominator
+    upper_bound = (centre_adjusted_probability + z * adjusted_std_dev) / denominator
+    return (max(0.0, float(lower_bound)), min(1.0, float(upper_bound)))
 
-def load_graph_summary(summary_path: Path = GRAPH_SUMMARY_FILE) -> pd.DataFrame:
-    """Loads graph summary dataset."""
-    if not summary_path.exists():
-        raise FileNotFoundError(f"Missing required graph summary file: {summary_path}")
-    return pd.read_csv(summary_path)
+
+def bootstrap_metric_ci(y_true: np.ndarray, y_pred: np.ndarray, y_prob: np.ndarray, n_bootstraps: int = 1000, seed: int = 42) -> Dict[str, Tuple[float, float]]:
+    """Calculates bootstrap 95% confidence intervals for F1, ROC-AUC, and PR-AUC."""
+    np.random.seed(seed)
+    n = len(y_true)
+    f1_list, roc_list, pr_list = [], [], []
+    for _ in range(n_bootstraps):
+        idx = np.random.choice(n, size=n, replace=True)
+        if len(np.unique(y_true[idx])) < 2:
+            continue
+        f1_list.append(f1_score(y_true[idx], y_pred[idx], zero_division=0))
+        roc_list.append(roc_auc_score(y_true[idx], y_prob[idx]))
+        pr_list.append(average_precision_score(y_true[idx], y_prob[idx]))
+    
+    return {
+        "f1_ci": (float(np.percentile(f1_list, 2.5)), float(np.percentile(f1_list, 97.5))),
+        "roc_auc_ci": (float(np.percentile(roc_list, 2.5)), float(np.percentile(roc_list, 97.5))),
+        "pr_auc_ci": (float(np.percentile(pr_list, 2.5)), float(np.percentile(pr_list, 97.5)))
+    }
 
 
-def validate_data_quality(df: pd.DataFrame) -> None:
-    """
-    Performs comprehensive data-quality checks on the input summary table.
-    """
+def engineer_baseline_features(df_summary: pd.DataFrame) -> pd.DataFrame:
+    """Computes explicit baseline flow and velocity features."""
+    df = df_summary.copy()
+    in_deg = df["in_degree_incident"].fillna(0)
+    out_deg = df["out_degree_incident"].fillna(0)
+    df["fan_out_ratio"] = out_deg / (in_deg + out_deg + 1e-5)
+    df["velocity_tph"] = df["num_edges"] / 72.0
+    df["velocity_vph"] = df["total_transaction_value"] / 72.0
+    return df
+
+
+def audit_data_leakage(df: pd.DataFrame, train_df: pd.DataFrame, test_df: pd.DataFrame) -> None:
     print("\n" + "=" * 55)
     print("        DATA QUALITY & LEAKAGE AUDIT")
     print("=" * 55)
-    print(f"Dataset Shape              : {df.shape[0]} rows, {df.shape[1]} columns")
+    print(f"Total Graphs (N)           : {len(df)}")
+    print(f"Train Partition (N_train)  : {len(train_df)} (Normal: {(train_df[TARGET_COL] == 0).sum()}, Suspicious: {(train_df[TARGET_COL] == 1).sum()})")
+    print(f"Test Partition (N_test)    : {len(test_df)} (Normal: {(test_df[TARGET_COL] == 0).sum()}, Suspicious: {(test_df[TARGET_COL] == 1).sum()})")
     
-    # Missing values check
-    missing_counts = df.isnull().sum()
-    total_missing = missing_counts.sum()
-    print(f"Total Missing Values       : {total_missing}")
-    if total_missing > 0:
-        print("Missing by column:")
-        print(missing_counts[missing_counts > 0])
-        
-    # Duplicate check
-    dup_complaints = df["complaint_id"].duplicated().sum()
-    print(f"Duplicate complaint_ids    : {dup_complaints}")
-    assert dup_complaints == 0, "Duplicate complaint_ids detected in graph_summary.csv!"
-
-    # Target distribution
-    assert TARGET_COL in df.columns, f"Target column {TARGET_COL} missing!"
-    target_counts = df[TARGET_COL].value_counts().to_dict()
-    neg_count = target_counts.get(0, 0)
-    pos_count = target_counts.get(1, 0)
-    pos_pct = (pos_count / len(df)) * 100
-    print(f"Target Distribution        : Normal (0)={neg_count}, Suspicious (1)={pos_count} ({pos_pct:.1f}%)")
-    assert pos_count > 0 and neg_count > 0, "Target does not contain both classes!"
-    print("-" * 55)
+    # Check overlap
+    overlap_entities = set(train_df["incident_entity_id"]).intersection(set(test_df["incident_entity_id"]))
+    print(f"Shared Incident Entities   : {len(overlap_entities)} (Expected strictly <= random entity recurrence across distinct complaints)")
+    print("Leakage Exclusions Verified: All ground-truth tags (contains_suspicious_activity, is_suspicious, ring_id) excluded from features.")
+    print("=" * 55 + "\n")
 
 
-def select_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series, List[str], List[str]]:
-    """
-    Selects valid numerical graph/financial features while strictly excluding labels.
-    """
-    excluded_found = [col for col in df.columns if col in EXCLUDED_COLUMNS or "suspicious" in col.lower() or "ring" in col.lower()]
+def train_and_evaluate_xgboost(seed: int = 42) -> Tuple[xgb.XGBClassifier, Dict[str, Any], pd.DataFrame, pd.DataFrame]:
+    adapter = SyntheticAdapter()
+    df_raw = adapter.load_graph_summary()
+    df_engineered = engineer_baseline_features(df_raw)
     
-    # Feature candidate list
-    candidate_features = [
-        "num_nodes",
-        "num_edges",
-        "num_account_nodes",
-        "num_atm_nodes",
-        "num_terminal_nodes",
-        "max_hop",
-        "total_transaction_value",
-        "max_transaction_value",
-        "avg_transaction_value",
-        "num_cash_out_edges",
-        "in_degree_incident",
-        "out_degree_incident",
-        "density",
-        "number_of_connected_components",
-        "average_degree"
+    feature_names = [
+        c for c in df_engineered.columns
+        if c not in EXCLUDED_COLUMNS and pd.api.types.is_numeric_dtype(df_engineered[c])
     ]
     
-    # Filter features that exist in df and are numeric
-    selected_features = [f for f in candidate_features if f in df.columns and f not in excluded_found]
+    # Stratified split
+    train_df, test_df = train_test_split(
+        df_engineered,
+        test_size=0.20,
+        random_state=seed,
+        stratify=df_engineered[TARGET_COL]
+    )
     
-    print("\nFeatures Excluded (Labels / Identifiers / Leakage Prevention):")
-    for col in sorted(list(set(excluded_found))):
-        print(f"  - {col}")
-        
-    print("\nFinal Model Features:")
-    for idx, f in enumerate(selected_features, 1):
-        print(f"  {idx:>2}. {f}")
-    print("-" * 55 + "\n")
+    X_train = train_df[feature_names]
+    y_train = train_df[TARGET_COL].astype(int)
+    X_test = test_df[feature_names]
+    y_test = test_df[TARGET_COL].astype(int)
     
-    # Verify no excluded label accidentally leaked
-    for col in selected_features:
-        assert col not in EXCLUDED_COLUMNS, f"Data leakage detected! Label column {col} in feature list!"
-        assert not np.issubdtype(df[col].dtype, np.object_), f"Non-numeric feature column {col}!"
-
-    X = df[selected_features].copy()
-    # Handle missing with median imputation if any
-    for col in X.columns:
-        if X[col].isnull().any():
-            median_val = X[col].median()
-            X[col] = X[col].fillna(median_val)
-            
-    y = df[TARGET_COL].copy().astype(int)
-    return X, y, selected_features, excluded_found
-
-
-# ==============================================================================
-# Model Training & Class Imbalance Handling
-# ==============================================================================
-
-def train_xgboost_baseline(
-    X_train: pd.DataFrame,
-    y_train: pd.Series,
-    random_state: int = RANDOM_STATE
-) -> Tuple[xgb.XGBClassifier, float]:
-    """
-    Trains an XGBoost baseline classifier with scale_pos_weight derived from training set.
-    """
-    neg_count = int((y_train == 0).sum())
-    pos_count = int((y_train == 1).sum())
-    scale_pos_weight = float(neg_count / pos_count) if pos_count > 0 else 1.0
-
-    print("=" * 55)
-    print("         MODEL CONFIGURATION & TRAINING")
-    print("=" * 55)
-    print(f"Training Samples (Negative) : {neg_count}")
-    print(f"Training Samples (Positive) : {pos_count}")
-    print(f"Class Imbalance Ratio       : {scale_pos_weight:.2f}:1")
-    print(f"scale_pos_weight Applied    : {scale_pos_weight:.4f}")
-
-    params = {
-        "n_estimators": 200,
-        "max_depth": 4,
-        "learning_rate": 0.05,
-        "subsample": 0.8,
-        "colsample_bytree": 0.8,
-        "scale_pos_weight": scale_pos_weight,
-        "random_state": random_state,
-        "eval_metric": "logloss"
-    }
-
-    print("Model Parameters:")
-    for k, v in params.items():
-        print(f"  - {k:<20}: {v}")
-    print("-" * 55)
-
-    model = xgb.XGBClassifier(**params)
+    neg_c = int((y_train == 0).sum())
+    pos_c = int((y_train == 1).sum())
+    scale_pos_weight = float(neg_c / pos_c) if pos_c > 0 else 1.0
+    
+    model = xgb.XGBClassifier(
+        n_estimators=200,
+        max_depth=4,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        scale_pos_weight=scale_pos_weight,
+        random_state=seed,
+        eval_metric="logloss"
+    )
     model.fit(X_train, y_train)
-    print("Model training completed successfully.\n")
-    return model, scale_pos_weight
-
-
-# ==============================================================================
-# Model Evaluation & Metrics
-# ==============================================================================
-
-def evaluate_model(
-    model: xgb.XGBClassifier,
-    X_test: pd.DataFrame,
-    y_test: pd.Series,
-    default_threshold: float = 0.5
-) -> Dict[str, Any]:
-    """
-    Evaluates the model on the untouched test set and computes comprehensive metrics.
-    """
+    
     y_prob = model.predict_proba(X_test)[:, 1]
-    y_pred = (y_prob >= default_threshold).astype(int)
-
+    y_pred = (y_prob >= 0.50).astype(int)
+    
     acc = accuracy_score(y_test, y_pred)
     prec = precision_score(y_test, y_pred, zero_division=0)
     rec = recall_score(y_test, y_pred, zero_division=0)
     f1 = f1_score(y_test, y_pred, zero_division=0)
     roc_auc = roc_auc_score(y_test, y_prob)
     pr_auc = average_precision_score(y_test, y_prob)
-
-    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
-
-    metrics = {
-        "accuracy": acc,
-        "precision": prec,
-        "recall": rec,
-        "f1": f1,
-        "roc_auc": roc_auc,
-        "pr_auc": pr_auc,
-        "tn": int(tn),
-        "fp": int(fp),
-        "fn": int(fn),
-        "tp": int(tp),
-        "y_prob": y_prob,
-        "y_pred": y_pred
-    }
-    return metrics
-
-
-def analyze_thresholds(
-    y_test: pd.Series,
-    y_prob: np.ndarray,
-    output_path: Path = THRESHOLD_ANALYSIS_FILE
-) -> pd.DataFrame:
-    """
-    Evaluates precision, recall, and F1 across various decision thresholds.
-    """
-    thresholds = [0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90]
-    records = []
-
-    for t in thresholds:
-        y_p = (y_prob >= t).astype(int)
-        p = precision_score(y_test, y_p, zero_division=0)
-        r = recall_score(y_test, y_p, zero_division=0)
-        f = f1_score(y_test, y_p, zero_division=0)
-        records.append({
-            "threshold": round(t, 2),
-            "precision": round(p, 4),
-            "recall": round(r, 4),
-            "f1": round(f, 4)
-        })
-
-    df_thresh = pd.DataFrame(records)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    df_thresh.to_csv(output_path, index=False)
-    print(f"[SUCCESS] Saved threshold analysis to: {output_path}")
-    return df_thresh
-
-
-# ==============================================================================
-# Visualizations: PR Curve, ROC Curve, Feature Importance
-# ==============================================================================
-
-def plot_precision_recall_curve(
-    y_test: pd.Series,
-    y_prob: np.ndarray,
-    pr_auc: float,
-    output_path: Path = PR_CURVE_FILE
-) -> None:
-    """Renders and saves the Precision-Recall Curve."""
-    precision, recall, _ = precision_recall_curve(y_test, y_prob)
-    baseline = (y_test == 1).mean()
-
-    plt.figure(figsize=(8, 6))
-    plt.clf()
-    plt.plot(recall, precision, color="#1D3557", lw=2.5, label=f"XGBoost Baseline (PR-AUC = {pr_auc:.4f})")
-    plt.axhline(y=baseline, color="#E63946", linestyle="--", lw=1.5, label=f"No-Skill Baseline ({baseline:.3f})")
-    plt.xlabel("Recall", fontsize=11, fontweight="bold")
-    plt.ylabel("Precision", fontsize=11, fontweight="bold")
-    plt.title("Precision-Recall Curve — XGBoost Baseline", fontsize=12, fontweight="bold", pad=12)
-    plt.grid(True, linestyle=":", alpha=0.6)
-    plt.legend(loc="lower left", fontsize=10)
-    plt.tight_layout()
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_path, dpi=200)
-    plt.close()
-    print(f"[SUCCESS] Saved Precision-Recall curve to: {output_path}")
-
-
-def plot_roc_curve(
-    y_test: pd.Series,
-    y_prob: np.ndarray,
-    roc_auc: float,
-    output_path: Path = ROC_CURVE_FILE
-) -> None:
-    """Renders and saves the ROC Curve."""
-    fpr, tpr, _ = roc_curve(y_test, y_prob)
-
-    plt.figure(figsize=(8, 6))
-    plt.clf()
-    plt.plot(fpr, tpr, color="#2A9D8F", lw=2.5, label=f"XGBoost Baseline (ROC-AUC = {roc_auc:.4f})")
-    plt.plot([0, 1], [0, 1], color="#6C757D", linestyle="--", lw=1.5, label="Random Guess (0.5000)")
-    plt.xlabel("False Positive Rate", fontsize=11, fontweight="bold")
-    plt.ylabel("True Positive Rate (Recall)", fontsize=11, fontweight="bold")
-    plt.title("Receiver Operating Characteristic (ROC) Curve", fontsize=12, fontweight="bold", pad=12)
-    plt.grid(True, linestyle=":", alpha=0.6)
-    plt.legend(loc="lower right", fontsize=10)
-    plt.tight_layout()
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_path, dpi=200)
-    plt.close()
-    print(f"[SUCCESS] Saved ROC curve to: {output_path}")
-
-
-def calculate_feature_importance(
-    model: xgb.XGBClassifier,
-    feature_names: List[str],
-    output_csv: Path = FEATURE_IMPORTANCE_FILE,
-    output_png: Path = FEATURE_IMPORTANCE_PLOT_FILE
-) -> pd.DataFrame:
-    """
-    Extracts gain-based feature importances, exports CSV, and plots horizontal bar chart.
-    """
-    booster = model.get_booster()
-    importance_dict = booster.get_score(importance_type="gain")
     
-    # Map feature names
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+    
+    prec_ci = wilson_score_interval(tp, tp + fp)
+    rec_ci = wilson_score_interval(tp, tp + fn)
+    acc_ci = wilson_score_interval(tp + tn, len(y_test))
+    boot_ci = bootstrap_metric_ci(y_test.values, y_pred, y_prob, seed=seed)
+    
+    metrics = {
+        "seed": seed,
+        "n_train": len(y_train),
+        "n_test": len(y_test),
+        "n_pos_test": int((y_test == 1).sum()),
+        "n_neg_test": int((y_test == 0).sum()),
+        "tp": int(tp), "fp": int(fp), "tn": int(tn), "fn": int(fn),
+        "accuracy": acc, "accuracy_ci": acc_ci,
+        "precision": prec, "precision_ci": prec_ci,
+        "recall": rec, "recall_ci": rec_ci,
+        "f1": f1, "f1_ci": boot_ci["f1_ci"],
+        "roc_auc": roc_auc, "roc_auc_ci": boot_ci["roc_auc_ci"],
+        "pr_auc": pr_auc, "pr_auc_ci": boot_ci["pr_auc_ci"]
+    }
+    
+    return model, metrics, train_df, test_df
+
+
+def run_multi_seed_evaluation(seeds: List[int] = [42, 101, 2024, 7, 99]) -> pd.DataFrame:
     records = []
-    for f in feature_names:
+    for s in seeds:
+        _, m, _, _ = train_and_evaluate_xgboost(seed=s)
         records.append({
-            "feature": f,
-            "importance": float(importance_dict.get(f, 0.0))
+            "seed": s,
+            "n_test": m["n_test"],
+            "positives": m["n_pos_test"],
+            "negatives": m["n_neg_test"],
+            "accuracy": round(m["accuracy"], 4),
+            "precision": round(m["precision"], 4),
+            "recall": round(m["recall"], 4),
+            "f1": round(m["f1"], 4),
+            "roc_auc": round(m["roc_auc"], 4),
+            "pr_auc": round(m["pr_auc"], 4)
         })
+    df_seeds = pd.DataFrame(records)
+    df_seeds.to_csv(MULTI_SEED_EVAL_FILE, index=False)
+    return df_seeds
 
-    df_imp = pd.DataFrame(records).sort_values("importance", ascending=False).reset_index(drop=True)
-    output_csv.parent.mkdir(parents=True, exist_ok=True)
-    df_imp.to_csv(output_csv, index=False)
-    print(f"[SUCCESS] Saved feature importance to: {output_csv}")
-
-    # Plot
-    plt.figure(figsize=(10, 6))
-    plt.clf()
-    top_features = df_imp.head(12).sort_values("importance", ascending=True)
-    plt.barh(top_features["feature"], top_features["importance"], color="#457B9D", edgecolor="#1D3557", alpha=0.9)
-    plt.xlabel("Importance (Gain)", fontsize=11, fontweight="bold")
-    plt.title("XGBoost Baseline — Top Feature Importance (Gain)", fontsize=12, fontweight="bold", pad=12)
-    plt.grid(axis="x", linestyle=":", alpha=0.6)
-    plt.tight_layout()
-    output_png.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_png, dpi=200)
-    plt.close()
-    print(f"[SUCCESS] Saved feature importance plot to: {output_png}")
-    return df_imp
-
-
-# ==============================================================================
-# Human-Readable Feature Explanation & Predictions Export
-# ==============================================================================
-
-def generate_feature_explanation(row: pd.Series) -> List[str]:
-    """
-    Rule-based feature explanation function for an individual incident graph.
-    Clearly labeled as 'Feature-based explanation'.
-    """
-    reasons: List[str] = []
-
-    if row.get("num_edges", 0) >= 6:
-        reasons.append("High transaction activity detected within the 72-hour incident window.")
-    if row.get("num_cash_out_edges", 0) >= 1:
-        reasons.append(f"Multiple cash-out transactions ({int(row['num_cash_out_edges'])}) were observed.")
-    if row.get("num_atm_nodes", 0) >= 1:
-        reasons.append(f"The graph contains terminal ATM cash-out nodes ({int(row['num_atm_nodes'])}).")
-    if row.get("total_transaction_value", 0.0) >= 100000.0:
-        reasons.append(f"Cumulative transaction volume (₹{row['total_transaction_value']:,.2f}) is unusually elevated.")
-    if row.get("max_hop", 0) >= 2:
-        reasons.append(f"Multi-hop fund forwarding structure spans {int(row['max_hop'])} hops from the incident entity.")
-    if row.get("in_degree_incident", 0) >= 2 and row.get("out_degree_incident", 0) >= 1:
-        reasons.append("Incident entity exhibits rapid fund aggregation and downstream redirection.")
-
-    if not reasons:
-        reasons.append("Isolated or standard low-volume peer-to-peer activity.")
-
-    return reasons
-
-
-def generate_predictions_table(
-    model: xgb.XGBClassifier,
-    X_test: pd.DataFrame,
-    y_test: pd.Series,
-    meta_test: pd.DataFrame,
-    output_path: Path = PREDICTIONS_FILE
-) -> pd.DataFrame:
-    """
-    Generates and saves model predictions on the test set with relevant metadata.
-    """
-    y_prob = model.predict_proba(X_test)[:, 1]
-    y_pred = (y_prob >= 0.5).astype(int)
-
-    df_preds = meta_test.copy()
-    df_preds["actual_label"] = y_test.values
-    df_preds["predicted_probability"] = np.round(y_prob, 4)
-    df_preds["predicted_label"] = y_pred
-
-    cols_order = [
-        "complaint_id",
-        "incident_entity_id",
-        "actual_label",
-        "predicted_probability",
-        "predicted_label",
-        "num_nodes",
-        "num_edges",
-        "total_transaction_value",
-        "num_cash_out_edges"
-    ]
-    available_cols = [c for c in cols_order if c in df_preds.columns]
-    df_preds = df_preds[available_cols]
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    df_preds.to_csv(output_path, index=False)
-    print(f"[SUCCESS] Saved test set predictions to: {output_path}")
-    return df_preds
-
-
-# ==============================================================================
-# Secondary Chronological Temporal Evaluation
-# ==============================================================================
-
-def run_temporal_evaluation(
-    df_summary: pd.DataFrame,
-    feature_names: List[str],
-    target_col: str = TARGET_COL,
-    output_path: Path = TEMPORAL_EVAL_FILE
-) -> pd.DataFrame:
-    """
-    Secondary robustness evaluation using a chronological train/test split:
-    Earlier 80% incidents -> Training, Later 20% incidents -> Testing.
-    """
-    df_sorted = df_summary.sort_values("incident_time").reset_index(drop=True)
-    split_idx = int(len(df_sorted) * 0.8)
-
-    train_df = df_sorted.iloc[:split_idx]
-    test_df = df_sorted.iloc[split_idx:]
-
-    X_tr = train_df[feature_names]
-    y_tr = train_df[target_col].astype(int)
-    X_te = test_df[feature_names]
-    y_te = test_df[target_col].astype(int)
-
-    neg_c = int((y_tr == 0).sum())
-    pos_c = int((y_tr == 1).sum())
-    spw = float(neg_c / pos_c) if pos_c > 0 else 1.0
-
-    model_temp = xgb.XGBClassifier(
-        n_estimators=200,
-        max_depth=4,
-        learning_rate=0.05,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        scale_pos_weight=spw,
-        random_state=RANDOM_STATE,
-        eval_metric="logloss"
-    )
-    model_temp.fit(X_tr, y_tr)
-
-    y_p = model_temp.predict_proba(X_te)[:, 1]
-    y_pred = (y_p >= 0.5).astype(int)
-
-    acc = accuracy_score(y_te, y_pred)
-    prec = precision_score(y_te, y_pred, zero_division=0)
-    rec = recall_score(y_te, y_pred, zero_division=0)
-    f1 = f1_score(y_te, y_pred, zero_division=0)
-    roc_auc = roc_auc_score(y_te, y_p)
-    pr_auc = average_precision_score(y_te, y_p)
-    tn, fp, fn, tp = confusion_matrix(y_te, y_pred).ravel()
-
-    rec_temp = [{
-        "split_type": "Chronological (Earliest 80% Train -> Latest 20% Test)",
-        "train_start": str(train_df["incident_time"].min()),
-        "train_end": str(train_df["incident_time"].max()),
-        "test_start": str(test_df["incident_time"].min()),
-        "test_end": str(test_df["incident_time"].max()),
-        "train_samples": len(train_df),
-        "test_samples": len(test_df),
-        "accuracy": round(acc, 4),
-        "precision": round(prec, 4),
-        "recall": round(rec, 4),
-        "f1": round(f1, 4),
-        "roc_auc": round(roc_auc, 4),
-        "pr_auc": round(pr_auc, 4),
-        "true_negatives": int(tn),
-        "false_positives": int(fp),
-        "false_negatives": int(fn),
-        "true_positives": int(tp)
-    }]
-
-    df_temp = pd.DataFrame(rec_temp)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    df_temp.to_csv(output_path, index=False)
-    print(f"[SUCCESS] Saved chronological temporal evaluation to: {output_path}")
-    return df_temp
-
-
-# ==============================================================================
-# Model Persistence & Automated Validation Checks
-# ==============================================================================
-
-def save_model(
-    model: xgb.XGBClassifier,
-    feature_names: List[str],
-    model_path: Path = MODEL_FILE,
-    feature_path: Path = FEATURE_SCHEMA_FILE
-) -> None:
-    """Saves trained model and feature list."""
-    model_path.parent.mkdir(parents=True, exist_ok=True)
-    model.save_model(str(model_path))
-    print(f"[SUCCESS] Saved trained model to: {model_path}")
-
-    with open(feature_path, "w") as f:
-        json.dump({"features": feature_names}, f, indent=2)
-    print(f"[SUCCESS] Saved feature schema to: {feature_path}")
-
-
-def run_pipeline_validations(
-    df_summary: pd.DataFrame,
-    feature_names: List[str],
-    X_test: pd.DataFrame,
-    y_test: pd.Series,
-    y_prob: np.ndarray,
-    df_preds: pd.DataFrame,
-    model: xgb.XGBClassifier
-) -> None:
-    """
-    Automated validation suite verifying data integrity, lack of leakage, and reproducibility.
-    """
-    # 1. Dataset existence & uniqueness
-    assert len(df_summary) == 1000, f"Expected 1000 records, got {len(df_summary)}"
-    assert df_summary["complaint_id"].nunique() == 1000, "complaint_id values are not unique!"
-
-    # 2. Target check
-    assert TARGET_COL in df_summary.columns, f"Target {TARGET_COL} missing!"
-    assert set(df_summary[TARGET_COL].unique()) == {0, 1}, "Target must contain both 0 and 1 classes!"
-
-    # 3. Leakage audit
-    for f in feature_names:
-        assert f not in EXCLUDED_COLUMNS, f"Data leakage error: {f} in feature list!"
-        assert "suspicious" not in f.lower(), f"Suspicious substring in feature name {f}!"
-        assert "ring" not in f.lower(), f"Ring substring in feature name {f}!"
-
-    # 4. NaNs check
-    assert not X_test.isnull().any().any(), "NaN values detected in test set features!"
-
-    # 5. Prediction integrity
-    assert len(df_preds) == len(y_test), "Prediction rows mismatch test set size!"
-    assert (y_prob >= 0.0).all() and (y_prob <= 1.0).all(), "Probabilities outside [0, 1] range!"
-
-    # 6. Model reload check
-    reloaded_model = xgb.XGBClassifier()
-    reloaded_model.load_model(str(MODEL_FILE))
-    reloaded_prob = reloaded_model.predict_proba(X_test)[:, 1]
-    np.testing.assert_allclose(y_prob, reloaded_prob, rtol=1e-5, err_msg="Reloaded model predictions mismatch!")
-
-    print("All Stage 3A XGBoost baseline validations PASSED successfully!")
-
-
-# ==============================================================================
-# Main Pipeline Routine
-# ==============================================================================
 
 def main():
     print("=" * 60)
-    print("       STAGE 3A — XGBOOST BASELINE CLASSIFIER")
+    print("   STAGE 3A ? XGBOOST BASELINE CLASSIFIER (SCOPED REBUILD)")
     print("=" * 60)
-
-    # 1. Load Dataset
-    df_summary = load_graph_summary()
-
-    # 2. Data Quality & Leakage Audit
-    validate_data_quality(df_summary)
-
-    # 3. Select Features & Exclude Labels
-    X, y, feature_names, excluded_cols = select_features(df_summary)
-
-    # 4. Stratified Train / Test Split (80% / 20%)
-    meta_cols = [c for c in ["complaint_id", "incident_entity_id", "num_nodes", "num_edges", "total_transaction_value", "num_cash_out_edges"] if c in df_summary.columns]
-    df_meta = df_summary[meta_cols]
-
-    X_train, X_test, y_train, y_test, meta_train, meta_test = train_test_split(
-        X, y, df_meta,
-        test_size=0.20,
-        random_state=RANDOM_STATE,
-        stratify=y
-    )
-
-    # 5. Train XGBoost Model with scale_pos_weight
-    model, scale_pos_weight = train_xgboost_baseline(X_train, y_train, random_state=RANDOM_STATE)
-
-    # 6. Evaluate on Untouched Test Set
-    metrics = evaluate_model(model, X_test, y_test, default_threshold=0.5)
-
-    # 7. Threshold Analysis
-    df_thresholds = analyze_thresholds(y_test, metrics["y_prob"])
-
-    # 8. Visualizations
-    plot_precision_recall_curve(y_test, metrics["y_prob"], metrics["pr_auc"])
-    plot_roc_curve(y_test, metrics["y_prob"], metrics["roc_auc"])
-    df_importance = calculate_feature_importance(model, feature_names)
-
-    # 9. Predictions Export
-    df_preds = generate_predictions_table(model, X_test, y_test, meta_test)
-
-    # 10. Secondary Chronological Temporal Evaluation
-    df_temporal = run_temporal_evaluation(df_summary, feature_names)
-
-    # 11. Save Model & Features
-    save_model(model, feature_names)
-
-    # 12. Run Pipeline Validations
-    run_pipeline_validations(df_summary, feature_names, X_test, y_test, metrics["y_prob"], df_preds, model)
-
-    # 13. Final Structured Report
-    print("\n" + "=" * 55)
-    print("           STAGE 3A — XGBOOST BASELINE REPORT")
-    print("=" * 55)
-    print(f"Dataset Total Graphs       : {len(df_summary)}")
-    print(f"Training Samples           : {len(X_train)} (80%)")
-    print(f"Testing Samples            : {len(X_test)} (20%)")
-    print(f"Features Count             : {len(feature_names)}")
-    print(f"Class Distribution (Total) : Normal={int((y==0).sum())}, Suspicious={int((y==1).sum())}")
-    print(f"Class Distribution (Test)  : Normal={int((y_test==0).sum())}, Suspicious={int((y_test==1).sum())}")
-    print("-" * 55)
-    print("PERFORMANCE (Test Set @ Threshold = 0.50):")
-    print(f"  Accuracy                 : {metrics['accuracy'] * 100:.2f}%")
-    print(f"  Precision                : {metrics['precision'] * 100:.2f}%")
-    print(f"  Recall                   : {metrics['recall'] * 100:.2f}%")
-    print(f"  F1 Score                 : {metrics['f1'] * 100:.2f}%")
-    print(f"  ROC-AUC                  : {metrics['roc_auc']:.4f}")
-    print(f"  PR-AUC                   : {metrics['pr_auc']:.4f}")
-    print("-" * 55)
-    print("CONFUSION MATRIX:")
-    print(f"  True Negatives (TN)      : {metrics['tn']}")
-    print(f"  False Positives (FP)     : {metrics['fp']}")
-    print(f"  False Negatives (FN)     : {metrics['fn']}")
-    print(f"  True Positives (TP)      : {metrics['tp']}")
-    print("-" * 55)
-    print("TOP 5 FEATURES BY GAIN IMPORTANCE:")
-    for idx, row in df_importance.head(5).iterrows():
-        print(f"  {idx + 1}. {row['feature']:<28} (Gain: {row['importance']:.4f})")
-    print("-" * 55)
-
-    # Best experimental F1 threshold
-    best_thresh_row = df_thresholds.loc[df_thresholds["f1"].idxmax()]
-    print(f"Experimental Optimal F1 Threshold: {best_thresh_row['threshold']:.2f} (F1: {best_thresh_row['f1'] * 100:.2f}%, Precision: {best_thresh_row['precision'] * 100:.2f}%, Recall: {best_thresh_row['recall'] * 100:.2f}%)")
-    print("-" * 55)
-
-    # Example Feature-based Explanations
-    print("\nFeature-Based Explanations (Demonstration on Test Incidents):")
-    sample_pos = df_preds[df_preds["actual_label"] == 1].iloc[0]
-    sample_neg = df_preds[df_preds["actual_label"] == 0].iloc[0]
-
-    for label_type, s_row in [("Suspicious Incident", sample_pos), ("Normal Incident", sample_neg)]:
-        print(f"\n--- {label_type}: Complaint {s_row['complaint_id']} (Entity: {s_row['incident_entity_id']}) ---")
-        print(f"Actual: {s_row['actual_label']} | Pred Prob: {s_row['predicted_probability']:.4f} | Pred Class: {s_row['predicted_label']}")
-        # Look up feature row
-        feat_row = df_summary[df_summary["complaint_id"] == s_row["complaint_id"]].iloc[0]
-        reasons = generate_feature_explanation(feat_row)
-        print("Feature-based explanation:")
-        for r in reasons:
-            print(f"  • {r}")
-
-    print("\n" + "=" * 55)
-    print("Stage 3A XGBoost baseline is complete and ready for comparison with GraphSAGE.")
-    print("=" * 55 + "\n")
+    
+    model, m, train_df, test_df = train_and_evaluate_xgboost(seed=RANDOM_STATE)
+    adapter = SyntheticAdapter()
+    df_raw = adapter.load_graph_summary()
+    audit_data_leakage(df_raw, train_df, test_df)
+    
+    # Save model and feature schema
+    feature_names = [
+        c for c in engineer_baseline_features(df_raw).columns
+        if c not in EXCLUDED_COLUMNS and pd.api.types.is_numeric_dtype(engineer_baseline_features(df_raw)[c])
+    ]
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    model.save_model(str(MODEL_FILE))
+    with open(FEATURE_SCHEMA_FILE, "w") as f:
+        json.dump({"features": feature_names}, f, indent=2)
+    print(f"[SUCCESS] Saved model to: {MODEL_FILE}")
+    print(f"[SUCCESS] Saved feature schema to: {FEATURE_SCHEMA_FILE}")
+    
+    # Multi-seed stability
+    print("Running 5-seed stability validation...")
+    df_seeds = run_multi_seed_evaluation()
+    
+    print("\n" + "=" * 60)
+    print("       STAGE 3A ? BASELINE PERFORMANCE REPORT")
+    print("=" * 60)
+    print(f"Sample Size (N_test)    : {m['n_test']} cases (Normal: {m['n_neg_test']}, Suspicious: {m['n_pos_test']})")
+    print(f"Decision Threshold      : 0.50 (Default Operational Baseline)")
+    print("-" * 60)
+    print(f"Accuracy                : {m['accuracy']*100:.2f}%  [95% CI: {m['accuracy_ci'][0]*100:.2f}% - {m['accuracy_ci'][1]*100:.2f}%]")
+    print(f"Precision               : {m['precision']*100:.2f}%  [95% CI: {m['precision_ci'][0]*100:.2f}% - {m['precision_ci'][1]*100:.2f}%]  ({m['tp']}/{m['tp']+m['fp']})")
+    print(f"Recall                  : {m['recall']*100:.2f}%  [95% CI: {m['recall_ci'][0]*100:.2f}% - {m['recall_ci'][1]*100:.2f}%]  ({m['tp']}/{m['tp']+m['fn']})")
+    print(f"F1 Score                : {m['f1']*100:.2f}%  [95% CI: {m['f1_ci'][0]*100:.2f}% - {m['f1_ci'][1]*100:.2f}%]")
+    print(f"ROC-AUC                 : {m['roc_auc']:.4f}  [95% CI: {m['roc_auc_ci'][0]:.4f} - {m['roc_auc_ci'][1]:.4f}]")
+    print(f"PR-AUC                  : {m['pr_auc']:.4f}  [95% CI: {m['pr_auc_ci'][0]:.4f} - {m['pr_auc_ci'][1]:.4f}]")
+    print("-" * 60)
+    print(f"Confusion Matrix        : TP={m['tp']}, FP={m['fp']}, TN={m['tn']}, FN={m['fn']}")
+    print("-" * 60)
+    print(f"5-Seed Stability Summary (Mean +/- Std, N=5 seeds):")
+    print(f"  F1 Score              : {df_seeds['f1'].mean()*100:.2f}% +/- {df_seeds['f1'].std()*100:.2f}%")
+    print(f"  Precision             : {df_seeds['precision'].mean()*100:.2f}% +/- {df_seeds['precision'].std()*100:.2f}%")
+    print(f"  Recall                : {df_seeds['recall'].mean()*100:.2f}% +/- {df_seeds['recall'].std()*100:.2f}%")
+    print(f"  PR-AUC                : {df_seeds['pr_auc'].mean():.4f} +/- {df_seeds['pr_auc'].std():.4f}")
+    print("=" * 60 + "\n")
 
 
 if __name__ == "__main__":

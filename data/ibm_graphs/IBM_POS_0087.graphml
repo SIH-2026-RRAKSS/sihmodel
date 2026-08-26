@@ -1,0 +1,377 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d9" for="edge" attr.name="is_laundering" attr.type="long" />
+  <key id="d8" for="edge" attr.name="timestamp" attr.type="string" />
+  <key id="d7" for="edge" attr.name="payment_format" attr.type="string" />
+  <key id="d6" for="edge" attr.name="amount" attr.type="double" />
+  <key id="d5" for="node" attr.name="is_terminal_sink" attr.type="long" />
+  <key id="d4" for="node" attr.name="is_seed" attr.type="long" />
+  <key id="d3" for="node" attr.name="out_degree" attr.type="long" />
+  <key id="d2" for="node" attr.name="in_degree" attr.type="long" />
+  <key id="d1" for="graph" attr.name="seed_account" attr.type="string" />
+  <key id="d0" for="graph" attr.name="subgraph_id" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="B232335_80D1AE780">
+      <data key="d2">2</data>
+      <data key="d3">4</data>
+      <data key="d4">1</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B22062_80D1AF340">
+      <data key="d2">22</data>
+      <data key="d3">2</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B18230_80D1AF200">
+      <data key="d2">2</data>
+      <data key="d3">4</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B15180_80D1AF3E0">
+      <data key="d2">2</data>
+      <data key="d3">4</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B5464_80D1AEFD0">
+      <data key="d2">4</data>
+      <data key="d3">6</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B111141_80D1AF430">
+      <data key="d2">4</data>
+      <data key="d3">6</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B223908_80D1AE820">
+      <data key="d2">4</data>
+      <data key="d3">6</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B14254_80D1AF250">
+      <data key="d2">2</data>
+      <data key="d3">4</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B32059_80D1AF480">
+      <data key="d2">0</data>
+      <data key="d3">2</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B234335_80D1AEF80">
+      <data key="d2">4</data>
+      <data key="d3">4</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B214322_80D1AF160">
+      <data key="d2">2</data>
+      <data key="d3">4</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B16643_805791A90">
+      <data key="d2">0</data>
+      <data key="d3">2</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <edge source="B232335_80D1AE780" target="B232335_80D1AE780" id="0">
+      <data key="d6">14.14</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 16:13:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B232335_80D1AE780" target="B232335_80D1AE780" id="1">
+      <data key="d6">14.14</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 16:13:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B232335_80D1AE780" target="B22062_80D1AF340" id="0">
+      <data key="d6">1958.0</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:54:00</data>
+      <data key="d9">1</data>
+    </edge>
+    <edge source="B232335_80D1AE780" target="B22062_80D1AF340" id="1">
+      <data key="d6">1958.0</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:54:00</data>
+      <data key="d9">1</data>
+    </edge>
+    <edge source="B22062_80D1AF340" target="B22062_80D1AF340" id="0">
+      <data key="d6">494.94</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:03:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B22062_80D1AF340" target="B22062_80D1AF340" id="1">
+      <data key="d6">494.94</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:03:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B18230_80D1AF200" target="B22062_80D1AF340" id="0">
+      <data key="d6">355.29</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:55:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B18230_80D1AF200" target="B22062_80D1AF340" id="1">
+      <data key="d6">355.29</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:55:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B18230_80D1AF200" target="B18230_80D1AF200" id="0">
+      <data key="d6">7.19</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 03:18:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B18230_80D1AF200" target="B18230_80D1AF200" id="1">
+      <data key="d6">7.19</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 03:18:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B15180_80D1AF3E0" target="B22062_80D1AF340" id="0">
+      <data key="d6">1237.65</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:37:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B15180_80D1AF3E0" target="B22062_80D1AF340" id="1">
+      <data key="d6">1237.65</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:37:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B15180_80D1AF3E0" target="B15180_80D1AF3E0" id="0">
+      <data key="d6">13.1</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 03:10:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B15180_80D1AF3E0" target="B15180_80D1AF3E0" id="1">
+      <data key="d6">13.1</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 03:10:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B5464_80D1AEFD0" target="B22062_80D1AF340" id="0">
+      <data key="d6">916.6</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:33:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B5464_80D1AEFD0" target="B22062_80D1AF340" id="1">
+      <data key="d6">916.6</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:33:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B5464_80D1AEFD0" target="B5464_80D1AEFD0" id="0">
+      <data key="d6">14.15</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:27:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B5464_80D1AEFD0" target="B5464_80D1AEFD0" id="1">
+      <data key="d6">19.96</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 07:41:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B5464_80D1AEFD0" target="B5464_80D1AEFD0" id="2">
+      <data key="d6">14.15</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:27:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B5464_80D1AEFD0" target="B5464_80D1AEFD0" id="3">
+      <data key="d6">19.96</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 07:41:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B111141_80D1AF430" target="B22062_80D1AF340" id="0">
+      <data key="d6">82.55</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:50:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B111141_80D1AF430" target="B22062_80D1AF340" id="1">
+      <data key="d6">82.55</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:50:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B111141_80D1AF430" target="B111141_80D1AF430" id="0">
+      <data key="d6">8.75</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:25:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B111141_80D1AF430" target="B111141_80D1AF430" id="1">
+      <data key="d6">4.67</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:16:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B111141_80D1AF430" target="B111141_80D1AF430" id="2">
+      <data key="d6">8.75</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:25:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B111141_80D1AF430" target="B111141_80D1AF430" id="3">
+      <data key="d6">4.67</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:16:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B223908_80D1AE820" target="B22062_80D1AF340" id="0">
+      <data key="d6">3408.22</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:56:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B223908_80D1AE820" target="B22062_80D1AF340" id="1">
+      <data key="d6">3408.22</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:56:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B223908_80D1AE820" target="B223908_80D1AE820" id="0">
+      <data key="d6">1071.11</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:21:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B223908_80D1AE820" target="B223908_80D1AE820" id="1">
+      <data key="d6">6.11</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:16:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B223908_80D1AE820" target="B223908_80D1AE820" id="2">
+      <data key="d6">1071.11</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:21:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B223908_80D1AE820" target="B223908_80D1AE820" id="3">
+      <data key="d6">6.11</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:16:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B14254_80D1AF250" target="B22062_80D1AF340" id="0">
+      <data key="d6">2408.73</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:46:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B14254_80D1AF250" target="B22062_80D1AF340" id="1">
+      <data key="d6">2408.73</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:46:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B14254_80D1AF250" target="B14254_80D1AF250" id="0">
+      <data key="d6">235.78</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 12:13:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B14254_80D1AF250" target="B14254_80D1AF250" id="1">
+      <data key="d6">235.78</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 12:13:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B32059_80D1AF480" target="B22062_80D1AF340" id="0">
+      <data key="d6">2306.91</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:43:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B32059_80D1AF480" target="B22062_80D1AF340" id="1">
+      <data key="d6">2306.91</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:43:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B234335_80D1AEF80" target="B22062_80D1AF340" id="0">
+      <data key="d6">945.47</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:45:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B234335_80D1AEF80" target="B22062_80D1AF340" id="1">
+      <data key="d6">945.47</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:45:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B234335_80D1AEF80" target="B234335_80D1AEF80" id="0">
+      <data key="d6">11.83</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 08:08:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B234335_80D1AEF80" target="B234335_80D1AEF80" id="1">
+      <data key="d6">11.83</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 08:08:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B214322_80D1AF160" target="B22062_80D1AF340" id="0">
+      <data key="d6">3332.75</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:42:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B214322_80D1AF160" target="B22062_80D1AF340" id="1">
+      <data key="d6">3332.75</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 17:42:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B214322_80D1AF160" target="B214322_80D1AF160" id="0">
+      <data key="d6">5416.18</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:18:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B214322_80D1AF160" target="B214322_80D1AF160" id="1">
+      <data key="d6">5416.18</data>
+      <data key="d7">Reinvestment</data>
+      <data key="d8">2022-09-01 00:18:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B16643_805791A90" target="B234335_80D1AEF80" id="0">
+      <data key="d6">24.61</data>
+      <data key="d7">Cheque</data>
+      <data key="d8">2022-09-01 11:38:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B16643_805791A90" target="B234335_80D1AEF80" id="1">
+      <data key="d6">7.01</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-01 11:32:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <data key="d0">IBM_POS_0087</data>
+    <data key="d1">B232335_80D1AE780</data>
+  </graph>
+</graphml>

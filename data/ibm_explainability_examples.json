@@ -1,0 +1,1802 @@
+{
+  "IBM_POS_0001": {
+    "subgraph_id": "IBM_POS_0001",
+    "seed_account": "B23402_8022CFF00",
+    "risk_probability": 0.1483,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B23402_8022CFF00.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B23402_8022CFF00.",
+      "Subnetwork connects 16 accounts across 46 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $22,329,875.14.",
+      "Observed 9 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 9 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0002": {
+    "subgraph_id": "IBM_POS_0002",
+    "seed_account": "B22758_808098770",
+    "risk_probability": 0.9617,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B22758_808098770 across 11 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B22758_808098770.",
+      "Subnetwork connects 11 accounts across 40 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $382,353.66.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0003": {
+    "subgraph_id": "IBM_POS_0003",
+    "seed_account": "B28531_80A709C90",
+    "risk_probability": 0.7353,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B28531_80A709C90; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B28531_80A709C90.",
+      "Subnetwork connects 6 accounts across 20 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $72,391.89.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0004": {
+    "subgraph_id": "IBM_POS_0004",
+    "seed_account": "B1267_8038F4190",
+    "risk_probability": 0.9557,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1267_8038F4190 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1267_8038F4190.",
+      "Subnetwork connects 2 accounts across 6 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $114,318.22.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0005": {
+    "subgraph_id": "IBM_POS_0005",
+    "seed_account": "B3051_806A3D750",
+    "risk_probability": 0.9866,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B3051_806A3D750 across 11 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B3051_806A3D750.",
+      "Subnetwork connects 11 accounts across 40 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,200,101.32.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0006": {
+    "subgraph_id": "IBM_POS_0006",
+    "seed_account": "B3149_801BB70D0",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B3149_801BB70D0 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B3149_801BB70D0.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $11,433.36.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0007": {
+    "subgraph_id": "IBM_POS_0007",
+    "seed_account": "B214050_80537F610",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B214050_80537F610 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B214050_80537F610.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,357,978.94.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0008": {
+    "subgraph_id": "IBM_POS_0008",
+    "seed_account": "B29794_81358BC60",
+    "risk_probability": 0.9433,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B29794_81358BC60 across 13 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B29794_81358BC60.",
+      "Subnetwork connects 13 accounts across 38 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $326,153.19.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0009": {
+    "subgraph_id": "IBM_POS_0009",
+    "seed_account": "B122545_80AAA1FE0",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B122545_80AAA1FE0 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B122545_80AAA1FE0.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $39,011.12.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0010": {
+    "subgraph_id": "IBM_POS_0010",
+    "seed_account": "B118_811BCD660",
+    "risk_probability": 0.5872,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B118_811BCD660; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B118_811BCD660.",
+      "Subnetwork connects 19 accounts across 67 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $40,635,174.56.",
+      "Observed 9 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 9 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0011": {
+    "subgraph_id": "IBM_POS_0011",
+    "seed_account": "B6179_809BBC7B0",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B6179_809BBC7B0 across 21554 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B6179_809BBC7B0.",
+      "Subnetwork connects 21554 accounts across 91311 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $85,624,816,686.83.",
+      "Observed 8519 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 8519 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0012": {
+    "subgraph_id": "IBM_POS_0012",
+    "seed_account": "B148350_812D0C3C0",
+    "risk_probability": 0.1713,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B148350_812D0C3C0.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B148350_812D0C3C0.",
+      "Subnetwork connects 13 accounts across 45 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $4,247,240.43.",
+      "Observed 6 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 6 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0013": {
+    "subgraph_id": "IBM_POS_0013",
+    "seed_account": "B1024_8009FD760",
+    "risk_probability": 0.8963,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1024_8009FD760 across 6 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1024_8009FD760.",
+      "Subnetwork connects 6 accounts across 19 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $222,573.46.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0014": {
+    "subgraph_id": "IBM_POS_0014",
+    "seed_account": "B16_805CAD3F0",
+    "risk_probability": 0.4437,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B16_805CAD3F0.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B16_805CAD3F0.",
+      "Subnetwork connects 4 accounts across 16 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $39,081,659.93.",
+      "Observed 0 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 0 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0015": {
+    "subgraph_id": "IBM_POS_0015",
+    "seed_account": "B10_800119810",
+    "risk_probability": 0.4242,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B10_800119810.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B10_800119810.",
+      "Subnetwork connects 249 accounts across 914 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $285,896,030.24.",
+      "Observed 143 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 143 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0016": {
+    "subgraph_id": "IBM_POS_0016",
+    "seed_account": "B20_803892E30",
+    "risk_probability": 0.6585,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B20_803892E30; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B20_803892E30.",
+      "Subnetwork connects 43 accounts across 203 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $96,322,431.77.",
+      "Observed 11 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 11 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0017": {
+    "subgraph_id": "IBM_POS_0017",
+    "seed_account": "B148348_81235EE30",
+    "risk_probability": 0.5597,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B148348_81235EE30; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B148348_81235EE30.",
+      "Subnetwork connects 53 accounts across 155 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $19,299,180.09.",
+      "Observed 20 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 20 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0018": {
+    "subgraph_id": "IBM_POS_0018",
+    "seed_account": "B25113_8095F9B40",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B25113_8095F9B40 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B25113_8095F9B40.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $36,346.54.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0019": {
+    "subgraph_id": "IBM_POS_0019",
+    "seed_account": "B243897_81006C920",
+    "risk_probability": 0.5363,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B243897_81006C920; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B243897_81006C920.",
+      "Subnetwork connects 22 accounts across 99 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $36,978,180.10.",
+      "Observed 3 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 3 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0020": {
+    "subgraph_id": "IBM_POS_0020",
+    "seed_account": "B1_8006FA4B0",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1_8006FA4B0 across 14398 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1_8006FA4B0.",
+      "Subnetwork connects 14398 accounts across 54117 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $35,997,541,146.44.",
+      "Observed 7488 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 7488 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0021": {
+    "subgraph_id": "IBM_POS_0021",
+    "seed_account": "B22806_807A61380",
+    "risk_probability": 0.6475,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B22806_807A61380; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B22806_807A61380.",
+      "Subnetwork connects 8 accounts across 27 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $627,990.06.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0022": {
+    "subgraph_id": "IBM_POS_0022",
+    "seed_account": "B220271_81114D580",
+    "risk_probability": 0.9287,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B220271_81114D580 across 3 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B220271_81114D580.",
+      "Subnetwork connects 3 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $40,077.36.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0023": {
+    "subgraph_id": "IBM_POS_0023",
+    "seed_account": "B240229_80F025640",
+    "risk_probability": 0.5126,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B240229_80F025640; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B240229_80F025640.",
+      "Subnetwork connects 30 accounts across 121 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $52,324,039.55.",
+      "Observed 16 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 16 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0024": {
+    "subgraph_id": "IBM_POS_0024",
+    "seed_account": "B513_801947FF0",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B513_801947FF0 across 9637 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B513_801947FF0.",
+      "Subnetwork connects 9637 accounts across 20128 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $13,884,083,640.68.",
+      "Observed 9607 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 9607 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0025": {
+    "subgraph_id": "IBM_POS_0025",
+    "seed_account": "B10057_803DE1580",
+    "risk_probability": 0.7809,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B10057_803DE1580; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B10057_803DE1580.",
+      "Subnetwork connects 6 accounts across 21 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $5,494,402.00.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0026": {
+    "subgraph_id": "IBM_POS_0026",
+    "seed_account": "B129974_80FE25690",
+    "risk_probability": 0.9361,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B129974_80FE25690 across 11 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B129974_80FE25690.",
+      "Subnetwork connects 11 accounts across 40 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $3,646,882.58.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0027": {
+    "subgraph_id": "IBM_POS_0027",
+    "seed_account": "B28_80A4AD6C0",
+    "risk_probability": 0.2602,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B28_80A4AD6C0.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B28_80A4AD6C0.",
+      "Subnetwork connects 12 accounts across 56 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $45,016,639.01.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0028": {
+    "subgraph_id": "IBM_POS_0028",
+    "seed_account": "B132523_80CA77970",
+    "risk_probability": 0.886,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B132523_80CA77970 across 7 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B132523_80CA77970.",
+      "Subnetwork connects 7 accounts across 23 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $139,724.76.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0029": {
+    "subgraph_id": "IBM_POS_0029",
+    "seed_account": "B70_100428660",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B70_100428660 across 38135 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B70_100428660.",
+      "Subnetwork connects 38135 accounts across 186429 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $329,948,184,247.86.",
+      "Observed 12505 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 12505 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0030": {
+    "subgraph_id": "IBM_POS_0030",
+    "seed_account": "B11318_80118E680",
+    "risk_probability": 0.8453,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B11318_80118E680 across 3 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B11318_80118E680.",
+      "Subnetwork connects 3 accounts across 8 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $7,840.60.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0031": {
+    "subgraph_id": "IBM_POS_0031",
+    "seed_account": "B10_8001A6140",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B10_8001A6140 across 9691 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B10_8001A6140.",
+      "Subnetwork connects 9691 accounts across 20326 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $12,800,371,122.46.",
+      "Observed 9639 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 9639 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0032": {
+    "subgraph_id": "IBM_POS_0032",
+    "seed_account": "B133686_80C734F80",
+    "risk_probability": 0.9977,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B133686_80C734F80 across 542 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B133686_80C734F80.",
+      "Subnetwork connects 542 accounts across 1108 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $12,506,268,897.86.",
+      "Observed 534 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 534 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0033": {
+    "subgraph_id": "IBM_POS_0033",
+    "seed_account": "B1655_80832A480",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1655_80832A480 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1655_80832A480.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,363,322.80.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0034": {
+    "subgraph_id": "IBM_POS_0034",
+    "seed_account": "B795_80BAEB330",
+    "risk_probability": 0.3168,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B795_80BAEB330.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B795_80BAEB330.",
+      "Subnetwork connects 13 accounts across 61 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $17,730,340.21.",
+      "Observed 3 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 3 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0035": {
+    "subgraph_id": "IBM_POS_0035",
+    "seed_account": "B2915_800A3E5A0",
+    "risk_probability": 0.5929,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B2915_800A3E5A0; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B2915_800A3E5A0.",
+      "Subnetwork connects 60 accounts across 73 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,904,262.73.",
+      "Observed 0 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 0 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0036": {
+    "subgraph_id": "IBM_POS_0036",
+    "seed_account": "B222697_8085DD9A0",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B222697_8085DD9A0 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B222697_8085DD9A0.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $53,282.64.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0037": {
+    "subgraph_id": "IBM_POS_0037",
+    "seed_account": "B18405_806DA0590",
+    "risk_probability": 0.5254,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B18405_806DA0590; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B18405_806DA0590.",
+      "Subnetwork connects 28 accounts across 132 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $2,494,849,609.30.",
+      "Observed 5 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 5 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0038": {
+    "subgraph_id": "IBM_POS_0038",
+    "seed_account": "B2591_80A1C7710",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B2591_80A1C7710 across 12801 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B2591_80A1C7710.",
+      "Subnetwork connects 12801 accounts across 54229 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $29,717,565,716.78.",
+      "Observed 5000 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 5000 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0039": {
+    "subgraph_id": "IBM_POS_0039",
+    "seed_account": "B32405_810D9E7B0",
+    "risk_probability": 0.1921,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B32405_810D9E7B0.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B32405_810D9E7B0.",
+      "Subnetwork connects 12 accounts across 48 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,025,669.75.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0040": {
+    "subgraph_id": "IBM_POS_0040",
+    "seed_account": "B1547_8004FBC70",
+    "risk_probability": 0.9557,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1547_8004FBC70 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1547_8004FBC70.",
+      "Subnetwork connects 2 accounts across 6 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $68,623.54.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0041": {
+    "subgraph_id": "IBM_POS_0041",
+    "seed_account": "B1124_8079EC940",
+    "risk_probability": 0.9091,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1124_8079EC940 across 6 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1124_8079EC940.",
+      "Subnetwork connects 6 accounts across 20 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,739,553.78.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0042": {
+    "subgraph_id": "IBM_POS_0042",
+    "seed_account": "B23_8002A0E00",
+    "risk_probability": 0.8946,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B23_8002A0E00 across 3 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B23_8002A0E00.",
+      "Subnetwork connects 3 accounts across 6 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $65,196.22.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0043": {
+    "subgraph_id": "IBM_POS_0043",
+    "seed_account": "B148350_811FFF630",
+    "risk_probability": 0.9979,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B148350_811FFF630 across 488 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B148350_811FFF630.",
+      "Subnetwork connects 488 accounts across 1043 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $915,644,188.28.",
+      "Observed 470 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 470 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0044": {
+    "subgraph_id": "IBM_POS_0044",
+    "seed_account": "B223_812D1A410",
+    "risk_probability": 0.9021,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B223_812D1A410 across 11 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B223_812D1A410.",
+      "Subnetwork connects 11 accounts across 20 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,435,555.24.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0045": {
+    "subgraph_id": "IBM_POS_0045",
+    "seed_account": "B112078_808DE9400",
+    "risk_probability": 0.3893,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B112078_808DE9400.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B112078_808DE9400.",
+      "Subnetwork connects 7 accounts across 26 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $281,204,453.54.",
+      "Observed 0 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 0 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0046": {
+    "subgraph_id": "IBM_POS_0046",
+    "seed_account": "B21387_811B12170",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B21387_811B12170 across 12800 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B21387_811B12170.",
+      "Subnetwork connects 12800 accounts across 54231 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $29,716,874,375.79.",
+      "Observed 4998 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 4998 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0047": {
+    "subgraph_id": "IBM_POS_0047",
+    "seed_account": "B16606_8064545E0",
+    "risk_probability": 0.7807,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B16606_8064545E0 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B16606_8064545E0.",
+      "Subnetwork connects 2 accounts across 2 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $24,662.00.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0048": {
+    "subgraph_id": "IBM_POS_0048",
+    "seed_account": "B28663_80A976860",
+    "risk_probability": 0.4542,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B28663_80A976860.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B28663_80A976860.",
+      "Subnetwork connects 21 accounts across 91 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $22,699,258.16.",
+      "Observed 4 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 4 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0049": {
+    "subgraph_id": "IBM_POS_0049",
+    "seed_account": "B1_8010AA4F0",
+    "risk_probability": 0.2984,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B1_8010AA4F0.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1_8010AA4F0.",
+      "Subnetwork connects 14 accounts across 61 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $964,938.03.",
+      "Observed 6 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 6 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0050": {
+    "subgraph_id": "IBM_POS_0050",
+    "seed_account": "B13157_805CA5A30",
+    "risk_probability": 0.9866,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B13157_805CA5A30 across 11 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B13157_805CA5A30.",
+      "Subnetwork connects 11 accounts across 40 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,200,101.32.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0051": {
+    "subgraph_id": "IBM_POS_0051",
+    "seed_account": "B40836_80F6B88B0",
+    "risk_probability": 0.2646,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B40836_80F6B88B0.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B40836_80F6B88B0.",
+      "Subnetwork connects 14 accounts across 52 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,351,834.03.",
+      "Observed 5 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 5 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0052": {
+    "subgraph_id": "IBM_POS_0052",
+    "seed_account": "B19593_8038A9100",
+    "risk_probability": 0.9579,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B19593_8038A9100 across 4 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B19593_8038A9100.",
+      "Subnetwork connects 4 accounts across 12 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $43,574.42.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0053": {
+    "subgraph_id": "IBM_POS_0053",
+    "seed_account": "B3123_809FB9990",
+    "risk_probability": 0.184,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B3123_809FB9990.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B3123_809FB9990.",
+      "Subnetwork connects 6 accounts across 33 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $3,786,615.52.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0054": {
+    "subgraph_id": "IBM_POS_0054",
+    "seed_account": "B21174_800776AF0",
+    "risk_probability": 0.871,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B21174_800776AF0 across 6 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B21174_800776AF0.",
+      "Subnetwork connects 6 accounts across 14 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $180,151.47.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0055": {
+    "subgraph_id": "IBM_POS_0055",
+    "seed_account": "B12_800C050D0",
+    "risk_probability": 0.9986,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B12_800C050D0 across 491 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B12_800C050D0.",
+      "Subnetwork connects 491 accounts across 1012 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $77,563,948,667.01.",
+      "Observed 482 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 482 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0056": {
+    "subgraph_id": "IBM_POS_0056",
+    "seed_account": "B225215_809852800",
+    "risk_probability": 0.965,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B225215_809852800 across 9 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B225215_809852800.",
+      "Subnetwork connects 9 accounts across 28 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $326,254.66.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0057": {
+    "subgraph_id": "IBM_POS_0057",
+    "seed_account": "B29_80DAFF780",
+    "risk_probability": 0.541,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B29_80DAFF780; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B29_80DAFF780.",
+      "Subnetwork connects 13 accounts across 48 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $25,513,119.22.",
+      "Observed 3 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 3 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0058": {
+    "subgraph_id": "IBM_POS_0058",
+    "seed_account": "B9129_80B4D3030",
+    "risk_probability": 0.94,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B9129_80B4D3030 across 3 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B9129_80B4D3030.",
+      "Subnetwork connects 3 accounts across 8 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $3,859.30.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0059": {
+    "subgraph_id": "IBM_POS_0059",
+    "seed_account": "B70_100428858",
+    "risk_probability": 0.9994,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B70_100428858 across 2507 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B70_100428858.",
+      "Subnetwork connects 2507 accounts across 12023 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $8,008,918,407.78.",
+      "Observed 831 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 831 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0060": {
+    "subgraph_id": "IBM_POS_0060",
+    "seed_account": "B213952_806D47B10",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B213952_806D47B10 across 21570 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B213952_806D47B10.",
+      "Subnetwork connects 21570 accounts across 91418 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $85,699,381,333.51.",
+      "Observed 8520 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 8520 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0061": {
+    "subgraph_id": "IBM_POS_0061",
+    "seed_account": "B410_802D878C0",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B410_802D878C0 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B410_802D878C0.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $28,235.32.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0062": {
+    "subgraph_id": "IBM_POS_0062",
+    "seed_account": "B125906_80D8F53F0",
+    "risk_probability": 0.9424,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B125906_80D8F53F0 across 14 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B125906_80D8F53F0.",
+      "Subnetwork connects 14 accounts across 50 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $992,664.76.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0063": {
+    "subgraph_id": "IBM_POS_0063",
+    "seed_account": "B17401_80D179410",
+    "risk_probability": 0.3125,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B17401_80D179410.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B17401_80D179410.",
+      "Subnetwork connects 18 accounts across 79 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $11,135,107.57.",
+      "Observed 6 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 6 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0064": {
+    "subgraph_id": "IBM_POS_0064",
+    "seed_account": "B251395_8144F8300",
+    "risk_probability": 0.9334,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B251395_8144F8300 across 12 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B251395_8144F8300.",
+      "Subnetwork connects 12 accounts across 38 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $182,758.18.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0065": {
+    "subgraph_id": "IBM_POS_0065",
+    "seed_account": "B20861_80940A1D0",
+    "risk_probability": 0.7807,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B20861_80940A1D0 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B20861_80940A1D0.",
+      "Subnetwork connects 2 accounts across 2 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $592.58.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0066": {
+    "subgraph_id": "IBM_POS_0066",
+    "seed_account": "B22828_80C627820",
+    "risk_probability": 0.6054,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B22828_80C627820; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B22828_80C627820.",
+      "Subnetwork connects 5 accounts across 22 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $14,688,517.34.",
+      "Observed 0 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 0 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0067": {
+    "subgraph_id": "IBM_POS_0067",
+    "seed_account": "B223645_80FBCC760",
+    "risk_probability": 0.9361,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B223645_80FBCC760 across 5 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B223645_80FBCC760.",
+      "Subnetwork connects 5 accounts across 15 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $41,802.53.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0068": {
+    "subgraph_id": "IBM_POS_0068",
+    "seed_account": "B120046_80DA3D3F0",
+    "risk_probability": 0.5683,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B120046_80DA3D3F0; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B120046_80DA3D3F0.",
+      "Subnetwork connects 72 accounts across 246 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $15,205,950.72.",
+      "Observed 4 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 4 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0069": {
+    "subgraph_id": "IBM_POS_0069",
+    "seed_account": "B117698_80D4B5530",
+    "risk_probability": 0.7807,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B117698_80D4B5530 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B117698_80D4B5530.",
+      "Subnetwork connects 2 accounts across 2 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $12,182.10.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0070": {
+    "subgraph_id": "IBM_POS_0070",
+    "seed_account": "B21174_800737690",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B21174_800737690 across 1105 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B21174_800737690.",
+      "Subnetwork connects 1105 accounts across 2348 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $3,719,448,727.32.",
+      "Observed 1074 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1074 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0071": {
+    "subgraph_id": "IBM_POS_0071",
+    "seed_account": "B150240_812D22980",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B150240_812D22980 across 1062 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B150240_812D22980.",
+      "Subnetwork connects 1062 accounts across 4432 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $3,163,767,882.80.",
+      "Observed 396 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 396 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0072": {
+    "subgraph_id": "IBM_POS_0072",
+    "seed_account": "B6179_805B5BC60",
+    "risk_probability": 0.7047,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B6179_805B5BC60 across 10 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B6179_805B5BC60.",
+      "Subnetwork connects 10 accounts across 37 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $870,365.68.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0073": {
+    "subgraph_id": "IBM_POS_0073",
+    "seed_account": "B23331_809022C20",
+    "risk_probability": 0.4015,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B23331_809022C20.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B23331_809022C20.",
+      "Subnetwork connects 8 accounts across 27 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $114,029.40.",
+      "Observed 3 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 3 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0074": {
+    "subgraph_id": "IBM_POS_0074",
+    "seed_account": "B213_8091A58E0",
+    "risk_probability": 0.8604,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B213_8091A58E0 across 6 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B213_8091A58E0.",
+      "Subnetwork connects 6 accounts across 19 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $593,966.55.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0075": {
+    "subgraph_id": "IBM_POS_0075",
+    "seed_account": "B19329_80DEF3AB0",
+    "risk_probability": 0.253,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B19329_80DEF3AB0.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B19329_80DEF3AB0.",
+      "Subnetwork connects 27 accounts across 100 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $9,609,582.74.",
+      "Observed 13 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 13 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0076": {
+    "subgraph_id": "IBM_POS_0076",
+    "seed_account": "B24779_8090EE1D0",
+    "risk_probability": 0.6625,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B24779_8090EE1D0; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B24779_8090EE1D0.",
+      "Subnetwork connects 8 accounts across 31 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,232,836.47.",
+      "Observed 0 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 0 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0077": {
+    "subgraph_id": "IBM_POS_0077",
+    "seed_account": "B116_80F1AF380",
+    "risk_probability": 0.7084,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B116_80F1AF380 across 12 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B116_80F1AF380.",
+      "Subnetwork connects 12 accounts across 55 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $1,272,342.51.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0078": {
+    "subgraph_id": "IBM_POS_0078",
+    "seed_account": "B12_800054B70",
+    "risk_probability": 0.9006,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B12_800054B70 across 10 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B12_800054B70.",
+      "Subnetwork connects 10 accounts across 34 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $105,551,375.45.",
+      "Observed 5 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 5 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0079": {
+    "subgraph_id": "IBM_POS_0079",
+    "seed_account": "B27954_80CC4B000",
+    "risk_probability": 0.9493,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B27954_80CC4B000 across 3 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B27954_80CC4B000.",
+      "Subnetwork connects 3 accounts across 8 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $40,951.66.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0080": {
+    "subgraph_id": "IBM_POS_0080",
+    "seed_account": "B49365_812A09D40",
+    "risk_probability": 0.9983,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B49365_812A09D40 across 481 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B49365_812A09D40.",
+      "Subnetwork connects 481 accounts across 1003 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $917,232,258.22.",
+      "Observed 469 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 469 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0081": {
+    "subgraph_id": "IBM_POS_0081",
+    "seed_account": "B1244_800ACE160",
+    "risk_probability": 0.6124,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B1244_800ACE160; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1244_800ACE160.",
+      "Subnetwork connects 81 accounts across 318 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $214,150,814.19.",
+      "Observed 13 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 13 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0082": {
+    "subgraph_id": "IBM_POS_0082",
+    "seed_account": "B70_100428A51",
+    "risk_probability": 0.9996,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B70_100428A51 across 2483 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B70_100428A51.",
+      "Subnetwork connects 2483 accounts across 12328 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $333,295.74.",
+      "Observed 674 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 674 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0083": {
+    "subgraph_id": "IBM_POS_0083",
+    "seed_account": "B48211_811D70290",
+    "risk_probability": 0.4358,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B48211_811D70290.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B48211_811D70290.",
+      "Subnetwork connects 18 accounts across 66 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $54,313,317.40.",
+      "Observed 7 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 7 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0084": {
+    "subgraph_id": "IBM_POS_0084",
+    "seed_account": "B136110_814009C90",
+    "risk_probability": 0.2873,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B136110_814009C90.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B136110_814009C90.",
+      "Subnetwork connects 4 accounts across 26 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $689,209.98.",
+      "Observed 0 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 0 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0085": {
+    "subgraph_id": "IBM_POS_0085",
+    "seed_account": "B14077_80AE3D7E0",
+    "risk_probability": 0.5367,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B14077_80AE3D7E0; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B14077_80AE3D7E0.",
+      "Subnetwork connects 10 accounts across 36 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $505,969.64.",
+      "Observed 3 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 3 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0086": {
+    "subgraph_id": "IBM_POS_0086",
+    "seed_account": "B14_8035765E0",
+    "risk_probability": 0.6836,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B14_8035765E0; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B14_8035765E0.",
+      "Subnetwork connects 5 accounts across 13 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $111,014.50.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0087": {
+    "subgraph_id": "IBM_POS_0087",
+    "seed_account": "B232335_80D1AE780",
+    "risk_probability": 0.7738,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B232335_80D1AE780; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B232335_80D1AE780.",
+      "Subnetwork connects 12 accounts across 48 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $48,571.78.",
+      "Observed 0 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 0 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0088": {
+    "subgraph_id": "IBM_POS_0088",
+    "seed_account": "B1292_800C15270",
+    "risk_probability": 0.7623,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1292_800C15270 across 9 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1292_800C15270.",
+      "Subnetwork connects 9 accounts across 25 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $2,002,703.42.",
+      "Observed 3 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 3 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0089": {
+    "subgraph_id": "IBM_POS_0089",
+    "seed_account": "B211_80A451570",
+    "risk_probability": 0.9941,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B211_80A451570 across 719 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B211_80A451570.",
+      "Subnetwork connects 719 accounts across 1511 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $523,144,517.69.",
+      "Observed 707 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 707 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0090": {
+    "subgraph_id": "IBM_POS_0090",
+    "seed_account": "B11852_8017AFC60",
+    "risk_probability": 0.3971,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B11852_8017AFC60.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B11852_8017AFC60.",
+      "Subnetwork connects 9 accounts across 33 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $8,545,331.74.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0091": {
+    "subgraph_id": "IBM_POS_0091",
+    "seed_account": "B2439_801010DF0",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B2439_801010DF0 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B2439_801010DF0.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $82,925.24.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0092": {
+    "subgraph_id": "IBM_POS_0092",
+    "seed_account": "B28628_80ACEE280",
+    "risk_probability": 0.8819,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B28628_80ACEE280 across 5 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B28628_80ACEE280.",
+      "Subnetwork connects 5 accounts across 16 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $3,575,599.08.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0093": {
+    "subgraph_id": "IBM_POS_0093",
+    "seed_account": "B118180_806B9FA20",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B118180_806B9FA20 across 788 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B118180_806B9FA20.",
+      "Subnetwork connects 788 accounts across 1641 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $21,949,957,694.55.",
+      "Observed 771 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 771 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0094": {
+    "subgraph_id": "IBM_POS_0094",
+    "seed_account": "B1501_800981370",
+    "risk_probability": 0.7492,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1501_800981370 across 30 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1501_800981370.",
+      "Subnetwork connects 30 accounts across 81 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $6,041,306.75.",
+      "Observed 16 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 16 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0095": {
+    "subgraph_id": "IBM_POS_0095",
+    "seed_account": "B1467_8013C4030",
+    "risk_probability": 0.8365,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B1467_8013C4030 across 6 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B1467_8013C4030.",
+      "Subnetwork connects 6 accounts across 29 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $304,053.74.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0096": {
+    "subgraph_id": "IBM_POS_0096",
+    "seed_account": "B222_811B83280",
+    "risk_probability": 0.8309,
+    "confidence_tier": "MEDIUM_CONFIDENCE",
+    "executive_summary": "Elevated transaction activity detected around account B222_811B83280; partial multi-hop evidence.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B222_811B83280.",
+      "Subnetwork connects 3 accounts across 10 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $423,595.46.",
+      "Observed 0 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Moderate structural branching detected, with partial sink accumulation."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 0 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0097": {
+    "subgraph_id": "IBM_POS_0097",
+    "seed_account": "B15055_802958DB0",
+    "risk_probability": 1.0,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B15055_802958DB0 across 12799 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B15055_802958DB0.",
+      "Subnetwork connects 12799 accounts across 54222 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $29,718,652,112.43.",
+      "Observed 4999 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 4999 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0098": {
+    "subgraph_id": "IBM_POS_0098",
+    "seed_account": "B220_80DC68A80",
+    "risk_probability": 0.3562,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B220_80DC68A80.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B220_80DC68A80.",
+      "Subnetwork connects 9 accounts across 36 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $5,843,320.32.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0099": {
+    "subgraph_id": "IBM_POS_0099",
+    "seed_account": "B28768_80A7B9290",
+    "risk_probability": 0.9948,
+    "confidence_tier": "HIGH_CONFIDENCE",
+    "executive_summary": "High-risk inter-bank laundering flow pattern detected around account B28768_80A7B9290 across 2 accounts.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B28768_80A7B9290.",
+      "Subnetwork connects 2 accounts across 4 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $35,377.46.",
+      "Observed 1 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Unusual concentration of multi-hop rapid fund distribution observed."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 1 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  },
+  "IBM_POS_0100": {
+    "subgraph_id": "IBM_POS_0100",
+    "seed_account": "B125305_809D92430",
+    "risk_probability": 0.4705,
+    "confidence_tier": "NORMAL",
+    "executive_summary": "Sub-threshold transaction pattern around account B125305_809D92430.",
+    "investigative_evidence_bullets": [
+      "Evaluated multi-bank transaction subnetwork around root account B125305_809D92430.",
+      "Subnetwork connects 9 accounts across 28 directed payment ledger transfers.",
+      "Cumulative transaction volume reached $145,022.33.",
+      "Observed 2 terminal absorbing sink accounts (out_degree=0) within the observation window.",
+      "Transaction activity consistent with standard commercial or bilateral transfers."
+    ],
+    "top_terminal_details": {
+      "terminal_type": "Bank Account Sink (out_degree=0)",
+      "rationale": "Flow reaches 2 terminal sink accounts with no subsequent observed outbound transfers."
+    }
+  }
+}
