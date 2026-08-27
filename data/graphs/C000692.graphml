@@ -1,98 +1,101 @@
 <?xml version='1.0' encoding='utf-8'?>
-<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d17" for="edge" attr.name="ring_id" attr.type="string"/>
-<key id="d16" for="edge" attr.name="is_suspicious" attr.type="long"/>
-<key id="d15" for="edge" attr.name="is_cash_out" attr.type="long"/>
-<key id="d14" for="edge" attr.name="channel" attr.type="string"/>
-<key id="d13" for="edge" attr.name="transaction_type" attr.type="string"/>
-<key id="d12" for="edge" attr.name="timestamp" attr.type="string"/>
-<key id="d11" for="edge" attr.name="amount" attr.type="double"/>
-<key id="d10" for="edge" attr.name="transaction_id" attr.type="string"/>
-<key id="d9" for="node" attr.name="hop_distance" attr.type="long"/>
-<key id="d8" for="node" attr.name="is_terminal" attr.type="boolean"/>
-<key id="d7" for="node" attr.name="is_incident" attr.type="boolean"/>
-<key id="d6" for="node" attr.name="longitude" attr.type="double"/>
-<key id="d5" for="node" attr.name="latitude" attr.type="double"/>
-<key id="d4" for="node" attr.name="city" attr.type="string"/>
-<key id="d3" for="node" attr.name="state" attr.type="string"/>
-<key id="d2" for="node" attr.name="canonical_name" attr.type="string"/>
-<key id="d1" for="node" attr.name="node_type" attr.type="string"/>
-<key id="d0" for="node" attr.name="entity_id" attr.type="string"/>
-<graph edgedefault="directed"><node id="ENT_000494">
-  <data key="d0">ENT_000494</data>
-  <data key="d1">ACCOUNT</data>
-  <data key="d2">Ritvik Ali</data>
-  <data key="d3">Madhya Pradesh</data>
-  <data key="d4">Bhopal</data>
-  <data key="d5">23.231221</data>
-  <data key="d6">77.419186</data>
-  <data key="d7">False</data>
-  <data key="d8">False</data>
-  <data key="d9">2</data>
-</node>
-<node id="ENT_000526">
-  <data key="d0">ENT_000526</data>
-  <data key="d1">ACCOUNT</data>
-  <data key="d2">Priya Dey</data>
-  <data key="d3">Kerala</data>
-  <data key="d4">Kochi</data>
-  <data key="d5">9.939932</data>
-  <data key="d6">76.295486</data>
-  <data key="d7">False</data>
-  <data key="d8">False</data>
-  <data key="d9">2</data>
-</node>
-<node id="ENT_000086">
-  <data key="d0">ENT_000086</data>
-  <data key="d1">ACCOUNT</data>
-  <data key="d2">Geeta Dey</data>
-  <data key="d3">Rajasthan</data>
-  <data key="d4">Jaipur</data>
-  <data key="d5">26.923731</data>
-  <data key="d6">75.786367</data>
-  <data key="d7">True</data>
-  <data key="d8">False</data>
-  <data key="d9">0</data>
-</node>
-<node id="ENT_000469">
-  <data key="d0">ENT_000469</data>
-  <data key="d1">ACCOUNT</data>
-  <data key="d2">preeti kapoor</data>
-  <data key="d3">West Bengal</data>
-  <data key="d4">Kolkata</data>
-  <data key="d5">22.569783</data>
-  <data key="d6">88.33435</data>
-  <data key="d7">False</data>
-  <data key="d8">False</data>
-  <data key="d9">1</data>
-</node>
-<edge source="ENT_000526" target="ENT_000469" id="T003169">
-  <data key="d10">T003169</data>
-  <data key="d11">2553.99</data>
-  <data key="d12">2026-02-20 05:22:21</data>
-  <data key="d13">IMPS</data>
-  <data key="d14">Internet Banking</data>
-  <data key="d15">0</data>
-  <data key="d16">0</data>
-  <data key="d17">NORMAL</data>
-</edge>
-<edge source="ENT_000469" target="ENT_000494" id="T003431">
-  <data key="d10">T003431</data>
-  <data key="d11">4580.78</data>
-  <data key="d12">2026-02-23 18:43:13</data>
-  <data key="d13">CARD</data>
-  <data key="d14">Internet Banking</data>
-  <data key="d15">0</data>
-  <data key="d16">0</data>
-  <data key="d17">NORMAL</data>
-</edge>
-<edge source="ENT_000469" target="ENT_000086" id="T003487">
-  <data key="d10">T003487</data>
-  <data key="d11">2222.78</data>
-  <data key="d12">2026-02-24 15:30:30</data>
-  <data key="d13">CARD</data>
-  <data key="d14">POS</data>
-  <data key="d15">0</data>
-  <data key="d16">0</data>
-  <data key="d17">NORMAL</data>
-</edge>
-</graph></graphml>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d17" for="edge" attr.name="ring_id" attr.type="string" />
+  <key id="d16" for="edge" attr.name="is_suspicious" attr.type="long" />
+  <key id="d15" for="edge" attr.name="is_cash_out" attr.type="long" />
+  <key id="d14" for="edge" attr.name="channel" attr.type="string" />
+  <key id="d13" for="edge" attr.name="transaction_type" attr.type="string" />
+  <key id="d12" for="edge" attr.name="timestamp" attr.type="string" />
+  <key id="d11" for="edge" attr.name="amount" attr.type="double" />
+  <key id="d10" for="edge" attr.name="transaction_id" attr.type="string" />
+  <key id="d9" for="node" attr.name="hop_distance" attr.type="long" />
+  <key id="d8" for="node" attr.name="is_terminal" attr.type="boolean" />
+  <key id="d7" for="node" attr.name="is_incident" attr.type="boolean" />
+  <key id="d6" for="node" attr.name="longitude" attr.type="double" />
+  <key id="d5" for="node" attr.name="latitude" attr.type="double" />
+  <key id="d4" for="node" attr.name="city" attr.type="string" />
+  <key id="d3" for="node" attr.name="state" attr.type="string" />
+  <key id="d2" for="node" attr.name="canonical_name" attr.type="string" />
+  <key id="d1" for="node" attr.name="node_type" attr.type="string" />
+  <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="ENT_000086">
+      <data key="d0">ENT_000086</data>
+      <data key="d1">ACCOUNT</data>
+      <data key="d2">Geeta Dey</data>
+      <data key="d3">Rajasthan</data>
+      <data key="d4">Jaipur</data>
+      <data key="d5">26.923731</data>
+      <data key="d6">75.786367</data>
+      <data key="d7">True</data>
+      <data key="d8">False</data>
+      <data key="d9">0</data>
+    </node>
+    <node id="ENT_000526">
+      <data key="d0">ENT_000526</data>
+      <data key="d1">ACCOUNT</data>
+      <data key="d2">Priya Dey</data>
+      <data key="d3">Kerala</data>
+      <data key="d4">Kochi</data>
+      <data key="d5">9.939932</data>
+      <data key="d6">76.295486</data>
+      <data key="d7">False</data>
+      <data key="d8">False</data>
+      <data key="d9">2</data>
+    </node>
+    <node id="ENT_000469">
+      <data key="d0">ENT_000469</data>
+      <data key="d1">ACCOUNT</data>
+      <data key="d2">preeti kapoor</data>
+      <data key="d3">West Bengal</data>
+      <data key="d4">Kolkata</data>
+      <data key="d5">22.569783</data>
+      <data key="d6">88.33435</data>
+      <data key="d7">False</data>
+      <data key="d8">False</data>
+      <data key="d9">1</data>
+    </node>
+    <node id="ENT_000494">
+      <data key="d0">ENT_000494</data>
+      <data key="d1">ACCOUNT</data>
+      <data key="d2">Ritvik Ali</data>
+      <data key="d3">Madhya Pradesh</data>
+      <data key="d4">Bhopal</data>
+      <data key="d5">23.231221</data>
+      <data key="d6">77.419186</data>
+      <data key="d7">False</data>
+      <data key="d8">False</data>
+      <data key="d9">2</data>
+    </node>
+    <edge source="ENT_000526" target="ENT_000469" id="T003169">
+      <data key="d10">T003169</data>
+      <data key="d11">2553.99</data>
+      <data key="d12">2026-02-20 05:22:21</data>
+      <data key="d13">IMPS</data>
+      <data key="d14">Internet Banking</data>
+      <data key="d15">0</data>
+      <data key="d16">0</data>
+      <data key="d17">NORMAL</data>
+    </edge>
+    <edge source="ENT_000469" target="ENT_000494" id="T003431">
+      <data key="d10">T003431</data>
+      <data key="d11">4580.78</data>
+      <data key="d12">2026-02-23 18:43:13</data>
+      <data key="d13">CARD</data>
+      <data key="d14">Internet Banking</data>
+      <data key="d15">0</data>
+      <data key="d16">0</data>
+      <data key="d17">NORMAL</data>
+    </edge>
+    <edge source="ENT_000469" target="ENT_000086" id="T003487">
+      <data key="d10">T003487</data>
+      <data key="d11">2222.78</data>
+      <data key="d12">2026-02-24 15:30:30</data>
+      <data key="d13">CARD</data>
+      <data key="d14">POS</data>
+      <data key="d15">0</data>
+      <data key="d16">0</data>
+      <data key="d17">NORMAL</data>
+    </edge>
+  </graph>
+</graphml>

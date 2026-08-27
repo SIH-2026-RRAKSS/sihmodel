@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d9" for="edge" attr.name="is_laundering" attr.type="long" />
+  <key id="d8" for="edge" attr.name="timestamp" attr.type="string" />
+  <key id="d7" for="edge" attr.name="payment_format" attr.type="string" />
+  <key id="d6" for="edge" attr.name="amount" attr.type="double" />
+  <key id="d5" for="node" attr.name="is_terminal_sink" attr.type="long" />
+  <key id="d4" for="node" attr.name="is_seed" attr.type="long" />
+  <key id="d3" for="node" attr.name="out_degree" attr.type="long" />
+  <key id="d2" for="node" attr.name="in_degree" attr.type="long" />
+  <key id="d1" for="graph" attr.name="seed_account" attr.type="string" />
+  <key id="d0" for="graph" attr.name="subgraph_id" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="B4866_8042509A0">
+      <data key="d2">2</data>
+      <data key="d3">4</data>
+      <data key="d4">1</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B25534_809627A80">
+      <data key="d2">2</data>
+      <data key="d3">0</data>
+      <data key="d4">0</data>
+      <data key="d5">1</data>
+    </node>
+    <edge source="B4866_8042509A0" target="B4866_8042509A0" id="0">
+      <data key="d6">11321.92</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-03 15:18:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B4866_8042509A0" target="B4866_8042509A0" id="1">
+      <data key="d6">11321.92</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-03 15:18:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B4866_8042509A0" target="B25534_809627A80" id="0">
+      <data key="d6">14937.01</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-03 15:18:00</data>
+      <data key="d9">1</data>
+    </edge>
+    <edge source="B4866_8042509A0" target="B25534_809627A80" id="1">
+      <data key="d6">14937.01</data>
+      <data key="d7">ACH</data>
+      <data key="d8">2022-09-03 15:18:00</data>
+      <data key="d9">1</data>
+    </edge>
+    <data key="d0">IBM_POS_0136</data>
+    <data key="d1">B4866_8042509A0</data>
+  </graph>
+</graphml>

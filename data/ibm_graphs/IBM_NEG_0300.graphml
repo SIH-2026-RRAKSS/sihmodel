@@ -1,0 +1,371 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d9" for="edge" attr.name="is_laundering" attr.type="long" />
+  <key id="d8" for="edge" attr.name="timestamp" attr.type="string" />
+  <key id="d7" for="edge" attr.name="payment_format" attr.type="string" />
+  <key id="d6" for="edge" attr.name="amount" attr.type="double" />
+  <key id="d5" for="node" attr.name="is_terminal_sink" attr.type="long" />
+  <key id="d4" for="node" attr.name="is_seed" attr.type="long" />
+  <key id="d3" for="node" attr.name="out_degree" attr.type="long" />
+  <key id="d2" for="node" attr.name="in_degree" attr.type="long" />
+  <key id="d1" for="graph" attr.name="seed_account" attr.type="string" />
+  <key id="d0" for="graph" attr.name="subgraph_id" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="B124_813426D81">
+      <data key="d2">4</data>
+      <data key="d3">10</data>
+      <data key="d4">1</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B225_813423791">
+      <data key="d2">10</data>
+      <data key="d3">16</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B152627_813CD3821">
+      <data key="d2">11</data>
+      <data key="d3">7</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B152416_813762E21">
+      <data key="d2">10</data>
+      <data key="d3">12</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B154148_81429FD91">
+      <data key="d2">8</data>
+      <data key="d3">4</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B154477_81493C031">
+      <data key="d2">3</data>
+      <data key="d3">0</data>
+      <data key="d4">0</data>
+      <data key="d5">1</data>
+    </node>
+    <node id="B152627_813CACC91">
+      <data key="d2">0</data>
+      <data key="d3">1</data>
+      <data key="d4">0</data>
+      <data key="d5">0</data>
+    </node>
+    <node id="B220_813764171">
+      <data key="d2">2</data>
+      <data key="d3">0</data>
+      <data key="d4">0</data>
+      <data key="d5">1</data>
+    </node>
+    <node id="B225_81430A341">
+      <data key="d2">2</data>
+      <data key="d3">0</data>
+      <data key="d4">0</data>
+      <data key="d5">1</data>
+    </node>
+    <edge source="B124_813426D81" target="B124_813426D81" id="0">
+      <data key="d6">0.001005</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:10:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B124_813426D81" id="1">
+      <data key="d6">0.660935</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 10:33:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B124_813426D81" id="2">
+      <data key="d6">0.001005</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:10:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B124_813426D81" id="3">
+      <data key="d6">0.660935</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 10:33:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B225_813423791" id="0">
+      <data key="d6">0.181324</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 18:39:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B225_813423791" id="1">
+      <data key="d6">0.638702</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 18:42:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B225_813423791" id="2">
+      <data key="d6">0.044348</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 18:40:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B225_813423791" id="3">
+      <data key="d6">0.181324</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 18:39:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B225_813423791" id="4">
+      <data key="d6">0.638702</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 18:42:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B124_813426D81" target="B225_813423791" id="5">
+      <data key="d6">0.044348</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 18:40:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B152627_813CD3821" id="0">
+      <data key="d6">10.273989</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:06:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B152627_813CD3821" id="1">
+      <data key="d6">0.783244</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:00:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B152627_813CD3821" id="2">
+      <data key="d6">1.906865</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:19:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B152627_813CD3821" id="3">
+      <data key="d6">10.273989</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:06:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B152627_813CD3821" id="4">
+      <data key="d6">0.783244</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:00:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B152627_813CD3821" id="5">
+      <data key="d6">1.906865</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:19:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B152416_813762E21" id="0">
+      <data key="d6">21.134024</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 01:14:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B152416_813762E21" id="1">
+      <data key="d6">21.134024</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 01:14:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B225_813423791" id="0">
+      <data key="d6">118.608687</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 11:39:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B225_813423791" id="1">
+      <data key="d6">0.00163</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 16:48:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B225_813423791" id="2">
+      <data key="d6">118.608687</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 11:39:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B225_813423791" id="3">
+      <data key="d6">0.00163</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 16:48:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B154148_81429FD91" id="0">
+      <data key="d6">0.158839</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 11:47:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B154148_81429FD91" id="1">
+      <data key="d6">0.002298</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 11:54:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B154148_81429FD91" id="2">
+      <data key="d6">0.158839</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 11:47:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B225_813423791" target="B154148_81429FD91" id="3">
+      <data key="d6">0.002298</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 11:54:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152627_813CD3821" target="B152627_813CD3821" id="0">
+      <data key="d6">0.005834</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:02:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152627_813CD3821" target="B152627_813CD3821" id="1">
+      <data key="d6">0.001821</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:20:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152627_813CD3821" target="B152627_813CD3821" id="2">
+      <data key="d6">0.005834</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:02:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152627_813CD3821" target="B152627_813CD3821" id="3">
+      <data key="d6">0.001821</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:20:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152627_813CD3821" target="B154477_81493C031" id="0">
+      <data key="d6">1.334465</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:16:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152627_813CD3821" target="B154477_81493C031" id="1">
+      <data key="d6">0.616003</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:24:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152627_813CD3821" target="B154477_81493C031" id="2">
+      <data key="d6">0.801837</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:11:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B152416_813762E21" id="0">
+      <data key="d6">0.001939</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:16:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B152416_813762E21" id="1">
+      <data key="d6">6.700552</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 08:24:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B152416_813762E21" id="2">
+      <data key="d6">0.267673</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 14:31:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B152416_813762E21" id="3">
+      <data key="d6">1.286967</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 14:45:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B152416_813762E21" id="4">
+      <data key="d6">0.001939</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:16:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B152416_813762E21" id="5">
+      <data key="d6">6.700552</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 08:24:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B152416_813762E21" id="6">
+      <data key="d6">0.267673</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 14:31:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B152416_813762E21" id="7">
+      <data key="d6">1.286967</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 14:45:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B220_813764171" id="0">
+      <data key="d6">0.770769</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 01:31:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B220_813764171" id="1">
+      <data key="d6">0.518668</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 01:55:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B225_81430A341" id="0">
+      <data key="d6">0.559584</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 10:58:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152416_813762E21" target="B225_81430A341" id="1">
+      <data key="d6">1.225867</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 10:46:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B154148_81429FD91" target="B154148_81429FD91" id="0">
+      <data key="d6">11.385003</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:20:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B154148_81429FD91" target="B154148_81429FD91" id="1">
+      <data key="d6">0.000547</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:11:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B154148_81429FD91" target="B154148_81429FD91" id="2">
+      <data key="d6">11.385003</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:20:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B154148_81429FD91" target="B154148_81429FD91" id="3">
+      <data key="d6">0.000547</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 00:11:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="B152627_813CACC91" target="B152627_813CD3821" id="0">
+      <data key="d6">0.078021</data>
+      <data key="d7">Bitcoin</data>
+      <data key="d8">2022-09-01 05:30:00</data>
+      <data key="d9">0</data>
+    </edge>
+    <data key="d0">IBM_NEG_0300</data>
+    <data key="d1">B124_813426D81</data>
+  </graph>
+</graphml>
