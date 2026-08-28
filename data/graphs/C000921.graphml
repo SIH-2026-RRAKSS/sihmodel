@@ -19,42 +19,6 @@
   <key id="d1" for="node" attr.name="node_type" attr.type="string" />
   <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
   <graph edgedefault="directed">
-    <node id="ENT_000004">
-      <data key="d0">ENT_000004</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Manish Ghosh</data>
-      <data key="d3">Uttar Pradesh</data>
-      <data key="d4">Lucknow</data>
-      <data key="d5">26.841235</data>
-      <data key="d6">80.913286</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">1</data>
-    </node>
-    <node id="ENT_000459">
-      <data key="d0">ENT_000459</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Dhruv Dubey</data>
-      <data key="d3">Tamil Nadu</data>
-      <data key="d4">Chennai</data>
-      <data key="d5">13.055462</data>
-      <data key="d6">80.283175</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
-    <node id="ENT_000401">
-      <data key="d0">ENT_000401</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Meera Rao</data>
-      <data key="d3">Telangana</data>
-      <data key="d4">Hyderabad</data>
-      <data key="d5">17.36705</data>
-      <data key="d6">78.460515</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
     <node id="ENT_000621">
       <data key="d0">ENT_000621</data>
       <data key="d1">ACCOUNT</data>
@@ -67,26 +31,18 @@
       <data key="d8">False</data>
       <data key="d9">0</data>
     </node>
-    <edge source="ENT_000004" target="ENT_000459" id="T003008">
-      <data key="d10">T003008</data>
-      <data key="d11">1324.8</data>
-      <data key="d12">2026-02-17 19:21:45</data>
-      <data key="d13">CARD</data>
-      <data key="d14">POS</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000004" target="ENT_000401" id="T003058">
-      <data key="d10">T003058</data>
-      <data key="d11">149.2</data>
-      <data key="d12">2026-02-18 12:24:00</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
+    <node id="ENT_000004">
+      <data key="d0">ENT_000004</data>
+      <data key="d1">ACCOUNT</data>
+      <data key="d2">Manish Ghosh</data>
+      <data key="d3">Uttar Pradesh</data>
+      <data key="d4">Lucknow</data>
+      <data key="d5">26.841235</data>
+      <data key="d6">80.913286</data>
+      <data key="d7">False</data>
+      <data key="d8">False</data>
+      <data key="d9">1</data>
+    </node>
     <edge source="ENT_000621" target="ENT_000004" id="T003096">
       <data key="d10">T003096</data>
       <data key="d11">426.08</data>

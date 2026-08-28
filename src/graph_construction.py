@@ -173,6 +173,7 @@ def filter_transactions_by_time(
 def extract_incident_subgraph(
     df_window_tx: pd.DataFrame,
     incident_entity: str,
+    incident_time: datetime,
     entity_name_lookup: Dict[str, str],
     location_lookup: Dict[str, Dict[str, Any]],
     max_hops: int = DEFAULT_MAX_HOPS
@@ -212,24 +213,90 @@ def extract_incident_subgraph(
         _add_single_node(subgraph, incident_entity, True, 0, entity_name_lookup, location_lookup)
         return subgraph
 
-    # 3. Compute shortest path lengths in the undirected projection to capture
-    # both upstream senders (fund sources) and downstream receivers (mule flow)
-    G_undirected = G_window.to_undirected(as_view=True)
-    hop_distances = nx.single_source_shortest_path_length(
-        G_undirected,
-        source=incident_entity,
-        cutoff=max_hops
+    # 3. Use Temporal BFS
+    subgraph = extract_temporal_subgraph(
+        global_graph=G_window,
+        root_node=incident_entity,
+        incident_timestamp=incident_time,
+        max_hops=max_hops,
+        max_degree_per_hop=15,
+        window_hours=DEFAULT_WINDOW_HOURS
     )
-
-    # 4. Extract induced subgraph of nodes within max_hops
-    nodes_in_neighborhood = set(hop_distances.keys())
-    subgraph = G_window.subgraph(nodes_in_neighborhood).copy()
-
-    # 5. Populate comprehensive node attributes
-    for node in subgraph.nodes():
+    
+    # 5. Populate comprehensive node attributes for extracted nodes
+    for node in list(subgraph.nodes()):
         is_inc = (node == incident_entity)
-        hop_dist = int(hop_distances[node])
+        hop_dist = subgraph.nodes[node].get("hop_distance", 0)
         _set_node_attributes(subgraph, node, is_inc, hop_dist, entity_name_lookup, location_lookup)
+
+    return subgraph
+
+
+def extract_temporal_subgraph(
+    global_graph: nx.MultiDiGraph,
+    root_node: str,
+    incident_timestamp: Any,
+    max_hops: int = 3,
+    max_degree_per_hop: int = 15,
+    window_hours: int = 72
+) -> nx.MultiDiGraph:
+    """
+    Extracts a temporal, downstream subgraph using BFS.
+    Supports both datetime objects (synthetic data) and unix timestamps (IBM data).
+    """
+    from collections import deque
+    
+    # Calculate max_time based on type
+    if isinstance(incident_timestamp, int) or isinstance(incident_timestamp, float):
+        max_time = incident_timestamp + (window_hours * 3600)
+    else:
+        max_time = incident_timestamp + timedelta(hours=window_hours)
+        
+    queue = deque([(root_node, incident_timestamp, 0)])
+    visited_nodes = {root_node: 0}
+    
+    while queue:
+        curr_node, curr_time, curr_hop = queue.popleft()
+        
+        if curr_hop >= max_hops:
+            continue
+            
+        out_edges = []
+        for _, v, key, data in global_graph.out_edges(curr_node, data=True, keys=True):
+            edge_time_raw = data.get("timestamp")
+            if edge_time_raw is None:
+                continue
+                
+            # Parse edge time dynamically
+            if isinstance(edge_time_raw, str):
+                edge_time = datetime.strptime(edge_time_raw, "%Y-%m-%d %H:%M:%S")
+            else:
+                edge_time = edge_time_raw
+                
+            if curr_time <= edge_time <= max_time:
+                out_edges.append((v, key, data, edge_time))
+                
+        # Cap Fan-out by amount (if missing amount, defaults to 0)
+        out_edges.sort(key=lambda e: float(e[2].get("amount", 0.0)), reverse=True)
+        out_edges = out_edges[:max_degree_per_hop]
+        
+        for v, key, data, edge_time in out_edges:
+            if v not in visited_nodes or curr_hop + 1 < visited_nodes[v]:
+                visited_nodes[v] = curr_hop + 1
+                queue.append((v, edge_time, curr_hop + 1))
+                
+    # Build the resulting subgraph
+    nodes_in_neighborhood = set(visited_nodes.keys())
+    subgraph = nx.MultiDiGraph()
+    
+    for node in nodes_in_neighborhood:
+        hop_dist = visited_nodes[node]
+        subgraph.add_node(node, hop_distance=hop_dist)
+        
+    for u in nodes_in_neighborhood:
+        for _, v, key, data in global_graph.out_edges(u, data=True, keys=True):
+            if v in nodes_in_neighborhood:
+                subgraph.add_edge(u, v, key=key, **data)
 
     return subgraph
 
@@ -579,6 +646,7 @@ def main():
         subgraph = extract_incident_subgraph(
             df_window_tx=df_window_tx,
             incident_entity=inc_entity,
+            incident_time=incident_time,
             entity_name_lookup=entity_name_lookup,
             location_lookup=location_lookup,
             max_hops=DEFAULT_MAX_HOPS

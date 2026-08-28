@@ -19,17 +19,17 @@
   <key id="d1" for="node" attr.name="node_type" attr.type="string" />
   <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
   <graph edgedefault="directed">
-    <node id="ENT_000387">
-      <data key="d0">ENT_000387</data>
+    <node id="ENT_000008">
+      <data key="d0">ENT_000008</data>
       <data key="d1">ACCOUNT</data>
-      <data key="d2">Sweta Ghosh</data>
-      <data key="d3">Gujarat</data>
-      <data key="d4">Ahmedabad</data>
-      <data key="d5">22.995628</data>
-      <data key="d6">72.552836</data>
-      <data key="d7">True</data>
+      <data key="d2">Shri Pranav Ali</data>
+      <data key="d3">Karnataka</data>
+      <data key="d4">Bengaluru</data>
+      <data key="d5">12.99326</data>
+      <data key="d6">77.560055</data>
+      <data key="d7">False</data>
       <data key="d8">False</data>
-      <data key="d9">0</data>
+      <data key="d9">3</data>
     </node>
     <node id="ENT_000537">
       <data key="d0">ENT_000537</data>
@@ -55,50 +55,18 @@
       <data key="d8">False</data>
       <data key="d9">2</data>
     </node>
-    <node id="ENT_000008">
-      <data key="d0">ENT_000008</data>
+    <node id="ENT_000387">
+      <data key="d0">ENT_000387</data>
       <data key="d1">ACCOUNT</data>
-      <data key="d2">Shri Pranav Ali</data>
-      <data key="d3">Karnataka</data>
-      <data key="d4">Bengaluru</data>
-      <data key="d5">12.99326</data>
-      <data key="d6">77.560055</data>
-      <data key="d7">False</data>
+      <data key="d2">Sweta Ghosh</data>
+      <data key="d3">Gujarat</data>
+      <data key="d4">Ahmedabad</data>
+      <data key="d5">22.995628</data>
+      <data key="d6">72.552836</data>
+      <data key="d7">True</data>
       <data key="d8">False</data>
-      <data key="d9">3</data>
+      <data key="d9">0</data>
     </node>
-    <node id="ENT_000476">
-      <data key="d0">ENT_000476</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Meera Kapoor</data>
-      <data key="d3">Tamil Nadu</data>
-      <data key="d4">Chennai</data>
-      <data key="d5">13.084377</data>
-      <data key="d6">80.263404</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">1</data>
-    </node>
-    <edge source="ENT_000387" target="ENT_000537" id="T003429">
-      <data key="d10">T003429</data>
-      <data key="d11">1187.72</data>
-      <data key="d12">2026-02-23 18:29:11</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000387" target="ENT_000537" id="T003607">
-      <data key="d10">T003607</data>
-      <data key="d11">3698.6</data>
-      <data key="d12">2026-02-26 09:58:49</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
     <edge source="ENT_000537" target="ENT_000099" id="T003618">
       <data key="d10">T003618</data>
       <data key="d11">3579.52</data>
@@ -119,12 +87,22 @@
       <data key="d16">1</data>
       <data key="d17">RING_007</data>
     </edge>
-    <edge source="ENT_000476" target="ENT_000387" id="T003657">
-      <data key="d10">T003657</data>
-      <data key="d11">165676.39</data>
-      <data key="d12">2026-02-26 21:49:11</data>
-      <data key="d13">NEFT</data>
-      <data key="d14">Bank Branch</data>
+    <edge source="ENT_000387" target="ENT_000537" id="T003429">
+      <data key="d10">T003429</data>
+      <data key="d11">1187.72</data>
+      <data key="d12">2026-02-23 18:29:11</data>
+      <data key="d13">UPI</data>
+      <data key="d14">UPI App</data>
+      <data key="d15">0</data>
+      <data key="d16">0</data>
+      <data key="d17">NORMAL</data>
+    </edge>
+    <edge source="ENT_000387" target="ENT_000537" id="T003607">
+      <data key="d10">T003607</data>
+      <data key="d11">3698.6</data>
+      <data key="d12">2026-02-26 09:58:49</data>
+      <data key="d13">UPI</data>
+      <data key="d14">UPI App</data>
       <data key="d15">0</data>
       <data key="d16">0</data>
       <data key="d17">NORMAL</data>

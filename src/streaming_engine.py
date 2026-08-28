@@ -31,21 +31,93 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from src.graphsage_classifier import GraphSAGEClassifier
+from src.graphsage_classifier import DualHeadGraphSAGE
 
 DATA_DIR = ROOT_DIR / "data"
 MODELS_DIR = ROOT_DIR / "models"
 
 
-def normalize_single_graph_features(x: torch.Tensor) -> torch.Tensor:
-    """Normalizes continuous feature dimensions for single dynamic subgraphs."""
+def normalize_single_graph_features(x: torch.Tensor, mean: Optional[torch.Tensor], std: Optional[torch.Tensor]) -> torch.Tensor:
+    """Normalizes continuous feature dimensions using trained Z-score parameters."""
     x_norm = x.clone()
-    continuous_indices = [2, 3, 4, 5, 6, 7, 8, 9, 12]
-    # Approximate feature scaling to preserve numerical stability
-    feature_scales = torch.tensor([1.0, 1.0, 3.0, 10.0, 10.0, 100000.0, 100000.0, 50000.0, 50000.0, 20.0, 1.0, 1.0, 1.0], dtype=torch.float32)
-    for idx in continuous_indices:
-        x_norm[:, idx] = x_norm[:, idx] / max(feature_scales[idx].item(), 1.0)
+    if mean is not None and std is not None:
+        continuous_indices = [2, 3, 4, 5, 6, 7, 8, 9, 12]
+        for idx in continuous_indices:
+            x_norm[:, idx] = (x_norm[:, idx] - mean[idx]) / std[idx]
     return x_norm
+
+
+class DynamicAnomalyTrigger:
+    """
+    O(1) lightweight statistical behavioral anomaly gate (Stage 1).
+    Applies Z-score and velocity thresholding to trigger proactive GNN triage.
+    """
+    def __init__(self):
+        # account_id -> { count, mean, M2, daily_sums: {date_str: sum} }
+        self.profiles = defaultdict(lambda: {
+            "count": 0,
+            "mean": 0.0,
+            "M2": 0.0,
+            "daily_sums": defaultdict(float)
+        })
+
+    def evaluate_transaction(self, tx: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
+        src = str(tx.get("sender_entity_id") or tx.get("source_entity_id"))
+        amount = float(tx.get("amount", 0.0))
+        ts_val = tx.get("timestamp")
+        
+        if isinstance(ts_val, str):
+            ts = pd.to_datetime(ts_val)
+        elif isinstance(ts_val, datetime):
+            ts = ts_val
+        else:
+            ts = datetime.utcnow()
+            
+        date_str = ts.strftime("%Y-%m-%d")
+        
+        profile = self.profiles[src]
+        count = profile["count"]
+        mean = profile["mean"]
+        
+        # Rule 3: Cold-Start Safeguard
+        if count == 0:
+            self._update_profile(src, amount, date_str)
+            if amount >= 200000:
+                return True, f"COLD_START_SPIKE (Amt: {amount})"
+            return False, None
+            
+        # Calculate standard deviation
+        variance = profile["M2"] / count if count > 1 else 0.0
+        std = np.sqrt(variance) if variance > 0 else 1.0  # avoid div by zero
+        
+        # Rule 1: Single Transaction Outlier
+        z_score = (amount - mean) / std
+        if z_score >= 3.5 and amount >= 25000:
+            self._update_profile(src, amount, date_str)
+            return True, f"SINGLE_TX_OUTLIER (Z-Score: {z_score:.2f}, Amt: {amount})"
+            
+        # Rule 2: Daily Velocity Spike
+        daily_sums = profile["daily_sums"]
+        past_days = [d for d in daily_sums.keys() if d != date_str]
+        
+        if past_days:
+            daily_avg = sum(daily_sums[d] for d in past_days) / len(past_days)
+            current_day_sum = daily_sums[date_str] + amount
+            if current_day_sum >= max(2.5 * daily_avg, 50000):
+                self._update_profile(src, amount, date_str)
+                return True, f"DAILY_VELOCITY_SPIKE (Day Sum: {current_day_sum}, Avg: {daily_avg:.2f})"
+        
+        self._update_profile(src, amount, date_str)
+        return False, None
+
+    def _update_profile(self, src: str, amount: float, date_str: str):
+        profile = self.profiles[src]
+        profile["count"] += 1
+        delta = amount - profile["mean"]
+        profile["mean"] += delta / profile["count"]
+        delta2 = amount - profile["mean"]
+        profile["M2"] += delta * delta2
+        profile["daily_sums"][date_str] += amount
 
 
 class TemporalTransactionGraph:
@@ -61,9 +133,14 @@ class TemporalTransactionGraph:
         self.events = deque()  # stores (timestamp, u, v, key)
         self.entity_locations: Dict[str, Tuple[float, float]] = {}
         self.entity_cities: Dict[str, str] = {}
-        self.model: Optional[GraphSAGEClassifier] = None
+        self.model: Optional[DualHeadGraphSAGE] = None
         self.model_config: Dict[str, Any] = {}
+        self.mean_norm: Optional[torch.Tensor] = None
+        self.std_norm: Optional[torch.Tensor] = None
         self._load_metadata_and_models()
+        self.anomaly_trigger = DynamicAnomalyTrigger()
+        self.proactive_alerts = []
+        self.trigger_count = 0
 
     def _load_metadata_and_models(self):
         """Loads node metadata (coordinates/cities) and GraphSAGE model."""
@@ -86,13 +163,20 @@ class TemporalTransactionGraph:
                     self.model_config = json.load(f)
                 in_dim = self.model_config.get("input_dim", 13)
                 hidden_dim = self.model_config.get("hidden_dim", 64)
-                self.model = GraphSAGEClassifier(input_dim=in_dim, hidden_dim=hidden_dim)
+                self.model = DualHeadGraphSAGE(input_dim=in_dim, hidden_dim=hidden_dim)
                 try:
                     state_dict = torch.load(model_path, map_location=torch.device("cpu"), weights_only=True)
                 except Exception:
                     state_dict = torch.load(model_path, map_location=torch.device("cpu"))
                 self.model.load_state_dict(state_dict)
                 self.model.eval()
+                
+                # Load normalization tensors
+                mean_path = MODELS_DIR / "synthetic_mean.pt"
+                std_path = MODELS_DIR / "synthetic_std.pt"
+                if mean_path.exists() and std_path.exists():
+                    self.mean_norm = torch.load(mean_path, map_location=torch.device("cpu"), weights_only=True)
+                    self.std_norm = torch.load(std_path, map_location=torch.device("cpu"), weights_only=True)
             except Exception as e:
                 print(f"[Streaming] Notice: Model checkpoint loading fallback: {e}")
 
@@ -159,6 +243,25 @@ class TemporalTransactionGraph:
                 if self.graph.has_edge(u, v, key=old_key):
                     self.graph.remove_edge(u, v, key=old_key)
 
+        # Stage 1: Fast O(1) Anomaly Trigger
+        triggered, reason = self.anomaly_trigger.evaluate_transaction(tx)
+        if triggered:
+            self.trigger_count += 1
+            # Stage 2: Event-Driven Graph Triage
+            subgraph = self.extract_subgraph_around_entity(src, as_of_time=ts)
+            res = self.score_subgraph_live(subgraph, seed_entity_id=src)
+            if res["risk_probability"] >= 0.70:
+                alert = {
+                    "timestamp": str(ts),
+                    "transaction_id": tx_id,
+                    "seed_entity": src,
+                    "trigger_reason": reason,
+                    "gnn_risk": res["risk_probability"],
+                    "confidence": res["confidence_tier"],
+                    "mules": res.get("mule_probabilities", {})
+                }
+                self.proactive_alerts.append(alert)
+
         return tx_id
 
     def ingest_batch(self, transactions: List[Dict[str, Any]]) -> int:
@@ -180,23 +283,59 @@ class TemporalTransactionGraph:
         Bounded by max_hops and the 72-hour observation window.
         """
         hops = max_hops if max_hops is not None else self.max_hops
-
+        subgraph = nx.MultiDiGraph()
+        
         if not self.graph.has_node(seed_entity_id):
-            sub = nx.MultiDiGraph()
-            sub.add_node(seed_entity_id, node_type="ACCOUNT", is_incident=True, hop_distance=0)
-            return sub
+            subgraph.add_node(seed_entity_id, node_type="ACCOUNT", is_incident=True, hop_distance=0)
+            return subgraph
+            
+        # Optional: Start BFS queue from earliest transaction of seed entity to enforce downstream tracking
+        start_time = as_of_time
+        if start_time is None:
+            # Fallback to earliest transaction time
+            earliest = min((e[2].get("dt", datetime.min) for e in self.graph.out_edges(seed_entity_id, data=True)), default=datetime.min)
+            start_time = earliest if earliest != datetime.min else datetime.min
 
-        # Undirected projection for neighborhood BFS
-        undirected = self.graph.to_undirected(as_view=True)
-        nodes_within_hops = nx.single_source_shortest_path_length(undirected, seed_entity_id, cutoff=hops)
-
-        subgraph = self.graph.subgraph(nodes_within_hops.keys()).copy()
-
-        # Set node attributes: hop_distance and is_incident
-        for node in subgraph.nodes():
-            subgraph.nodes[node]["hop_distance"] = nodes_within_hops.get(node, hops)
-            subgraph.nodes[node]["is_incident"] = bool(node == seed_entity_id)
-
+        queue = deque([(seed_entity_id, start_time, 0)])
+        visited_nodes = {seed_entity_id: 0} # map node -> shortest hop_distance
+        
+        while queue:
+            curr_node, curr_time, curr_hop = queue.popleft()
+            
+            if curr_hop >= hops:
+                continue
+                
+            max_time = start_time + timedelta(hours=self.window_hours)
+            
+            # Get all outbound edges
+            out_edges = []
+            for _, v, key, data in self.graph.out_edges(curr_node, data=True, keys=True):
+                edge_time = data.get("dt", datetime.min)
+                if curr_time <= edge_time <= max_time: # Temporal and window constraints
+                    out_edges.append((v, key, data, edge_time))
+                    
+            # Cap Fan-out to Top 15 by amount
+            out_edges.sort(key=lambda e: float(e[2].get("amount", 0.0)), reverse=True)
+            out_edges = out_edges[:15]
+            
+            for v, key, data, edge_time in out_edges:
+                if v not in visited_nodes or curr_hop + 1 < visited_nodes[v]:
+                    visited_nodes[v] = curr_hop + 1
+                    queue.append((v, edge_time, curr_hop + 1))
+                    
+        # Add all visited nodes to subgraph
+        for node, dist in visited_nodes.items():
+            ndata = self.graph.nodes[node].copy()
+            ndata["hop_distance"] = dist
+            ndata["is_incident"] = (node == seed_entity_id)
+            subgraph.add_node(node, **ndata)
+            
+        # Add internal edges
+        for u in visited_nodes:
+            for _, v, key, data in self.graph.out_edges(u, data=True, keys=True):
+                if v in visited_nodes:
+                    subgraph.add_edge(u, v, key=key, **data)
+                    
         return subgraph
 
     def score_subgraph_live(self, subgraph: nx.MultiDiGraph, seed_entity_id: str) -> Dict[str, Any]:
@@ -244,12 +383,12 @@ class TemporalTransactionGraph:
                 float(in_deg + out_deg),
                 1.0 if nd.get("is_incident", False) or n == seed_entity_id else 0.0,
                 1.0 if nd.get("is_terminal", False) or str(n).startswith("ATM_") else 0.0,
-                1.0  # city code placeholder
+                15.0  # city code placeholder (default to 15 matching CITY_MAP unknown)
             ]
             features.append(feat)
 
         x_raw = torch.tensor(features, dtype=torch.float32)
-        x_norm = normalize_single_graph_features(x_raw)
+        x_norm = normalize_single_graph_features(x_raw, self.mean_norm, self.std_norm)
 
         edge_list = []
         for u, v in subgraph.edges():
@@ -264,8 +403,11 @@ class TemporalTransactionGraph:
         pyg_data = Data(x=x_norm, edge_index=edge_index, batch=batch)
 
         with torch.no_grad():
-            out, emb = self.model(pyg_data.x, pyg_data.edge_index, pyg_data.batch)
-            prob = float(torch.sigmoid(out).item())
+            out_node, out_graph, emb = self.model(pyg_data.x, pyg_data.edge_index, pyg_data.batch)
+            prob = float(torch.sigmoid(out_graph).item())
+            node_probs = torch.sigmoid(out_node).cpu().numpy()
+            
+        mule_probabilities = {str(node_list[i]): float(node_probs[i]) for i in range(len(node_list))}
 
         # Determine confidence tier
         has_atm = any(str(n).startswith("ATM_") or subgraph.nodes[n].get("is_terminal") for n in node_list)
@@ -299,6 +441,7 @@ class TemporalTransactionGraph:
             "is_suspicious": bool(prob >= 0.50),
             "num_nodes": len(node_list),
             "num_edges": subgraph.number_of_edges(),
+            "mule_probabilities": mule_probabilities,
             "terminals": terminal_candidates
         }
 
@@ -375,6 +518,9 @@ def run_streaming_benchmark(num_transactions: int = 5000) -> Dict[str, Any]:
         "transactions_ingested": len(tx_records),
         "ingestion_duration_sec": round(t_ingest, 4),
         "ingestion_rate_tx_per_sec": round(tx_per_sec, 1),
+        "stage1_trigger_count": engine.trigger_count,
+        "stage1_filter_efficiency": round(100.0 * (1.0 - (engine.trigger_count / max(len(tx_records), 1))), 2),
+        "proactive_alerts_generated": len(engine.proactive_alerts),
         "graph_node_count": engine.graph.number_of_nodes(),
         "graph_edge_count": engine.graph.number_of_edges(),
         "num_incident_queries": len(sample_entities),
