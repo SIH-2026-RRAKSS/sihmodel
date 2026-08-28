@@ -31,18 +31,6 @@
       <data key="d8">False</data>
       <data key="d9">0</data>
     </node>
-    <node id="ENT_000420">
-      <data key="d0">ENT_000420</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Navya Reddy</data>
-      <data key="d3">Maharashtra</data>
-      <data key="d4">Mumbai</data>
-      <data key="d5">19.063548</data>
-      <data key="d6">72.853083</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
     <node id="ATM_017">
       <data key="d0">ATM_017</data>
       <data key="d1">ATM</data>
@@ -55,18 +43,6 @@
       <data key="d8">True</data>
       <data key="d9">1</data>
     </node>
-    <node id="ENT_000144">
-      <data key="d0">ENT_000144</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Pranav Dubey</data>
-      <data key="d3">Rajasthan</data>
-      <data key="d4">Jaipur</data>
-      <data key="d5">26.885495</data>
-      <data key="d6">75.815265</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">3</data>
-    </node>
     <edge source="ENT_000174" target="ATM_017" id="T011268">
       <data key="d10">T011268</data>
       <data key="d11">1265.69</data>
@@ -76,26 +52,6 @@
       <data key="d15">1</data>
       <data key="d16">0</data>
       <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000420" target="ATM_017" id="T011247">
-      <data key="d10">T011247</data>
-      <data key="d11">277718.37</data>
-      <data key="d12">2026-06-27 18:19:50</data>
-      <data key="d13">CASH_WITHDRAWAL</data>
-      <data key="d14">ATM</data>
-      <data key="d15">1</data>
-      <data key="d16">1</data>
-      <data key="d17">RING_006</data>
-    </edge>
-    <edge source="ENT_000144" target="ENT_000420" id="T011240">
-      <data key="d10">T011240</data>
-      <data key="d11">284043.7</data>
-      <data key="d12">2026-06-27 17:34:50</data>
-      <data key="d13">NEFT</data>
-      <data key="d14">Internet Banking</data>
-      <data key="d15">0</data>
-      <data key="d16">1</data>
-      <data key="d17">RING_006</data>
     </edge>
   </graph>
 </graphml>

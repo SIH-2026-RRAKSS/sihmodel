@@ -42,7 +42,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from src.graphsage_classifier import (
-    GraphSAGEClassifier,
+    DualHeadGraphSAGE,
     load_all_graphs_dataset,
     normalize_node_features,
     get_or_create_train_test_split
@@ -119,7 +119,7 @@ def compute_graphsage_risk_probabilities(
             x_norm[:, idx] = (x_norm[:, idx] - mean_norm[idx]) / std_norm[idx]
         all_norm.append(d)
 
-    model = GraphSAGEClassifier(input_dim=13, hidden_dim=64, dropout=0.2)
+    model = DualHeadGraphSAGE(input_dim=13, hidden_dim=64, dropout=0.2)
     model.load_state_dict(torch.load(GRAPHSAGE_MODEL_FILE, weights_only=True))
     model.eval()
 

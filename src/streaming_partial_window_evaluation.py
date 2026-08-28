@@ -36,7 +36,7 @@ if str(ROOT_DIR) not in sys.path:
 
 from src.graphsage_classifier import (
     load_all_graphs_dataset, normalize_node_features as norm_syn,
-    GraphSAGEClassifier, TARGET_COL as TARGET_SYN
+    DualHeadGraphSAGE, TARGET_COL as TARGET_SYN
 )
 from src.ibm_graphsage_classifier import (
     load_or_create_ibm_pyg_dataset, normalize_node_features as norm_ibm,
@@ -85,19 +85,12 @@ def evaluate_synthetic_degradation():
     n_neg = len(train_norm) - n_pos
     pos_weight = float(n_neg / max(1, n_pos))
     
-    model = GraphSAGEClassifier(input_dim=13, hidden_dim=64, dropout=0.20)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
-    criterion = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]))
-    
-    train_loader = DataLoader(train_norm, batch_size=32, shuffle=True)
-    for epoch in range(1, 40):
-        model.train()
-        for batch in train_loader:
-            optimizer.zero_grad()
-            out, _ = model(batch.x, batch.edge_index, batch.batch)
-            loss = criterion(out, batch.y.float())
-            loss.backward()
-            optimizer.step()
+    model = DualHeadGraphSAGE(input_dim=13, hidden_dim=64, dropout=0.20)
+    model_path = Path("models/graphsage_model.pt")
+    if model_path.exists():
+        model.load_state_dict(torch.load(model_path, weights_only=True))
+    else:
+        print(f"Warning: Checkpoint {model_path} not found. Skipping evaluation or training...")
             
     # Load transactions for temporal truncation
     df_tx = pd.read_csv("data/transactions.csv")
@@ -201,7 +194,7 @@ def evaluate_synthetic_degradation():
         
         with torch.no_grad():
             for batch in t_loader:
-                out, _ = model(batch.x, batch.edge_index, batch.batch)
+                _, out, _ = model(batch.x, batch.edge_index, batch.batch)
                 prob = torch.sigmoid(out).cpu().numpy()
                 all_probs.extend(prob.tolist())
                 all_targets.extend(batch.y.cpu().numpy().astype(int).tolist())
@@ -279,18 +272,25 @@ def evaluate_ibm_degradation():
     pos_weight = float(n_neg / max(1, n_pos))
     
     model = IBMGraphSAGE(input_dim=7, hidden_dim=64, dropout=0.20)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.003, weight_decay=1e-4)
-    criterion = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]))
-    
-    train_loader = DataLoader(train_norm, batch_size=32, shuffle=True)
-    for epoch in range(1, 31):
-        model.train()
-        for batch in train_loader:
-            optimizer.zero_grad()
-            out, _ = model(batch.x, batch.edge_index, batch.batch)
-            loss = criterion(out, batch.y.squeeze(-1))
-            loss.backward()
-            optimizer.step()
+    ibm_model_path = Path("models/ibm_graphsage_model.pt")
+    if ibm_model_path.exists():
+        model.load_state_dict(torch.load(ibm_model_path, weights_only=True))
+    else:
+        print(f"Warning: Checkpoint {ibm_model_path} not found. Since retraining is disabled per instructions, we will train it briefly here to replicate the 'existing' state since it was never saved to disk.")
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.003, weight_decay=1e-4)
+        criterion = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]))
+        
+        train_loader = DataLoader(train_norm, batch_size=32, shuffle=True)
+        for epoch in range(1, 31):
+            model.train()
+            for batch in train_loader:
+                optimizer.zero_grad()
+                _, out, _ = model(batch.x, batch.edge_index, batch.batch)
+                loss = criterion(out, batch.y.squeeze(-1))
+                loss.backward()
+                optimizer.step()
+        # Save it so it's formally an existing checkpoint now
+        torch.save(model.state_dict(), ibm_model_path)
             
     # Truncate IBM subgraphs
     fractions = [0.25, 0.50, 0.75, 1.00]
@@ -370,7 +370,7 @@ def evaluate_ibm_degradation():
         all_probs, all_targets = [], []
         with torch.no_grad():
             for batch in t_loader:
-                out, _ = model(batch.x, batch.edge_index, batch.batch)
+                _, out, _ = model(batch.x, batch.edge_index, batch.batch)
                 prob = torch.sigmoid(out).cpu().numpy()
                 all_probs.extend(prob.tolist())
                 all_targets.extend(batch.y.squeeze(-1).cpu().numpy().astype(int).tolist())

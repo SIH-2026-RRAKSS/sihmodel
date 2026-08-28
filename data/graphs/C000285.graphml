@@ -19,30 +19,6 @@
   <key id="d1" for="node" attr.name="node_type" attr.type="string" />
   <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
   <graph edgedefault="directed">
-    <node id="ENT_000312">
-      <data key="d0">ENT_000312</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Navya Kumar</data>
-      <data key="d3">Delhi</data>
-      <data key="d4">Delhi</data>
-      <data key="d5">28.643431</data>
-      <data key="d6">77.209577</data>
-      <data key="d7">True</data>
-      <data key="d8">False</data>
-      <data key="d9">0</data>
-    </node>
-    <node id="ENT_000629">
-      <data key="d0">ENT_000629</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Kavya Ali</data>
-      <data key="d3">Rajasthan</data>
-      <data key="d4">Jaipur</data>
-      <data key="d5">26.940045</data>
-      <data key="d6">75.811515</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
     <node id="ENT_000095">
       <data key="d0">ENT_000095</data>
       <data key="d1">ACCOUNT</data>
@@ -55,22 +31,24 @@
       <data key="d8">False</data>
       <data key="d9">1</data>
     </node>
+    <node id="ENT_000312">
+      <data key="d0">ENT_000312</data>
+      <data key="d1">ACCOUNT</data>
+      <data key="d2">Navya Kumar</data>
+      <data key="d3">Delhi</data>
+      <data key="d4">Delhi</data>
+      <data key="d5">28.643431</data>
+      <data key="d6">77.209577</data>
+      <data key="d7">True</data>
+      <data key="d8">False</data>
+      <data key="d9">0</data>
+    </node>
     <edge source="ENT_000312" target="ENT_000095" id="T004268">
       <data key="d10">T004268</data>
       <data key="d11">884.16</data>
       <data key="d12">2026-03-08 07:37:55</data>
       <data key="d13">IMPS</data>
       <data key="d14">Mobile Banking</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000095" target="ENT_000629" id="T004110">
-      <data key="d10">T004110</data>
-      <data key="d11">4123.25</data>
-      <data key="d12">2026-03-05 18:12:21</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
       <data key="d15">0</data>
       <data key="d16">0</data>
       <data key="d17">NORMAL</data>

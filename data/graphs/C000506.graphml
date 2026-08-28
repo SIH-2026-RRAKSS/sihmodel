@@ -19,18 +19,6 @@
   <key id="d1" for="node" attr.name="node_type" attr.type="string" />
   <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
   <graph edgedefault="directed">
-    <node id="ENT_000569">
-      <data key="d0">ENT_000569</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Priya Sen</data>
-      <data key="d3">Telangana</data>
-      <data key="d4">Hyderabad</data>
-      <data key="d5">17.388221</data>
-      <data key="d6">78.508646</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
     <node id="ENT_000119">
       <data key="d0">ENT_000119</data>
       <data key="d1">ACCOUNT</data>
@@ -42,18 +30,6 @@
       <data key="d7">False</data>
       <data key="d8">False</data>
       <data key="d9">1</data>
-    </node>
-    <node id="ENT_000533">
-      <data key="d0">ENT_000533</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Amit Tripathi</data>
-      <data key="d3">Gujarat</data>
-      <data key="d4">Ahmedabad</data>
-      <data key="d5">23.019818</data>
-      <data key="d6">72.556124</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
     </node>
     <node id="ENT_000621">
       <data key="d0">ENT_000621</data>
@@ -67,75 +43,11 @@
       <data key="d8">False</data>
       <data key="d9">0</data>
     </node>
-    <node id="ENT_000598">
-      <data key="d0">ENT_000598</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Aryan Verma</data>
-      <data key="d3">West Bengal</data>
-      <data key="d4">Kolkata</data>
-      <data key="d5">22.579957</data>
-      <data key="d6">88.376434</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
-    <node id="ENT_000195">
-      <data key="d0">ENT_000195</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Ramesh Mishra</data>
-      <data key="d3">Tamil Nadu</data>
-      <data key="d4">Chennai</data>
-      <data key="d5">13.081695</data>
-      <data key="d6">80.26292</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">3</data>
-    </node>
-    <edge source="ENT_000569" target="ENT_000119" id="T007476">
-      <data key="d10">T007476</data>
-      <data key="d11">11697.63</data>
-      <data key="d12">2026-04-29 20:14:30</data>
-      <data key="d13">IMPS</data>
-      <data key="d14">Mobile Banking</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000533" target="ENT_000119" id="T007265">
-      <data key="d10">T007265</data>
-      <data key="d11">20194.03</data>
-      <data key="d12">2026-04-26 17:26:17</data>
-      <data key="d13">IMPS</data>
-      <data key="d14">Internet Banking</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
     <edge source="ENT_000621" target="ENT_000119" id="T007561">
       <data key="d10">T007561</data>
       <data key="d11">6620.15</data>
       <data key="d12">2026-05-01 08:32:56</data>
       <data key="d13">IMPS</data>
-      <data key="d14">Internet Banking</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000598" target="ENT_000195" id="T007482">
-      <data key="d10">T007482</data>
-      <data key="d11">3496.85</data>
-      <data key="d12">2026-04-29 22:50:55</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000598" target="ENT_000119" id="T007578">
-      <data key="d10">T007578</data>
-      <data key="d11">284853.52</data>
-      <data key="d12">2026-05-01 13:17:26</data>
-      <data key="d13">NEFT</data>
       <data key="d14">Internet Banking</data>
       <data key="d15">0</data>
       <data key="d16">0</data>

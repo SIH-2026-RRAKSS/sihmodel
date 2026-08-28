@@ -1,13 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
-  <key id="d17" for="edge" attr.name="ring_id" attr.type="string" />
-  <key id="d16" for="edge" attr.name="is_suspicious" attr.type="long" />
-  <key id="d15" for="edge" attr.name="is_cash_out" attr.type="long" />
-  <key id="d14" for="edge" attr.name="channel" attr.type="string" />
-  <key id="d13" for="edge" attr.name="transaction_type" attr.type="string" />
-  <key id="d12" for="edge" attr.name="timestamp" attr.type="string" />
-  <key id="d11" for="edge" attr.name="amount" attr.type="double" />
-  <key id="d10" for="edge" attr.name="transaction_id" attr.type="string" />
   <key id="d9" for="node" attr.name="hop_distance" attr.type="long" />
   <key id="d8" for="node" attr.name="is_terminal" attr.type="boolean" />
   <key id="d7" for="node" attr.name="is_incident" attr.type="boolean" />
@@ -19,18 +11,6 @@
   <key id="d1" for="node" attr.name="node_type" attr.type="string" />
   <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
   <graph edgedefault="directed">
-    <node id="ENT_000564">
-      <data key="d0">ENT_000564</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Nikhil Paul</data>
-      <data key="d3">Gujarat</data>
-      <data key="d4">Ahmedabad</data>
-      <data key="d5">22.990547</data>
-      <data key="d6">72.563482</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">1</data>
-    </node>
     <node id="ENT_000151">
       <data key="d0">ENT_000151</data>
       <data key="d1">ACCOUNT</data>
@@ -43,37 +23,5 @@
       <data key="d8">False</data>
       <data key="d9">0</data>
     </node>
-    <node id="ENT_000645">
-      <data key="d0">ENT_000645</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Sunita Roy</data>
-      <data key="d3">Telangana</data>
-      <data key="d4">Hyderabad</data>
-      <data key="d5">17.410304</data>
-      <data key="d6">78.474052</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
-    <edge source="ENT_000564" target="ENT_000645" id="T011655">
-      <data key="d10">T011655</data>
-      <data key="d11">268.26</data>
-      <data key="d12">2026-07-04 18:45:28</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000564" target="ENT_000151" id="T011785">
-      <data key="d10">T011785</data>
-      <data key="d11">700.71</data>
-      <data key="d12">2026-07-06 18:34:05</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
   </graph>
 </graphml>

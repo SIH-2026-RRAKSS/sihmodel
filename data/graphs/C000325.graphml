@@ -1,13 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
-  <key id="d17" for="edge" attr.name="ring_id" attr.type="string" />
-  <key id="d16" for="edge" attr.name="is_suspicious" attr.type="long" />
-  <key id="d15" for="edge" attr.name="is_cash_out" attr.type="long" />
-  <key id="d14" for="edge" attr.name="channel" attr.type="string" />
-  <key id="d13" for="edge" attr.name="transaction_type" attr.type="string" />
-  <key id="d12" for="edge" attr.name="timestamp" attr.type="string" />
-  <key id="d11" for="edge" attr.name="amount" attr.type="double" />
-  <key id="d10" for="edge" attr.name="transaction_id" attr.type="string" />
   <key id="d9" for="node" attr.name="hop_distance" attr.type="long" />
   <key id="d8" for="node" attr.name="is_terminal" attr.type="boolean" />
   <key id="d7" for="node" attr.name="is_incident" attr.type="boolean" />
@@ -19,78 +11,6 @@
   <key id="d1" for="node" attr.name="node_type" attr.type="string" />
   <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
   <graph edgedefault="directed">
-    <node id="ENT_000437">
-      <data key="d0">ENT_000437</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Rahul Shah</data>
-      <data key="d3">Tamil Nadu</data>
-      <data key="d4">Chennai</data>
-      <data key="d5">13.108466</data>
-      <data key="d6">80.286174</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">1</data>
-    </node>
-    <node id="ENT_000341">
-      <data key="d0">ENT_000341</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Preeti Pawar</data>
-      <data key="d3">Odisha</data>
-      <data key="d4">Bhubaneswar</data>
-      <data key="d5">20.282063</data>
-      <data key="d6">85.791526</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
-    <node id="ENT_000119">
-      <data key="d0">ENT_000119</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Karan Patel</data>
-      <data key="d3">Punjab</data>
-      <data key="d4">Chandigarh</data>
-      <data key="d5">30.746671</data>
-      <data key="d6">76.754834</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">3</data>
-    </node>
-    <node id="ENT_000167">
-      <data key="d0">ENT_000167</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Amit Bose</data>
-      <data key="d3">Delhi</data>
-      <data key="d4">Delhi</data>
-      <data key="d5">28.629184</data>
-      <data key="d6">77.200878</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">2</data>
-    </node>
-    <node id="ENT_000494">
-      <data key="d0">ENT_000494</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Ritvik Ali</data>
-      <data key="d3">Madhya Pradesh</data>
-      <data key="d4">Bhopal</data>
-      <data key="d5">23.231221</data>
-      <data key="d6">77.419186</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">3</data>
-    </node>
-    <node id="ENT_000256">
-      <data key="d0">ENT_000256</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Khan Ananya</data>
-      <data key="d3">Gujarat</data>
-      <data key="d4">Ahmedabad</data>
-      <data key="d5">23.02101</data>
-      <data key="d6">72.560249</data>
-      <data key="d7">False</data>
-      <data key="d8">False</data>
-      <data key="d9">3</data>
-    </node>
     <node id="ENT_000008">
       <data key="d0">ENT_000008</data>
       <data key="d1">ACCOUNT</data>
@@ -103,65 +23,5 @@
       <data key="d8">False</data>
       <data key="d9">0</data>
     </node>
-    <edge source="ENT_000437" target="ENT_000008" id="T000452">
-      <data key="d10">T000452</data>
-      <data key="d11">409.33</data>
-      <data key="d12">2026-01-07 17:53:02</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000341" target="ENT_000119" id="T000187">
-      <data key="d10">T000187</data>
-      <data key="d11">4855.48</data>
-      <data key="d12">2026-01-03 16:15:24</data>
-      <data key="d13">IMPS</data>
-      <data key="d14">Mobile Banking</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000341" target="ENT_000437" id="T000193">
-      <data key="d10">T000193</data>
-      <data key="d11">4848.03</data>
-      <data key="d12">2026-01-03 16:57:45</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000341" target="ENT_000494" id="T000204">
-      <data key="d10">T000204</data>
-      <data key="d11">65451.11</data>
-      <data key="d12">2026-01-03 19:21:26</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">1</data>
-      <data key="d17">RING_022</data>
-    </edge>
-    <edge source="ENT_000341" target="ENT_000256" id="T000426">
-      <data key="d10">T000426</data>
-      <data key="d11">2706.8</data>
-      <data key="d12">2026-01-07 05:42:59</data>
-      <data key="d13">IMPS</data>
-      <data key="d14">Mobile Banking</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
-    <edge source="ENT_000167" target="ENT_000437" id="T000396">
-      <data key="d10">T000396</data>
-      <data key="d11">505.81</data>
-      <data key="d12">2026-01-06 13:46:13</data>
-      <data key="d13">UPI</data>
-      <data key="d14">UPI App</data>
-      <data key="d15">0</data>
-      <data key="d16">0</data>
-      <data key="d17">NORMAL</data>
-    </edge>
   </graph>
 </graphml>

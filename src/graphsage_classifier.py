@@ -60,11 +60,10 @@ from torch_geometric.nn import SAGEConv, global_mean_pool
 # ==============================================================================
 
 RANDOM_SEED = 42
+
 DATA_DIR = Path("data")
-GRAPHS_DIR = DATA_DIR / "graphs"
 MODELS_DIR = Path("models")
 
-GRAPH_SUMMARY_FILE = DATA_DIR / "graph_summary.csv"
 XGB_PREDICTIONS_FILE = DATA_DIR / "xgboost_predictions.csv"
 MODEL_SPLIT_FILE = DATA_DIR / "model_split_ids.csv"
 
@@ -191,13 +190,26 @@ def build_pyg_data_from_graphml(
     x = torch.tensor(node_features, dtype=torch.float32)
 
     edge_list = []
-    for u, v, _ in G.edges(data=True):
+    edge_is_illicit = []
+    for u, v, edata in G.edges(data=True):
         edge_list.append([node_to_idx[u], node_to_idx[v]])
+        edge_is_illicit.append(1.0 if str(edata.get('d16', '0')) == '1' else 0.0)
 
     if edge_list:
         edge_index = torch.tensor(edge_list, dtype=torch.long).t().contiguous()
+        illicit_mask = torch.tensor(edge_is_illicit, dtype=torch.bool)
     else:
         edge_index = torch.empty((2, 0), dtype=torch.long)
+        illicit_mask = torch.empty((0,), dtype=torch.bool)
+
+    y_node = torch.zeros(len(nodes), dtype=torch.float32)
+    if illicit_mask.any():
+        illicit_edge_index = edge_index[:, illicit_mask]
+        y_node[illicit_edge_index[0]] = 1.0
+        y_node[illicit_edge_index[1]] = 1.0
+
+    is_incident_mask = x[:, 10].bool()
+    y_node[is_incident_mask] = 0.0
 
     y = torch.tensor([target_val], dtype=torch.float32)
 
@@ -205,6 +217,7 @@ def build_pyg_data_from_graphml(
         x=x,
         edge_index=edge_index,
         y=y,
+        y_node=y_node,
         complaint_id=complaint_id,
         incident_entity_id=incident_entity,
         num_nodes=len(nodes)
@@ -212,14 +225,14 @@ def build_pyg_data_from_graphml(
     return data
 
 
-def load_all_graphs_dataset() -> Tuple[List[Data], pd.DataFrame]:
+def load_all_graphs_dataset(summary_file: Path) -> Tuple[List[Data], pd.DataFrame]:
     """
-    Loads all 1,000 GraphML incident subgraphs and constructs PyG Data objects.
+    Loads all GraphML incident subgraphs and constructs PyG Data objects.
     """
-    if not GRAPH_SUMMARY_FILE.exists():
-        raise FileNotFoundError(f"Missing graph summary file: {GRAPH_SUMMARY_FILE}")
+    if not summary_file.exists():
+        raise FileNotFoundError(f"Missing graph summary file: {summary_file}")
 
-    df_summary = pd.read_csv(GRAPH_SUMMARY_FILE)
+    df_summary = pd.read_csv(summary_file)
     print(f"Loaded graph summary records: {len(df_summary)}")
 
     dataset: List[Data] = []
@@ -314,6 +327,7 @@ def normalize_node_features(
                 x=x_norm,
                 edge_index=d.edge_index,
                 y=d.y,
+                y_node=d.y_node,
                 complaint_id=d.complaint_id,
                 incident_entity_id=d.incident_entity_id,
                 num_nodes=d.num_nodes
@@ -323,6 +337,13 @@ def normalize_node_features(
 
     train_norm = apply_norm(train_dataset)
     test_norm = apply_norm(test_dataset)
+    
+    # Save the computed normalization tensors
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    torch.save(mean, MODELS_DIR / "synthetic_mean.pt")
+    torch.save(std, MODELS_DIR / "synthetic_std.pt")
+    print(f"[SUCCESS] Saved normalization tensors to {MODELS_DIR}")
+    
     return train_norm, test_norm, mean, std
 
 
@@ -330,9 +351,9 @@ def normalize_node_features(
 # GraphSAGE Model Architecture
 # ==============================================================================
 
-class GraphSAGEClassifier(nn.Module):
+class DualHeadGraphSAGE(nn.Module):
     """
-    2-Layer GraphSAGE Graph Neural Network for Graph-Level Classification.
+    2-Layer GraphSAGE Graph Neural Network for Graph-Level and Node-Level Classification.
     """
     def __init__(self, input_dim: int = 13, hidden_dim: int = 64, dropout: float = 0.2):
         super().__init__()
@@ -340,35 +361,31 @@ class GraphSAGEClassifier(nn.Module):
         self.hidden_dim = hidden_dim
         self.dropout_rate = dropout
 
-        # SAGE Convolutional Layers
         self.conv1 = SAGEConv(input_dim, hidden_dim)
         self.conv2 = SAGEConv(hidden_dim, hidden_dim)
-
         self.dropout = nn.Dropout(dropout)
-        self.classifier = nn.Linear(hidden_dim, 1)
+        
+        self.node_classifier = nn.Linear(hidden_dim, 1)
+        self.graph_classifier = nn.Linear(hidden_dim, 1)
 
     def forward(
         self,
         x: torch.Tensor,
         edge_index: torch.Tensor,
         batch: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        # Layer 1
-        h = self.conv1(x, edge_index)
-        h = F.relu(h)
-        h = self.dropout(h)
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        x = self.conv1(x, edge_index)
+        x = F.relu(x)
+        x = self.dropout(x)
 
-        # Layer 2
-        h = self.conv2(h, edge_index)
-        h = F.relu(h)
-        h = self.dropout(h)
+        node_embeddings = self.conv2(x, edge_index)
+        node_embeddings = F.relu(node_embeddings)
 
-        # Global Mean Pooling over all nodes in each graph in the batch
-        graph_embedding = global_mean_pool(h, batch)
-
-        # Final Linear Classification Layer
-        out = self.classifier(graph_embedding)
-        return out.squeeze(-1), graph_embedding
+        node_logits = self.node_classifier(node_embeddings)
+        graph_embedding = global_mean_pool(node_embeddings, batch)
+        graph_logits = self.graph_classifier(graph_embedding)
+        
+        return node_logits.squeeze(-1), graph_logits.squeeze(-1), graph_embedding
 
 
 # ==============================================================================
@@ -376,7 +393,7 @@ class GraphSAGEClassifier(nn.Module):
 # ==============================================================================
 
 def train_graphsage_model(
-    model: GraphSAGEClassifier,
+    model: DualHeadGraphSAGE,
     train_loader: DataLoader,
     test_loader: DataLoader,
     pos_weight_val: float,
@@ -384,7 +401,7 @@ def train_graphsage_model(
     patience: int = 20,
     lr: float = 0.001,
     weight_decay: float = 1e-4
-) -> Tuple[GraphSAGEClassifier, pd.DataFrame, int]:
+) -> Tuple[DualHeadGraphSAGE, pd.DataFrame, int]:
     """
     Trains GraphSAGE with Adam optimizer, BCEWithLogitsLoss with pos_weight,
     and early stopping tracking validation F1.
@@ -420,8 +437,10 @@ def train_graphsage_model(
         for batch in train_loader:
             batch = batch.to(device)
             optimizer.zero_grad()
-            logits, _ = model(batch.x, batch.edge_index, batch.batch)
-            loss = criterion(logits, batch.y.view(-1))
+            logits_node, logits_graph, _ = model(batch.x, batch.edge_index, batch.batch)
+            loss_graph = criterion(logits_graph, batch.y.view(-1))
+            loss_node = criterion(logits_node, batch.y_node.view(-1))
+            loss = 0.5 * loss_graph + 0.5 * loss_node
             loss.backward()
             optimizer.step()
 
@@ -440,13 +459,15 @@ def train_graphsage_model(
         with torch.no_grad():
             for batch in test_loader:
                 batch = batch.to(device)
-                logits, _ = model(batch.x, batch.edge_index, batch.batch)
-                loss = criterion(logits, batch.y.view(-1))
+                logits_node, logits_graph, _ = model(batch.x, batch.edge_index, batch.batch)
+                loss_graph = criterion(logits_graph, batch.y.view(-1))
+                loss_node = criterion(logits_node, batch.y_node.view(-1))
+                loss = 0.5 * loss_graph + 0.5 * loss_node
 
                 total_val_loss += loss.item() * batch.num_graphs
                 total_val_graphs += batch.num_graphs
 
-                probs = torch.sigmoid(logits).cpu().numpy()
+                probs = torch.sigmoid(logits_graph).cpu().numpy()
                 targets = batch.y.view(-1).cpu().numpy()
                 all_val_probs.extend(probs)
                 all_val_targets.extend(targets)
@@ -503,7 +524,7 @@ def train_graphsage_model(
 # ==============================================================================
 
 def evaluate_test_set(
-    model: GraphSAGEClassifier,
+    model: DualHeadGraphSAGE,
     test_loader: DataLoader,
     default_threshold: float = 0.50
 ) -> Dict[str, Any]:
@@ -518,8 +539,8 @@ def evaluate_test_set(
 
     with torch.no_grad():
         for batch in test_loader:
-            logits, _ = model(batch.x, batch.edge_index, batch.batch)
-            probs = torch.sigmoid(logits).cpu().numpy()
+            _, logits_graph, _ = model(batch.x, batch.edge_index, batch.batch)
+            probs = torch.sigmoid(logits_graph).cpu().numpy()
             targets = batch.y.view(-1).cpu().numpy()
 
             all_probs.extend(probs)
@@ -597,7 +618,7 @@ def analyze_thresholds(
 # ==============================================================================
 
 def extract_and_save_graph_embeddings(
-    model: GraphSAGEClassifier,
+    model: DualHeadGraphSAGE,
     full_dataset: List[Data],
     output_path: Path = GRAPHSAGE_EMBEDDINGS_FILE
 ) -> pd.DataFrame:
@@ -612,7 +633,7 @@ def extract_and_save_graph_embeddings(
 
     with torch.no_grad():
         for batch in full_loader:
-            _, embeddings = model(batch.x, batch.edge_index, batch.batch)
+            _, _, embeddings = model(batch.x, batch.edge_index, batch.batch)
             all_embeddings.append(embeddings.cpu().numpy())
             all_complaint_ids.extend(batch.complaint_id)
 
@@ -842,7 +863,10 @@ def run_pipeline_validations(
 # Main Pipeline Routine
 # ==============================================================================
 
-def main():
+def main(graphs_dir: Path, summary_file: Path):
+    global GRAPHS_DIR
+    GRAPHS_DIR = graphs_dir
+
     print("=" * 60)
     print("        STAGE 3B — GRAPHSAGE GNN CLASSIFIER")
     print("=" * 60)
@@ -852,7 +876,7 @@ def main():
     print_leakage_audit()
 
     # 2. Load all 1,000 GraphML subgraphs
-    raw_dataset, df_summary = load_all_graphs_dataset()
+    raw_dataset, df_summary = load_all_graphs_dataset(summary_file)
 
     # 3. Train / Test Split Alignment
     train_ids, test_ids = get_or_create_train_test_split(df_summary)
@@ -886,7 +910,7 @@ def main():
     lr = 0.001
     weight_decay = 1e-4
 
-    model = GraphSAGEClassifier(input_dim=input_dim, hidden_dim=hidden_dim, dropout=dropout)
+    model = DualHeadGraphSAGE(input_dim=input_dim, hidden_dim=hidden_dim, dropout=dropout)
     pos_weight = float(train_neg / train_pos) if train_pos > 0 else 1.0
 
     # 7. Train Model with Early Stopping
@@ -978,4 +1002,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    from pathlib import Path
+    parser = argparse.ArgumentParser(description="Train GraphSAGE Classifier")
+    parser.add_argument("--graphs-dir", type=str, default="data/graphs", help="Directory containing GraphML files")
+    parser.add_argument("--summary-file", type=str, default="data/synthetic_complaints.csv", help="Path to the summary CSV")
+    args = parser.parse_args()
+    
+    main(graphs_dir=Path(args.graphs_dir), summary_file=Path(args.summary_file))
