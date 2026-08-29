@@ -94,28 +94,27 @@ The platform includes a large-scale simulation harness in [`simulations/`](simul
 
 ---
 
-## 5. How to Run the Pipeline, Services & Simulations
+## 5. How to Run the Pipeline, Services & Web Application
 
 ```bash
 # 1. Install Dependencies
 pip install -r requirements.txt
 
-# 2. Download Real-World IBM AML Dataset (KaggleHub via API)
-python src/download_ibm_data.py
+# 2. Re-Initialize and Seed SQLite Database
+python3 -c "from src.database import init_db, seed_database_from_csv; init_db(); seed_database_from_csv()"
 
-# 3. Initialize and Seed Database
-python src/database.py
+# 3. Launch FastAPI Backend REST Service (Port 8000)
+python3 -m uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
 
-# 4. Run Real-Time Streaming Ingestion & Inference Benchmark
-python src/streaming_engine.py
+# 4. Launch React / TypeScript Frontend Application (Port 5173)
+cd ../sihweb
+npm install
+npm run dev
 
-# 5. Launch FastAPI Backend REST Service (Port 8000)
-uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+# 5. Run Automated Pytest Suite (14/14 Passing, 100% Verification)
+pytest -v
 
-# 6. Launch Tactical Interactive Dashboard (Streamlit Port 8501)
-streamlit run src/dashboard.py
-
-# 7. Run Operational Simulation Suite (5,000+ Real Transactions Scale)
+# 6. Run Operational Simulation Suite (5,000+ Real Transactions Scale)
 # Master Interactive Menu:
 python simulations/run_all_simulations.py
 
@@ -128,19 +127,10 @@ python simulations/simulate_live_stream.py --dataset ibm --num-tx 5000
 # Simulation 2: Step-by-Step Incident Replay on Real GraphML (e.g. C000124)
 python simulations/simulate_incident_replay.py --id C000124 --dataset synthetic
 
-# Simulation 2 (Alt): Batch Replay across 100+ Incident Subgraphs (4,000+ Real Tx)
-python simulations/simulate_incident_replay.py --batch
-
 # Simulation 3: Large-Scale Adversarial Evasion Benchmark across 2,000 Real Subgraphs
 python simulations/simulate_adversarial_evasion.py
 
 # Simulation 4: National Police Triage & Auto-FIR Dispatch across 1,000 Real Complaints
 python simulations/simulate_police_dispatch.py --num-cases 1000
-
-# Execute All 4 Simulations in Sequence (Complete Hackathon Demo)
-python simulations/run_all_simulations.py 5
-
-# 8. Run Automated Pytest Suite (11/11 Passing, 0 Regressions)
-pytest tests/test_api_streaming.py -v
 ```
 
