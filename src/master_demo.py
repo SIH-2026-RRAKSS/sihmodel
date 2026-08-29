@@ -58,33 +58,37 @@ def run_master_demo():
     slow_print("Simulating a high-velocity burst of 50 live transactions hitting the engine...")
     slow_print("Watch Welford's Algorithm safely block normal traffic without waking the ML Model.\n")
     
-    engine = TemporalTransactionGraph(window_size_hours=72)
+    engine = TemporalTransactionGraph(window_hours=72)
     blocked_count = 0
     passed_count = 0
     
     for i in range(1, 51):
         # Generate semi-random transaction amounts. Occasional massive spikes.
         is_spike = (i % 17 == 0)
-        amt = 90000.0 if is_spike else random.uniform(10.0, 500.0)
+        amt = 250000.0 if is_spike else random.uniform(10.0, 500.0)
         
-        # Ingest directly into the engine
+        tx_dict = {
+            "transaction_id": f"TX_{i}",
+            "sender_entity_id": "U_NORMAL",
+            "receiver_entity_id": f"VENDOR_{i}",
+            "amount": amt,
+            "timestamp": "2026-08-29 12:00:00",
+            "is_cash_out": False
+        }
+        
+        # Ingest and evaluate Stage 1 trigger directly
         start_t = time.time()
-        needs_triage, reason = engine.ingest_transaction(
-            src="U_NORMAL", 
-            dst=f"VENDOR_{i}", 
-            amt=amt, 
-            timestamp=time.time(), 
-            tx_id=f"TX_{i}"
-        )
+        needs_triage, reason = engine.anomaly_trigger.evaluate_transaction(tx_dict)
+        engine.ingest_transaction(tx_dict)
         lat = (time.time() - start_t) * 1000
         
         if needs_triage:
             passed_count += 1
-            print(f"  🚨 [STAGE 1 BREACH] Tx {i} | Amt: ${amt:.2f} | Reason: {reason} | Gate Latency: {lat:.3f}ms")
+            print(f"  🚨 [STAGE 1 BREACH] Tx {i} | Amt: ₹{amt:,.2f} | Reason: {reason} | Gate Latency: {lat:.3f}ms")
         else:
             blocked_count += 1
             if i % 5 == 0: # Just sample prints so terminal isn't totally flooded
-                print(f"  ✅ [STAGE 1 BLOCKED] Tx {i} | Amt: ${amt:.2f} | Filtered as benign. | Gate Latency: {lat:.3f}ms")
+                print(f"  ✅ [STAGE 1 BLOCKED] Tx {i} | Amt: ₹{amt:,.2f} | Filtered as benign. | Gate Latency: {lat:.3f}ms")
                 
         time.sleep(0.02)
         
