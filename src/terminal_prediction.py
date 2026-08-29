@@ -101,7 +101,7 @@ def compute_graphsage_risk_probabilities(
     """
     Computes or loads GraphSAGE incident probability for all 1,000 complaints.
     """
-    raw_dataset, _ = load_all_graphs_dataset()
+    raw_dataset, _ = load_all_graphs_dataset(GRAPH_SUMMARY_FILE)
     train_ids, test_ids = get_or_create_train_test_split(df_summary)
     train_id_set = set(train_ids)
     test_id_set = set(test_ids)
@@ -114,10 +114,10 @@ def compute_graphsage_risk_probabilities(
     continuous_indices = [2, 3, 4, 5, 6, 7, 8, 9, 12]
     all_norm = []
     for d in raw_dataset:
-        x_norm = d.x.clone()
+        d_norm = d.clone()
         for idx in continuous_indices:
-            x_norm[:, idx] = (x_norm[:, idx] - mean_norm[idx]) / std_norm[idx]
-        all_norm.append(d)
+            d_norm.x[:, idx] = (d_norm.x[:, idx] - mean_norm[idx]) / std_norm[idx]
+        all_norm.append(d_norm)
 
     model = DualHeadGraphSAGE(input_dim=13, hidden_dim=64, dropout=0.2)
     model.load_state_dict(torch.load(GRAPHSAGE_MODEL_FILE, weights_only=True))
@@ -127,8 +127,8 @@ def compute_graphsage_risk_probabilities(
     all_probs = []
     with torch.no_grad():
         for batch in loader:
-            logits, _ = model(batch.x, batch.edge_index, batch.batch)
-            probs = torch.sigmoid(logits).cpu().numpy()
+            logits_node, logits_graph, _ = model(batch.x, batch.edge_index, batch.batch)
+            probs = torch.sigmoid(logits_graph).cpu().numpy().flatten()
             all_probs.extend(probs)
 
     risk_dict = {d.complaint_id: float(p) for d, p in zip(raw_dataset, all_probs)}

@@ -50,7 +50,7 @@ MODELS_DIR = Path("models")
 
 GRAPH_SUMMARY_FILE = DATA_DIR / "graph_summary.csv"
 GRAPH_EMBEDDINGS_FILE = DATA_DIR / "graph_embeddings.csv"
-MODEL_SPLIT_FILE = DATA_DIR / "model_split_ids.csv"
+MODEL_SPLIT_FILE = DATA_DIR / "domestic_model_split_ids.csv" if (DATA_DIR / "domestic_model_split_ids.csv").exists() else DATA_DIR / "model_split_ids.csv"
 TERMINAL_PREDICTIONS_FILE = DATA_DIR / "terminal_predictions.csv"
 TOP_TERMINAL_PREDICTIONS_FILE = DATA_DIR / "top_terminal_predictions.csv"
 
@@ -61,7 +61,7 @@ CONFIDENCE_EVAL_FILE = DATA_DIR / "confidence_tier_evaluation.csv"
 
 # Configurable Decision Thresholds
 CONFIDENCE_RISK_THRESHOLD = 0.50
-HIGH_CONFIDENCE_RISK_THRESHOLD = 0.70
+HIGH_CONFIDENCE_RISK_THRESHOLD = 0.60
 NOVELTY_SIMILARITY_THRESHOLD = 0.85
 RANDOM_SEED = 42
 
@@ -382,7 +382,7 @@ def generate_confidence_examples_table(
     for tier_name in ["HIGH_CONFIDENCE", "MEDIUM_CONFIDENCE", "FIRST_TIME_RING_CANDIDATE", "NORMAL"]:
         subset = df_tiers[df_tiers["confidence_tier"] == tier_name]
         if not subset.empty:
-            samples = subset.head(4)
+            samples = subset.head(5)
             examples_list.append(samples)
 
     df_examples = pd.concat(examples_list, ignore_index=True)
@@ -599,22 +599,26 @@ def main():
     print("TOP REPRESENTATIVE EXAMPLES:")
 
     # 1. HIGH_CONFIDENCE
-    high_ex = df_tiers[df_tiers["confidence_tier"] == "HIGH_CONFIDENCE"].iloc[0]
-    print(f"\n[HIGH_CONFIDENCE] Complaint: {high_ex['complaint_id']} | Incident Entity: {high_ex['incident_entity_id']}")
-    print(f"  GraphSAGE probability   : {high_ex['graphsage_probability']:.4f}")
-    print(f"  Confidence tier         : {high_ex['confidence_tier']}")
-    print(f"  Reference similarity    : {high_ex['nearest_reference_similarity']:.4f} ({high_ex['novelty_status']})")
-    print(f"  Terminal/cash-out       : {high_ex['top_terminal']} ({high_ex['top_terminal_city']}, score {high_ex['terminal_score']:.2f})")
-    print(f"  Reason                  : {high_ex['confidence_reason']}")
+    high_df = df_tiers[df_tiers["confidence_tier"] == "HIGH_CONFIDENCE"]
+    if not high_df.empty:
+        high_ex = high_df.iloc[0]
+        print(f"\n[HIGH_CONFIDENCE] Complaint: {high_ex['complaint_id']} | Incident Entity: {high_ex['incident_entity_id']}")
+        print(f"  GraphSAGE probability   : {high_ex['graphsage_probability']:.4f}")
+        print(f"  Confidence tier         : {high_ex['confidence_tier']}")
+        print(f"  Reference similarity    : {high_ex['nearest_reference_similarity']:.4f} ({high_ex['novelty_status']})")
+        print(f"  Terminal/cash-out       : {high_ex['top_terminal']} ({high_ex['top_terminal_city']}, score {high_ex['terminal_score']:.2f})")
+        print(f"  Reason                  : {high_ex['confidence_reason']}")
 
     # 2. MEDIUM_CONFIDENCE
-    med_ex = df_tiers[df_tiers["confidence_tier"] == "MEDIUM_CONFIDENCE"].iloc[0]
-    print(f"\n[MEDIUM_CONFIDENCE] Complaint: {med_ex['complaint_id']} | Incident Entity: {med_ex['incident_entity_id']}")
-    print(f"  GraphSAGE probability   : {med_ex['graphsage_probability']:.4f}")
-    print(f"  Confidence tier         : {med_ex['confidence_tier']}")
-    print(f"  Reference similarity    : {med_ex['nearest_reference_similarity']:.4f} ({med_ex['novelty_status']})")
-    print(f"  Terminal/cash-out       : {med_ex['top_terminal']}")
-    print(f"  Reason                  : {med_ex['confidence_reason']}")
+    med_df = df_tiers[df_tiers["confidence_tier"] == "MEDIUM_CONFIDENCE"]
+    if not med_df.empty:
+        med_ex = med_df.iloc[0]
+        print(f"\n[MEDIUM_CONFIDENCE] Complaint: {med_ex['complaint_id']} | Incident Entity: {med_ex['incident_entity_id']}")
+        print(f"  GraphSAGE probability   : {med_ex['graphsage_probability']:.4f}")
+        print(f"  Confidence tier         : {med_ex['confidence_tier']}")
+        print(f"  Reference similarity    : {med_ex['nearest_reference_similarity']:.4f} ({med_ex['novelty_status']})")
+        print(f"  Terminal/cash-out       : {med_ex['top_terminal']}")
+        print(f"  Reason                  : {med_ex['confidence_reason']}")
 
     # 3. FIRST_TIME_RING_CANDIDATE
     first_ex_df = df_tiers[df_tiers["confidence_tier"] == "FIRST_TIME_RING_CANDIDATE"]
@@ -640,13 +644,15 @@ def main():
     print(f"  Reason                  : {f_reason}")
 
     # 4. NORMAL
-    norm_ex = df_tiers[df_tiers["confidence_tier"] == "NORMAL"].iloc[0]
-    print(f"\n[NORMAL] Complaint: {norm_ex['complaint_id']} | Incident Entity: {norm_ex['incident_entity_id']}")
-    print(f"  GraphSAGE probability   : {norm_ex['graphsage_probability']:.4f}")
-    print(f"  Confidence tier         : {norm_ex['confidence_tier']}")
-    print(f"  Reference similarity    : {norm_ex['nearest_reference_similarity']:.4f} ({norm_ex['novelty_status']})")
-    print(f"  Terminal/cash-out       : {norm_ex['top_terminal']}")
-    print(f"  Reason                  : {norm_ex['confidence_reason']}")
+    norm_df = df_tiers[df_tiers["confidence_tier"] == "NORMAL"]
+    if not norm_df.empty:
+        norm_ex = norm_df.iloc[0]
+        print(f"\n[NORMAL] Complaint: {norm_ex['complaint_id']} | Incident Entity: {norm_ex['incident_entity_id']}")
+        print(f"  GraphSAGE probability   : {norm_ex['graphsage_probability']:.4f}")
+        print(f"  Confidence tier         : {norm_ex['confidence_tier']}")
+        print(f"  Reference similarity    : {norm_ex['nearest_reference_similarity']:.4f} ({norm_ex['novelty_status']})")
+        print(f"  Terminal/cash-out       : {norm_ex['top_terminal']}")
+        print(f"  Reason                  : {norm_ex['confidence_reason']}")
 
     print("-" * 60)
     print("\nOffline Evaluation Summary:")

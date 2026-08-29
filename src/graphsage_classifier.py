@@ -63,9 +63,11 @@ RANDOM_SEED = 42
 
 DATA_DIR = Path("data")
 MODELS_DIR = Path("models")
+GRAPHS_DIR = DATA_DIR / "graphs"
 
 XGB_PREDICTIONS_FILE = DATA_DIR / "xgboost_predictions.csv"
 MODEL_SPLIT_FILE = DATA_DIR / "model_split_ids.csv"
+DOMESTIC_MODEL_SPLIT_FILE = DATA_DIR / "domestic_model_split_ids.csv"
 
 GRAPHSAGE_MODEL_FILE = MODELS_DIR / "graphsage_model.pt"
 GRAPHSAGE_CONFIG_FILE = MODELS_DIR / "graphsage_config.json"
@@ -260,24 +262,35 @@ def get_or_create_train_test_split(
     df_summary: pd.DataFrame
 ) -> Tuple[List[str], List[str]]:
     """
-    Obtains the exact train/test split IDs, aligning with Stage 3A XGBoost.
+    Obtains the exact train/test split IDs for domestic subgraphs, aligning with Stage 3A XGBoost.
     """
+    summary_cids = set(df_summary["complaint_id"].astype(str))
+
+    if DOMESTIC_MODEL_SPLIT_FILE.exists():
+        df_split = pd.read_csv(DOMESTIC_MODEL_SPLIT_FILE)
+        train_ids = df_split[df_split["split"] == "train"]["complaint_id"].astype(str).tolist()
+        test_ids = df_split[df_split["split"] == "test"]["complaint_id"].astype(str).tolist()
+        if len(set(train_ids).intersection(summary_cids)) > 0:
+            print(f"Reused domestic split from {DOMESTIC_MODEL_SPLIT_FILE}")
+            return train_ids, test_ids
+
     if MODEL_SPLIT_FILE.exists():
         df_split = pd.read_csv(MODEL_SPLIT_FILE)
-        train_ids = df_split[df_split["split"] == "train"]["complaint_id"].tolist()
-        test_ids = df_split[df_split["split"] == "test"]["complaint_id"].tolist()
-        print(f"Reused existing split from {MODEL_SPLIT_FILE}")
-    elif XGB_PREDICTIONS_FILE.exists():
-        # Align with exact test set complaints from Stage 3A XGBoost
-        df_xgb_preds = pd.read_csv(XGB_PREDICTIONS_FILE)
-        test_ids = df_xgb_preds["complaint_id"].tolist()
-        train_ids = [c for c in df_summary["complaint_id"] if c not in test_ids]
+        train_ids = df_split[df_split["split"] == "train"]["complaint_id"].astype(str).tolist()
+        test_ids = df_split[df_split["split"] == "test"]["complaint_id"].astype(str).tolist()
+        if len(set(train_ids).intersection(summary_cids)) > 0:
+            print(f"Reused existing split from {MODEL_SPLIT_FILE}")
+            return train_ids, test_ids
 
+    if XGB_PREDICTIONS_FILE.exists():
+        df_xgb_preds = pd.read_csv(XGB_PREDICTIONS_FILE)
+        test_ids = df_xgb_preds["complaint_id"].astype(str).tolist()
+        train_ids = [str(c) for c in df_summary["complaint_id"] if str(c) not in test_ids]
         split_records = [{"complaint_id": c, "split": "train"} for c in train_ids] + \
                         [{"complaint_id": c, "split": "test"} for c in test_ids]
         df_split = pd.DataFrame(split_records)
-        df_split.to_csv(MODEL_SPLIT_FILE, index=False)
-        print(f"[SUCCESS] Saved aligned train/test split IDs to: {MODEL_SPLIT_FILE}")
+        df_split.to_csv(DOMESTIC_MODEL_SPLIT_FILE, index=False)
+        print(f"[SUCCESS] Saved aligned domestic train/test split IDs to: {DOMESTIC_MODEL_SPLIT_FILE}")
     else:
         from sklearn.model_selection import train_test_split
         train_df, test_df = train_test_split(
@@ -286,13 +299,13 @@ def get_or_create_train_test_split(
             random_state=RANDOM_SEED,
             stratify=df_summary[TARGET_COL]
         )
-        train_ids = train_df["complaint_id"].tolist()
-        test_ids = test_df["complaint_id"].tolist()
+        train_ids = train_df["complaint_id"].astype(str).tolist()
+        test_ids = test_df["complaint_id"].astype(str).tolist()
         split_records = [{"complaint_id": c, "split": "train"} for c in train_ids] + \
                         [{"complaint_id": c, "split": "test"} for c in test_ids]
         df_split = pd.DataFrame(split_records)
-        df_split.to_csv(MODEL_SPLIT_FILE, index=False)
-        print(f"[SUCCESS] Generated and saved split IDs to: {MODEL_SPLIT_FILE}")
+        df_split.to_csv(DOMESTIC_MODEL_SPLIT_FILE, index=False)
+        print(f"[SUCCESS] Generated and saved domestic split IDs to: {DOMESTIC_MODEL_SPLIT_FILE}")
 
     return train_ids, test_ids
 
