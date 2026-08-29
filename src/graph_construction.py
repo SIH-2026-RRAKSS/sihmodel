@@ -173,14 +173,14 @@ def filter_transactions_by_time(
 def extract_incident_subgraph(
     df_window_tx: pd.DataFrame,
     incident_entity: str,
-    incident_time: datetime,
     entity_name_lookup: Dict[str, str],
     location_lookup: Dict[str, Dict[str, Any]],
     max_hops: int = DEFAULT_MAX_HOPS
 ) -> nx.MultiDiGraph:
     """
     Constructs a directed MultiDiGraph for the 72-hour window and extracts the
-    3-hop neighborhood around the incident entity.
+    3-hop neighborhood around the incident entity using undirected paths to capture
+    both upstream senders (fund sources) and downstream receivers (mule flow).
     """
     subgraph = nx.MultiDiGraph()
 
@@ -213,20 +213,23 @@ def extract_incident_subgraph(
         _add_single_node(subgraph, incident_entity, True, 0, entity_name_lookup, location_lookup)
         return subgraph
 
-    # 3. Use Temporal BFS
-    subgraph = extract_temporal_subgraph(
-        global_graph=G_window,
-        root_node=incident_entity,
-        incident_timestamp=incident_time,
-        max_hops=max_hops,
-        max_degree_per_hop=15,
-        window_hours=DEFAULT_WINDOW_HOURS
+    # 3. Compute shortest path lengths in the undirected projection to capture
+    # both upstream senders (fund sources) and downstream receivers (mule flow)
+    G_undirected = G_window.to_undirected(as_view=True)
+    hop_distances = nx.single_source_shortest_path_length(
+        G_undirected,
+        source=incident_entity,
+        cutoff=max_hops
     )
-    
-    # 5. Populate comprehensive node attributes for extracted nodes
-    for node in list(subgraph.nodes()):
+
+    # 4. Extract induced subgraph of nodes within max_hops
+    nodes_in_neighborhood = set(hop_distances.keys())
+    subgraph = G_window.subgraph(nodes_in_neighborhood).copy()
+
+    # 5. Populate comprehensive node attributes
+    for node in subgraph.nodes():
         is_inc = (node == incident_entity)
-        hop_dist = subgraph.nodes[node].get("hop_distance", 0)
+        hop_dist = int(hop_distances[node])
         _set_node_attributes(subgraph, node, is_inc, hop_dist, entity_name_lookup, location_lookup)
 
     return subgraph
@@ -646,7 +649,6 @@ def main():
         subgraph = extract_incident_subgraph(
             df_window_tx=df_window_tx,
             incident_entity=inc_entity,
-            incident_time=incident_time,
             entity_name_lookup=entity_name_lookup,
             location_lookup=location_lookup,
             max_hops=DEFAULT_MAX_HOPS

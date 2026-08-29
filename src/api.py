@@ -56,9 +56,9 @@ app = FastAPI(
 # Enable CORS for local dashboards / frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -454,7 +454,11 @@ def get_incident_graph(incident_id: str):
 @app.post("/api/predict/subgraph", response_model=LivePredictResponse, tags=["Live Inference"])
 def predict_live_subgraph(req: LivePredictRequest):
     """Runs on-the-fly GraphSAGE classification for any arbitrary entity ID."""
-    subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(req.seed_entity_id, max_hops=req.max_hops)
+    try:
+        subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(req.seed_entity_id, max_hops=req.max_hops)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+        
     res = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=req.seed_entity_id)
 
     return LivePredictResponse(

@@ -213,6 +213,12 @@ def train_and_eval_ibm_gnn(raw_dataset, df_summary, seed=42, epochs=30):
         f1 = f1_score(y_true, y_pred, zero_division=0)
         if f1 > best_f1:
             best_f1 = f1
+            
+            # SAVE CHECKPOINT AT BEST EPOCH
+            import os
+            os.makedirs("models/ibm_seed_checkpoints", exist_ok=True)
+            torch.save(model.state_dict(), f"models/ibm_seed_checkpoints/seed{seed}.pt")
+            
             acc = accuracy_score(y_true, y_pred)
             prec = precision_score(y_true, y_pred, zero_division=0)
             rec = recall_score(y_true, y_pred, zero_division=0)

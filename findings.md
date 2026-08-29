@@ -1,0 +1,19 @@
+# Master Audit Findings
+
+## Methodology & Benchmark Contamination
+*All F1 headline numbers in this project (as of Aug 30, 2026) are subject to test-set epoch-selection leakage in `src/graphsage_classifier.py` and `src/ibm_graphsage_classifier.py`. The "best epoch" was consistently chosen by explicitly maximizing F1 against the held-out test split, meaning reported numbers are optimistically biased upper bounds rather than legitimate generalization estimates.*
+
+## Model vs Baseline Comparisons (Reversed Narrative)
+The flagship claim that GraphSAGE outperforms XGBoost by +3.76% is not supported when evaluated fairly. I implemented a clean 3-way split (70/10/20 train/val/test) for a full 5-seed rerun to evaluate GraphSAGE blindly. The true F1 on IBM Dataset B completely closes the gap:
+- **IBM GNN Clean F1 (5-seed):** 73.57% ± 3.23% (Down from the leaky 77.70%)
+- **IBM XGBoost F1 (5-seed):** 73.93% ± 3.37% (Baseline was always clean and appropriately used `scale_pos_weight`)
+- **Significance (IBM):** Paired t-test yields `t = -0.734`, `p = 0.5038`. The difference is not statistically significant. GraphSAGE provides zero measurable relational advantage on this real-world dataset.
+
+GraphSAGE effectively ties or slightly underperforms the XGBoost baseline when evaluated fairly on the full corpus. The initial +3.76% edge was an artifact of asymmetrical evaluation (GraphSAGE was tuned via test-set F1, XGBoost was not).
+
+**Dataset A Flatness & Edge:** Interestingly, the clean 5-seed rerun on Dataset A showed zero degradation (Clean F1: 89.77% vs Leaky F1: 88.85%). Leakage devastates IBM but doesn't touch Dataset A at all. The clean XGBoost baseline for Dataset A is 86.87%, yielding a paired t-test of `t = 3.002`, `p = 0.0398` in favor of the GNN. 
+*Caution:* While statistically significant (p < 0.05), this is based on a small sample (N=5 seeds) where a single run can swing the p-value across the threshold, and is uncorrected for multiple comparisons. Treat the Dataset A advantage as directionally real but fragile, not airtight.
+
+**Multi-Hop Subgraph Findings Invalidated:** Downstream multi-hop subgraph significance drops (e.g. p=0.12, p=0.77) must be discarded. Re-running the `num_nodes > 1` filter on the clean models yields F1 scores mathematically identical to the full-corpus scores. The multi-node filter *does* legitimately exclude ~35% of IBM's test subgraphs, but because GraphSAGE has no full-corpus advantage over XGBoost to begin with, its performance on the multi-hop subset identically mirrors the baseline tie.
+
+**STATUS:** The GNN-vs-XGBoost delta requires complete rewrite post-leakage-discovery. The GNN's advantage was leakage-driven on the real-world dataset and does not hold up, but is real (if narrowly significant) on the synthetic dataset.

@@ -1,27 +1,272 @@
 <?xml version='1.0' encoding='utf-8'?>
-<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
-  <key id="d9" for="node" attr.name="hop_distance" attr.type="long" />
-  <key id="d8" for="node" attr.name="is_terminal" attr.type="boolean" />
-  <key id="d7" for="node" attr.name="is_incident" attr.type="boolean" />
-  <key id="d6" for="node" attr.name="longitude" attr.type="double" />
-  <key id="d5" for="node" attr.name="latitude" attr.type="double" />
-  <key id="d4" for="node" attr.name="city" attr.type="string" />
-  <key id="d3" for="node" attr.name="state" attr.type="string" />
-  <key id="d2" for="node" attr.name="canonical_name" attr.type="string" />
-  <key id="d1" for="node" attr.name="node_type" attr.type="string" />
-  <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
-  <graph edgedefault="directed">
-    <node id="ENT_000491">
-      <data key="d0">ENT_000491</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Rajesh Deshmukh</data>
-      <data key="d3">West Bengal</data>
-      <data key="d4">Kolkata</data>
-      <data key="d5">22.562236</data>
-      <data key="d6">88.334093</data>
-      <data key="d7">True</data>
-      <data key="d8">False</data>
-      <data key="d9">0</data>
-    </node>
-  </graph>
-</graphml>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d17" for="edge" attr.name="ring_id" attr.type="string"/>
+<key id="d16" for="edge" attr.name="is_suspicious" attr.type="long"/>
+<key id="d15" for="edge" attr.name="is_cash_out" attr.type="long"/>
+<key id="d14" for="edge" attr.name="channel" attr.type="string"/>
+<key id="d13" for="edge" attr.name="transaction_type" attr.type="string"/>
+<key id="d12" for="edge" attr.name="timestamp" attr.type="string"/>
+<key id="d11" for="edge" attr.name="amount" attr.type="double"/>
+<key id="d10" for="edge" attr.name="transaction_id" attr.type="string"/>
+<key id="d9" for="node" attr.name="hop_distance" attr.type="long"/>
+<key id="d8" for="node" attr.name="is_terminal" attr.type="boolean"/>
+<key id="d7" for="node" attr.name="is_incident" attr.type="boolean"/>
+<key id="d6" for="node" attr.name="longitude" attr.type="double"/>
+<key id="d5" for="node" attr.name="latitude" attr.type="double"/>
+<key id="d4" for="node" attr.name="city" attr.type="string"/>
+<key id="d3" for="node" attr.name="state" attr.type="string"/>
+<key id="d2" for="node" attr.name="canonical_name" attr.type="string"/>
+<key id="d1" for="node" attr.name="node_type" attr.type="string"/>
+<key id="d0" for="node" attr.name="entity_id" attr.type="string"/>
+<graph edgedefault="directed"><node id="ENT_000004">
+  <data key="d0">ENT_000004</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Manish Ghosh</data>
+  <data key="d3">Uttar Pradesh</data>
+  <data key="d4">Lucknow</data>
+  <data key="d5">26.841235</data>
+  <data key="d6">80.913286</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">1</data>
+</node>
+<node id="ENT_000412">
+  <data key="d0">ENT_000412</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Kavya Nair</data>
+  <data key="d3">Odisha</data>
+  <data key="d4">Bhubaneswar</data>
+  <data key="d5">20.265549</data>
+  <data key="d6">85.820879</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">3</data>
+</node>
+<node id="ENT_000506">
+  <data key="d0">ENT_000506</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Sunita Kumar</data>
+  <data key="d3">Bihar</data>
+  <data key="d4">Patna</data>
+  <data key="d5">25.604411</data>
+  <data key="d6">85.107214</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">3</data>
+</node>
+<node id="ATM_009">
+  <data key="d0">ATM_009</data>
+  <data key="d1">ATM</data>
+  <data key="d2">ATM Cash Terminal</data>
+  <data key="d3">Rajasthan</data>
+  <data key="d4">Jaipur</data>
+  <data key="d5">26.9124</data>
+  <data key="d6">75.7873</data>
+  <data key="d7">False</data>
+  <data key="d8">True</data>
+  <data key="d9">2</data>
+</node>
+<node id="ENT_000626">
+  <data key="d0">ENT_000626</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Ashok Deshmukh</data>
+  <data key="d3">Punjab</data>
+  <data key="d4">Chandigarh</data>
+  <data key="d5">30.759075</data>
+  <data key="d6">76.802597</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">2</data>
+</node>
+<node id="ENT_000365">
+  <data key="d0">ENT_000365</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Neha A. Chatterjee</data>
+  <data key="d3">Punjab</data>
+  <data key="d4">Chandigarh</data>
+  <data key="d5">30.742222</data>
+  <data key="d6">76.74716</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">3</data>
+</node>
+<node id="ENT_000339">
+  <data key="d0">ENT_000339</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Vijay Kulkarni</data>
+  <data key="d3">Tamil Nadu</data>
+  <data key="d4">Chennai</data>
+  <data key="d5">13.116184</data>
+  <data key="d6">80.288926</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">3</data>
+</node>
+<node id="ENT_000103">
+  <data key="d0">ENT_000103</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Deepa Srivastava</data>
+  <data key="d3">Maharashtra</data>
+  <data key="d4">Pune</data>
+  <data key="d5">18.550728</data>
+  <data key="d6">73.88336</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">3</data>
+</node>
+<node id="ENT_000491">
+  <data key="d0">ENT_000491</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Rajesh Deshmukh</data>
+  <data key="d3">West Bengal</data>
+  <data key="d4">Kolkata</data>
+  <data key="d5">22.562236</data>
+  <data key="d6">88.334093</data>
+  <data key="d7">True</data>
+  <data key="d8">False</data>
+  <data key="d9">0</data>
+</node>
+<node id="ENT_000468">
+  <data key="d0">ENT_000468</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Sanjay Bose</data>
+  <data key="d3">Tamil Nadu</data>
+  <data key="d4">Chennai</data>
+  <data key="d5">13.108024</data>
+  <data key="d6">80.238661</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">3</data>
+</node>
+<node id="ENT_000059">
+  <data key="d0">ENT_000059</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Pooja Ghosh </data>
+  <data key="d3">Odisha</data>
+  <data key="d4">Bhubaneswar</data>
+  <data key="d5">20.275181</data>
+  <data key="d6">85.81132</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">3</data>
+</node>
+<edge source="ENT_000004" target="ATM_009" id="T001592">
+  <data key="d10">T001592</data>
+  <data key="d11">43162.72</data>
+  <data key="d12">2026-01-26 06:04:25</data>
+  <data key="d13">CASH_WITHDRAWAL</data>
+  <data key="d14">ATM</data>
+  <data key="d15">1</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+<edge source="ENT_000004" target="ENT_000491" id="T001713">
+  <data key="d10">T001713</data>
+  <data key="d11">339.9</data>
+  <data key="d12">2026-01-27 15:54:36</data>
+  <data key="d13">IMPS</data>
+  <data key="d14">Mobile Banking</data>
+  <data key="d15">0</data>
+  <data key="d16">0</data>
+  <data key="d17">NORMAL</data>
+</edge>
+<edge source="ENT_000506" target="ENT_000626" id="T001546">
+  <data key="d10">T001546</data>
+  <data key="d11">1359.03</data>
+  <data key="d12">2026-01-25 13:01:50</data>
+  <data key="d13">UPI</data>
+  <data key="d14">UPI App</data>
+  <data key="d15">0</data>
+  <data key="d16">0</data>
+  <data key="d17">NORMAL</data>
+</edge>
+<edge source="ENT_000626" target="ENT_000365" id="T001379">
+  <data key="d10">T001379</data>
+  <data key="d11">622.52</data>
+  <data key="d12">2026-01-22 18:09:57</data>
+  <data key="d13">UPI</data>
+  <data key="d14">UPI App</data>
+  <data key="d15">0</data>
+  <data key="d16">0</data>
+  <data key="d17">NORMAL</data>
+</edge>
+<edge source="ENT_000626" target="ENT_000365" id="T001576">
+  <data key="d10">T001576</data>
+  <data key="d11">44391.67</data>
+  <data key="d12">2026-01-26 03:22:25</data>
+  <data key="d13">UPI</data>
+  <data key="d14">UPI App</data>
+  <data key="d15">0</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+<edge source="ENT_000626" target="ENT_000059" id="T001575">
+  <data key="d10">T001575</data>
+  <data key="d11">42087.55</data>
+  <data key="d12">2026-01-26 02:44:25</data>
+  <data key="d13">NEFT</data>
+  <data key="d14">Internet Banking</data>
+  <data key="d15">0</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+<edge source="ENT_000626" target="ENT_000339" id="T001579">
+  <data key="d10">T001579</data>
+  <data key="d11">41601.77</data>
+  <data key="d12">2026-01-26 04:02:25</data>
+  <data key="d13">IMPS</data>
+  <data key="d14">Mobile Banking</data>
+  <data key="d15">0</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+<edge source="ENT_000626" target="ENT_000103" id="T001581">
+  <data key="d10">T001581</data>
+  <data key="d11">44163.19</data>
+  <data key="d12">2026-01-26 04:19:25</data>
+  <data key="d13">IMPS</data>
+  <data key="d14">Mobile Banking</data>
+  <data key="d15">0</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+<edge source="ENT_000626" target="ENT_000004" id="T001583">
+  <data key="d10">T001583</data>
+  <data key="d11">45345.83</data>
+  <data key="d12">2026-01-26 04:52:25</data>
+  <data key="d13">NEFT</data>
+  <data key="d14">Internet Banking</data>
+  <data key="d15">0</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+<edge source="ENT_000626" target="ENT_000468" id="T001590">
+  <data key="d10">T001590</data>
+  <data key="d11">42983.02</data>
+  <data key="d12">2026-01-26 05:30:25</data>
+  <data key="d13">UPI</data>
+  <data key="d14">UPI App</data>
+  <data key="d15">0</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+<edge source="ENT_000626" target="ENT_000412" id="T001591">
+  <data key="d10">T001591</data>
+  <data key="d11">45232.09</data>
+  <data key="d12">2026-01-26 05:58:25</data>
+  <data key="d13">IMPS</data>
+  <data key="d14">Mobile Banking</data>
+  <data key="d15">0</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+<edge source="ENT_000365" target="ATM_009" id="T001582">
+  <data key="d10">T001582</data>
+  <data key="d11">42517.13</data>
+  <data key="d12">2026-01-26 04:31:25</data>
+  <data key="d13">CASH_WITHDRAWAL</data>
+  <data key="d14">ATM</data>
+  <data key="d15">1</data>
+  <data key="d16">1</data>
+  <data key="d17">RING_023</data>
+</edge>
+</graph></graphml>

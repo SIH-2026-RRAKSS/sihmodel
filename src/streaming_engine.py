@@ -286,8 +286,7 @@ class TemporalTransactionGraph:
         subgraph = nx.MultiDiGraph()
         
         if not self.graph.has_node(seed_entity_id):
-            subgraph.add_node(seed_entity_id, node_type="ACCOUNT", is_incident=True, hop_distance=0)
-            return subgraph
+            raise KeyError(f"Entity {seed_entity_id} not found in active streaming graph. It may not have transacted in the current time window, or the pipeline is not correctly ingesting it.")
             
         # Optional: Start BFS queue from earliest transaction of seed entity to enforce downstream tracking
         start_time = as_of_time
