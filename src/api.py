@@ -171,6 +171,23 @@ class LivePredictResponse(BaseModel):
     terminals: List[Dict[str, Any]]
 
 
+class TransactionIngestRequest(BaseModel):
+    source_entity: str
+    destination_entity: str
+    amount: float
+    timestamp: Optional[float] = None
+    transaction_id: Optional[str] = None
+
+
+class TransactionIngestResponse(BaseModel):
+    transaction_id: str
+    stage_1_flagged: bool
+    stage_1_reason: str
+    stage_2_risk_probability: Optional[float] = None
+    stage_2_confidence_tier: Optional[str] = None
+    stage_2_terminals: Optional[List[Dict[str, Any]]] = None
+
+
 class PolicyTuneRequest(BaseModel):
     threshold: float = Field(0.50, ge=0.05, le=0.95, description="Decision cutoff tau")
     dataset: str = Field("synthetic", description="'synthetic' or 'ibm'")
@@ -449,6 +466,38 @@ def predict_live_subgraph(req: LivePredictRequest):
         num_edges=res["num_edges"],
         terminals=res["terminals"]
     )
+
+
+@app.post("/api/ingest/transaction", response_model=TransactionIngestResponse, tags=["Live Inference"])
+def ingest_single_transaction(req: TransactionIngestRequest):
+    """Ingests a single live transaction and runs it through the Two-Stage Hybrid Trigger."""
+    ts = req.timestamp or time.time()
+    tx_id = req.transaction_id or f"TX_{int(ts * 1000)}"
+    
+    # Run through Stage 1 O(1) Anomaly Gate
+    needs_triage, reason = STREAMING_ENGINE.ingest_transaction(
+        src=req.source_entity,
+        dst=req.destination_entity,
+        amt=req.amount,
+        timestamp=ts,
+        tx_id=tx_id
+    )
+    
+    response = TransactionIngestResponse(
+        transaction_id=tx_id,
+        stage_1_flagged=needs_triage,
+        stage_1_reason=reason
+    )
+    
+    # If Stage 1 is breached, automatically trigger Stage 2 (GNN)
+    if needs_triage:
+        subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(req.source_entity, max_hops=2)
+        res = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=req.source_entity)
+        response.stage_2_risk_probability = res.get("risk_probability")
+        response.stage_2_confidence_tier = res.get("confidence_tier")
+        response.stage_2_terminals = res.get("terminals")
+        
+    return response
 
 
 @app.post("/api/policy/tune", response_model=PolicyTuneResponse, tags=["Threshold Policy"])
