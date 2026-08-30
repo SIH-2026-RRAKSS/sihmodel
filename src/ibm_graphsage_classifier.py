@@ -49,18 +49,36 @@ class IBMGraphSAGE(nn.Module):
         super().__init__()
         self.conv1 = SAGEConv(input_dim, hidden_dim)
         self.conv2 = SAGEConv(hidden_dim, hidden_dim)
-        self.fc = nn.Linear(hidden_dim, 1)
+        self.conv3 = SAGEConv(hidden_dim, hidden_dim)
+        self.fc = nn.Linear(hidden_dim * 2, 1)
         self.dropout = nn.Dropout(dropout)
         
-    def forward(self, x, edge_index, batch):
-        h = self.conv1(x, edge_index)
+    def forward(self, x_in, edge_index, batch):
+        h = self.conv1(x_in, edge_index)
         h = F.relu(h)
         h = self.dropout(h)
         h = self.conv2(h, edge_index)
         h = F.relu(h)
         h = self.dropout(h)
+        h = self.conv3(h, edge_index)
+        h = F.relu(h)
         
-        g = global_mean_pool(h, batch)
+        # --- ROOT-CENTRIC + GLOBAL POOLING ---
+        from torch_geometric.nn import global_add_pool, global_mean_pool
+        # Feature index 2 represents the seed account (root node)
+        root_weights = (x_in[:, 2] == 1.0).float().unsqueeze(-1)
+        root_embeddings = h * root_weights
+        
+        pooled_root = global_add_pool(root_embeddings, batch)
+        root_counts = global_add_pool(root_weights, batch)
+        
+        fallback_embedding = global_mean_pool(h, batch)
+        root_graph_embedding = torch.where(root_counts > 0, pooled_root / root_counts.clamp(min=1.0), fallback_embedding)
+        
+        global_graph_embedding = global_mean_pool(h, batch)
+        
+        g = torch.cat([root_graph_embedding, global_graph_embedding], dim=-1)
+        
         out = self.fc(g).squeeze(-1)
         return out, g
 
