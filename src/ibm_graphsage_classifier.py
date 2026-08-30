@@ -198,7 +198,7 @@ def train_and_eval_ibm_gnn(raw_dataset, df_summary, seed=42, epochs=30):
         all_targets = []
         
         with torch.no_grad():
-            for batch in test_loader:
+            for batch in val_loader:
                 out, _ = model(batch.x, batch.edge_index, batch.batch)
                 prob = torch.sigmoid(out).cpu().numpy()
                 pred = (prob >= 0.50).astype(int)

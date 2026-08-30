@@ -408,7 +408,7 @@ class DualHeadGraphSAGE(nn.Module):
 def train_graphsage_model(
     model: DualHeadGraphSAGE,
     train_loader: DataLoader,
-    test_loader: DataLoader,
+    val_loader: DataLoader,
     pos_weight_val: float,
     max_epochs: int = 150,
     patience: int = 20,
@@ -470,7 +470,7 @@ def train_graphsage_model(
         all_val_targets = []
 
         with torch.no_grad():
-            for batch in test_loader:
+            for batch in val_loader:
                 batch = batch.to(device)
                 logits_node, logits_graph, _ = model(batch.x, batch.edge_index, batch.batch)
                 loss_graph = criterion(logits_graph, batch.y.view(-1))
@@ -930,7 +930,7 @@ def main(graphs_dir: Path, summary_file: Path):
     model, df_history, best_epoch = train_graphsage_model(
         model=model,
         train_loader=train_loader,
-        test_loader=test_loader,
+        val_loader=val_loader,
         pos_weight_val=pos_weight,
         max_epochs=150,
         patience=20,
