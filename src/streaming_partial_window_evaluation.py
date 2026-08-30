@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import torch
+
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
@@ -31,6 +32,7 @@ from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+MODELS_DIR = ROOT_DIR / "models"
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
@@ -86,7 +88,7 @@ def evaluate_synthetic_degradation():
     pos_weight = float(n_neg / max(1, n_pos))
     
     model = DualHeadGraphSAGE(input_dim=13, hidden_dim=64, dropout=0.20)
-    model_path = Path("models/graphsage_model.pt")
+    model_path = MODELS_DIR / "graphsage_model.pt"
     if model_path.exists():
         model.load_state_dict(torch.load(model_path, weights_only=True))
     else:
@@ -272,7 +274,7 @@ def evaluate_ibm_degradation():
     pos_weight = float(n_neg / max(1, n_pos))
     
     model = IBMGraphSAGE(input_dim=7, hidden_dim=64, dropout=0.20)
-    ibm_model_path = Path("models/ibm_graphsage_model.pt")
+    ibm_model_path = MODELS_DIR / "ibm_graphsage_model.pt"
     if ibm_model_path.exists():
         model.load_state_dict(torch.load(ibm_model_path, weights_only=True))
     else:

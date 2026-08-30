@@ -1,27 +1,120 @@
 <?xml version='1.0' encoding='utf-8'?>
-<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
-  <key id="d9" for="node" attr.name="hop_distance" attr.type="long" />
-  <key id="d8" for="node" attr.name="is_terminal" attr.type="boolean" />
-  <key id="d7" for="node" attr.name="is_incident" attr.type="boolean" />
-  <key id="d6" for="node" attr.name="longitude" attr.type="double" />
-  <key id="d5" for="node" attr.name="latitude" attr.type="double" />
-  <key id="d4" for="node" attr.name="city" attr.type="string" />
-  <key id="d3" for="node" attr.name="state" attr.type="string" />
-  <key id="d2" for="node" attr.name="canonical_name" attr.type="string" />
-  <key id="d1" for="node" attr.name="node_type" attr.type="string" />
-  <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
-  <graph edgedefault="directed">
-    <node id="ENT_000627">
-      <data key="d0">ENT_000627</data>
-      <data key="d1">ACCOUNT</data>
-      <data key="d2">Siddharth Bhatia</data>
-      <data key="d3">Rajasthan</data>
-      <data key="d4">Jaipur</data>
-      <data key="d5">26.888111</data>
-      <data key="d6">75.763826</data>
-      <data key="d7">True</data>
-      <data key="d8">False</data>
-      <data key="d9">0</data>
-    </node>
-  </graph>
-</graphml>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d17" for="edge" attr.name="ring_id" attr.type="string"/>
+<key id="d16" for="edge" attr.name="is_suspicious" attr.type="long"/>
+<key id="d15" for="edge" attr.name="is_cash_out" attr.type="long"/>
+<key id="d14" for="edge" attr.name="channel" attr.type="string"/>
+<key id="d13" for="edge" attr.name="transaction_type" attr.type="string"/>
+<key id="d12" for="edge" attr.name="timestamp" attr.type="string"/>
+<key id="d11" for="edge" attr.name="amount" attr.type="double"/>
+<key id="d10" for="edge" attr.name="transaction_id" attr.type="string"/>
+<key id="d9" for="node" attr.name="hop_distance" attr.type="long"/>
+<key id="d8" for="node" attr.name="is_terminal" attr.type="boolean"/>
+<key id="d7" for="node" attr.name="is_incident" attr.type="boolean"/>
+<key id="d6" for="node" attr.name="longitude" attr.type="double"/>
+<key id="d5" for="node" attr.name="latitude" attr.type="double"/>
+<key id="d4" for="node" attr.name="city" attr.type="string"/>
+<key id="d3" for="node" attr.name="state" attr.type="string"/>
+<key id="d2" for="node" attr.name="canonical_name" attr.type="string"/>
+<key id="d1" for="node" attr.name="node_type" attr.type="string"/>
+<key id="d0" for="node" attr.name="entity_id" attr.type="string"/>
+<graph edgedefault="directed"><node id="ENT_000263">
+  <data key="d0">ENT_000263</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Pranav Patel</data>
+  <data key="d3">Kerala</data>
+  <data key="d4">Kochi</data>
+  <data key="d5">9.939489</data>
+  <data key="d6">76.286599</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">1</data>
+</node>
+<node id="ENT_000123">
+  <data key="d0">ENT_000123</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Navya Menon</data>
+  <data key="d3">Madhya Pradesh</data>
+  <data key="d4">Bhopal</data>
+  <data key="d5">23.227693</data>
+  <data key="d6">77.402647</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">2</data>
+</node>
+<node id="ENT_000566">
+  <data key="d0">ENT_000566</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Kunal Agarwal</data>
+  <data key="d3">Kerala</data>
+  <data key="d4">Kochi</data>
+  <data key="d5">9.900929</data>
+  <data key="d6">76.249179</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">3</data>
+</node>
+<node id="ENT_000689">
+  <data key="d0">ENT_000689</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Diya Verma</data>
+  <data key="d3">Delhi</data>
+  <data key="d4">Delhi</data>
+  <data key="d5">28.607626</data>
+  <data key="d6">77.228248</data>
+  <data key="d7">False</data>
+  <data key="d8">False</data>
+  <data key="d9">2</data>
+</node>
+<node id="ENT_000627">
+  <data key="d0">ENT_000627</data>
+  <data key="d1">ACCOUNT</data>
+  <data key="d2">Siddharth Bhatia</data>
+  <data key="d3">Rajasthan</data>
+  <data key="d4">Jaipur</data>
+  <data key="d5">26.888111</data>
+  <data key="d6">75.763826</data>
+  <data key="d7">True</data>
+  <data key="d8">False</data>
+  <data key="d9">0</data>
+</node>
+<edge source="ENT_000263" target="ENT_000627" id="T006963">
+  <data key="d10">T006963</data>
+  <data key="d11">500.15</data>
+  <data key="d12">2026-04-21 06:32:33</data>
+  <data key="d13">UPI</data>
+  <data key="d14">UPI App</data>
+  <data key="d15">0</data>
+  <data key="d16">0</data>
+  <data key="d17">NORMAL</data>
+</edge>
+<edge source="ENT_000263" target="ENT_000689" id="T007072">
+  <data key="d10">T007072</data>
+  <data key="d11">522.61</data>
+  <data key="d12">2026-04-22 22:30:35</data>
+  <data key="d13">UPI</data>
+  <data key="d14">UPI App</data>
+  <data key="d15">0</data>
+  <data key="d16">0</data>
+  <data key="d17">NORMAL</data>
+</edge>
+<edge source="ENT_000123" target="ENT_000263" id="T007008">
+  <data key="d10">T007008</data>
+  <data key="d11">109.46</data>
+  <data key="d12">2026-04-21 19:02:46</data>
+  <data key="d13">IMPS</data>
+  <data key="d14">Internet Banking</data>
+  <data key="d15">0</data>
+  <data key="d16">0</data>
+  <data key="d17">NORMAL</data>
+</edge>
+<edge source="ENT_000566" target="ENT_000689" id="T007156">
+  <data key="d10">T007156</data>
+  <data key="d11">34410.9</data>
+  <data key="d12">2026-04-24 17:37:11</data>
+  <data key="d13">IMPS</data>
+  <data key="d14">Mobile Banking</data>
+  <data key="d15">0</data>
+  <data key="d16">0</data>
+  <data key="d17">NORMAL</data>
+</edge>
+</graph></graphml>
