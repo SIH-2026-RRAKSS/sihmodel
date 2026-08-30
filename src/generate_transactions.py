@@ -705,8 +705,20 @@ def main():
 
     # Step 1: Generate Entity Geographic Locations & ATM Nodes
     print("Generating entity location mapping and ATM terminal nodes...")
-    df_locations, location_lookup = generate_entity_locations(entities, rng)
+        df_locations, location_lookup = generate_entity_locations(entities, rng)
     atm_lookup = generate_atm_nodes(rng)
+    
+    # ADD ATMs to df_locations so they are saved
+    atm_records = []
+    for atm_id, atm_data in atm_lookup.items():
+        atm_records.append({
+            "entity_id": atm_id,
+            "latitude": atm_data["latitude"],
+            "longitude": atm_data["longitude"]
+        })
+    df_atms = pd.DataFrame(atm_records)
+    df_locations = pd.concat([df_locations, df_atms], ignore_index=True)
+
 
     # Step 2: Generate Suspicious Mule Ring Transactions (~2,700 transactions)
     print(f"Generating synthetic suspicious activity across {NUM_SUSPICIOUS_RINGS} mule rings...")
