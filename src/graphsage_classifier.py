@@ -366,7 +366,7 @@ def normalize_node_features(
 
 class DualHeadGraphSAGE(nn.Module):
     """
-    2-Layer GraphSAGE Graph Neural Network for Graph-Level and Node-Level Classification.
+    3-Layer GraphSAGE Graph Neural Network for Graph-Level and Node-Level Classification.
     """
     def __init__(self, input_dim: int = 13, hidden_dim: int = 64, dropout: float = 0.2):
         super().__init__()
@@ -376,26 +376,47 @@ class DualHeadGraphSAGE(nn.Module):
 
         self.conv1 = SAGEConv(input_dim, hidden_dim)
         self.conv2 = SAGEConv(hidden_dim, hidden_dim)
+        self.conv3 = SAGEConv(hidden_dim, hidden_dim)
         self.dropout = nn.Dropout(dropout)
         
         self.node_classifier = nn.Linear(hidden_dim, 1)
-        self.graph_classifier = nn.Linear(hidden_dim, 1)
+        self.graph_classifier = nn.Linear(hidden_dim * 2, 1)
 
     def forward(
         self,
-        x: torch.Tensor,
+        x_in: torch.Tensor,
         edge_index: torch.Tensor,
         batch: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        x = self.conv1(x, edge_index)
+        x = self.conv1(x_in, edge_index)
         x = F.relu(x)
         x = self.dropout(x)
 
-        node_embeddings = self.conv2(x, edge_index)
+        x = self.conv2(x, edge_index)
+        x = F.relu(x)
+        x = self.dropout(x)
+        
+        node_embeddings = self.conv3(x, edge_index)
         node_embeddings = F.relu(node_embeddings)
 
         node_logits = self.node_classifier(node_embeddings)
-        graph_embedding = global_mean_pool(node_embeddings, batch)
+        
+        # --- ROOT-CENTRIC + GLOBAL POOLING ---
+        from torch_geometric.nn import global_add_pool, global_mean_pool
+        # Feature index 10 represents the incident account (root node)
+        root_weights = (x_in[:, 10] == 1.0).float().unsqueeze(-1)
+        root_embeddings = node_embeddings * root_weights
+        
+        pooled_root = global_add_pool(root_embeddings, batch)
+        root_counts = global_add_pool(root_weights, batch)
+        
+        fallback_embedding = global_mean_pool(node_embeddings, batch)
+        root_graph_embedding = torch.where(root_counts > 0, pooled_root / root_counts.clamp(min=1.0), fallback_embedding)
+        
+        global_graph_embedding = global_mean_pool(node_embeddings, batch)
+        
+        graph_embedding = torch.cat([root_graph_embedding, global_graph_embedding], dim=-1)
+        
         graph_logits = self.graph_classifier(graph_embedding)
         
         return node_logits.squeeze(-1), graph_logits.squeeze(-1), graph_embedding
