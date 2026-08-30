@@ -466,7 +466,7 @@ def get_entity_locations():
         ).filter(
             EntityMaster.latitude.isnot(None),
             EntityMaster.longitude.isnot(None)
-        ).limit(100).all()
+        ).limit(1000).all()
 
         data = []
         for em, comp, pred in results:
