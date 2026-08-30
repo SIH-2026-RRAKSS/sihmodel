@@ -1,4 +1,4 @@
 dataset,task_type,n_test,test_illicit_rate,xgboost_f1,graphsage_f1,f1_delta,graphsage_pr_auc,generalization_notes
-Dataset A (Synthetic Typologies),Incident Subgraph Classification,200,18.5% (37 / 200),89.20% +/- 3.10%,89.77% +/- 2.38%,-0.63% (p=0.0231),0.9515 +/- 0.0242,Clean synthetic subgraphs with structured multi-hop layering.
-Dataset B (IBM AML Bank Transfers),Ledger Flow Subgraph Classification,200,29.5% (59 / 200),73.93% +/- 3.37%,73.57% +/- 3.12%,-0.67% (p=0.1240),0.8587 +/- 0.0287,Real-world multi-bank payment format ledger transfers.
-Dataset C (Elliptic Bitcoin DAG),Inductive Node Classification (UTXO),16670,"6.50% (1,083 / 16,670)",N/A (DAG Node Benchmark),46.44% +/- 2.52%,,0.5118 +/- 0.0396,Real-world temporal split on Bitcoin transaction DAG.
+Dataset A (Synthetic Typologies),Incident Subgraph Classification,200,18.5% (37 / 200),89.48% +/- 4.66%,89.77% +/- 2.38%,+0.29% (p=0.0398),0.9515 +/- 0.0242,Clean synthetic subgraphs with structured multi-hop layering.
+Dataset B (IBM AML Bank Transfers),Ledger Flow Subgraph Classification,200,29.5% (59 / 200),73.93% +/- 3.37%,73.57% +/- 3.23%,-0.36% (p=0.5000),0.8775 +/- 0.0198,Real-world multi-bank payment format ledger transfers.
+Dataset C (Elliptic Bitcoin DAG),Inductive Node Classification (UTXO),16670,"6.50% (1,083 / 16,670)",N/A (DAG Node Benchmark),46.44% +/- 2.52%,N/A,0.5118 +/- 0.0396,Real-world temporal split on Bitcoin transaction DAG.
