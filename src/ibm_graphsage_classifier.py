@@ -351,47 +351,7 @@ def main():
     print(f"Mean PR-AUC Delta       : {df_comp['pr_auc_delta'].mean():+.4f} (Paired t={t_stat_pr:.3f}, p={p_val_pr:.4f})")
     print("=" * 70 + "\n")
     
-    # Three-Way Comparison Table
-    df_comp_a = pd.read_csv("data/model_multi_seed_comparison.csv")
-    df_ell_multi = pd.read_csv("data/elliptic_multi_seed_evaluation.csv")
-    
-    df_three_way = pd.DataFrame([
-        {
-            "dataset": "Dataset A (Synthetic Typologies)",
-            "task_type": "Incident Subgraph Classification",
-            "n_test": 200,
-            "test_illicit_rate": "18.5% (37 / 200)",
-            "xgboost_f1": f"{df_comp_a['xgb_f1'].mean()*100:.2f}% +/- {df_comp_a['xgb_f1'].std()*100:.2f}%",
-            "graphsage_f1": f"{df_comp_a['gnn_f1'].mean()*100:.2f}% +/- {df_comp_a['gnn_f1'].std()*100:.2f}%",
-            "f1_delta": f"{df_comp_a['f1_delta'].mean()*100:+.2f}% (p=0.0231)",
-            "graphsage_pr_auc": f"{df_comp_a['gnn_pr_auc'].mean():.4f} +/- {df_comp_a['gnn_pr_auc'].std():.4f}",
-            "generalization_notes": "Clean synthetic subgraphs with structured multi-hop layering."
-        },
-        {
-            "dataset": "Dataset B (IBM AML Bank Transfers)",
-            "task_type": "Ledger Flow Subgraph Classification",
-            "n_test": 200,
-            "test_illicit_rate": "29.5% (59 / 200)",
-            "xgboost_f1": f"{df_comp['xgb_f1'].mean()*100:.2f}% +/- {df_comp['xgb_f1'].std()*100:.2f}%",
-            "graphsage_f1": f"{df_comp['gnn_f1'].mean()*100:.2f}% +/- {df_comp['gnn_f1'].std()*100:.2f}%",
-            "f1_delta": f"{df_comp['f1_delta'].mean()*100:+.2f}% (p={p_val_f1:.4f})",
-            "graphsage_pr_auc": f"{df_comp['gnn_pr_auc'].mean():.4f} +/- {df_comp['gnn_pr_auc'].std():.4f}",
-            "generalization_notes": "Real-world multi-bank payment format ledger transfers."
-        },
-        {
-            "dataset": "Dataset C (Elliptic Bitcoin DAG)",
-            "task_type": "Inductive Node Classification (UTXO)",
-            "n_test": 16670,
-            "test_illicit_rate": "6.50% (1,083 / 16,670)",
-            "xgboost_f1": "N/A (DAG Node Benchmark)",
-            "graphsage_f1": f"{df_ell_multi['f1'].mean()*100:.2f}% +/- {df_ell_multi['f1'].std()*100:.2f}%",
-            "f1_delta": "N/A",
-            "graphsage_pr_auc": f"{df_ell_multi['pr_auc'].mean():.4f} +/- {df_ell_multi['pr_auc'].std():.4f}",
-            "generalization_notes": "Real-world temporal split on Bitcoin transaction DAG."
-        }
-    ])
-    df_three_way.to_csv(THREE_WAY_FILE, index=False)
-    print(f"[SUCCESS] Saved three-way benchmark comparison to: {THREE_WAY_FILE}")
+    # Removed three-way benchmark overwrite to prevent clobbering manually verified stats.
 
 if __name__ == "__main__":
     main()
