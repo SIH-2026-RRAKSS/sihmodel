@@ -177,22 +177,31 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
             if locations_file.exists():
                 df_loc = pd.read_csv(locations_file)
                 for r in df_loc.to_dict(orient="records"):
-                    loc_dict[r["entity_id"]] = (r.get("latitude"), r.get("longitude"))
+                    loc_dict[r["entity_id"]] = {
+                        "lat": r.get("latitude"),
+                        "lon": r.get("longitude"),
+                        "state": r.get("state", ""),
+                        "city": r.get("city", "")
+                    }
 
             entities_to_add = []
             for r in df_master.to_dict(orient="records"):
                 eid = r["entity_id"]
-                lat, lon = loc_dict.get(eid, (None, None))
+                loc_data = loc_dict.get(eid, {})
+                lat = loc_data.get("lat")
+                lon = loc_data.get("lon")
+                l_state = loc_data.get("state", "")
+                l_city = loc_data.get("city", "")
                 etype = "ATM" if str(eid).startswith("ATM_") else "ACCOUNT"
                 entities_to_add.append(EntityMaster(
                     entity_id=eid,
-                    canonical_account_number=str(r.get("canonical_account_number", "")),
-                    canonical_ifsc=str(r.get("canonical_ifsc", "")),
-                    canonical_holder_name=str(r.get("canonical_holder_name", "")),
+                    canonical_account_number=str(r.get("account_number", "")),
+                    canonical_ifsc=str(r.get("ifsc", "")),
+                    canonical_holder_name=str(r.get("canonical_name", "")),
                     bank_name=str(r.get("bank_name", "")),
                     branch_name=str(r.get("branch_name", "")),
-                    state=str(r.get("state", "")),
-                    district=str(r.get("district", "")),
+                    state=str(r.get("state", "")) or l_state,
+                    district=str(r.get("district", "")) or l_city,
                     latitude=float(lat) if pd.notna(lat) and lat is not None else None,
                     longitude=float(lon) if pd.notna(lon) and lon is not None else None,
                     entity_type=etype
