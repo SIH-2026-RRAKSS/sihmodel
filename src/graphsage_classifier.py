@@ -891,31 +891,35 @@ def main(graphs_dir: Path, summary_file: Path):
     # 2. Load all 1,000 GraphML subgraphs
     raw_dataset, df_summary = load_all_graphs_dataset(summary_file)
 
-    # 3. Train / Test Split Alignment
-    train_ids, test_ids = get_or_create_train_test_split(df_summary)
-    train_id_set = set(train_ids)
-    test_id_set = set(test_ids)
-
-    train_raw = [d for d in raw_dataset if d.complaint_id in train_id_set]
-    test_raw = [d for d in raw_dataset if d.complaint_id in test_id_set]
-
-    train_neg = sum(1 for d in train_raw if d.y.item() == 0.0)
-    train_pos = sum(1 for d in train_raw if d.y.item() == 1.0)
-    test_neg = sum(1 for d in test_raw if d.y.item() == 0.0)
-    test_pos = sum(1 for d in test_raw if d.y.item() == 1.0)
-
-    print("Dataset Split Summary:")
-    print(f"  Training graphs   : {len(train_raw)} (Normal: {train_neg}, Suspicious: {train_pos})")
-    print(f"  Testing graphs    : {len(test_raw)} (Normal: {test_neg}, Suspicious: {test_pos})")
-
-    # 4. Feature Normalization (computed strictly on train set)
-    train_dataset, test_dataset, mean_norm, std_norm = normalize_node_features(train_raw, test_raw)
+    # Proper 70/10/20 split
+    from sklearn.model_selection import train_test_split
+    train_val_ids, test_ids = train_test_split(
+        df_summary['complaint_id'].tolist(), test_size=0.20, random_state=RANDOM_SEED, stratify=df_summary['contains_suspicious_activity']
+    )
+    df_train_val = df_summary[df_summary['complaint_id'].isin(set(train_val_ids))]
+    train_ids, val_ids = train_test_split(
+        train_val_ids, test_size=0.125, random_state=RANDOM_SEED, stratify=df_train_val['contains_suspicious_activity']
+    )
+    
+    test_set = set(test_ids)
+    val_set = set(val_ids)
+    
+    train_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") not in test_set and getattr(d, "complaint_id", "") not in val_set]
+    val_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") in val_set]
+    test_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") in test_set]
+    
+    train_dataset, val_dataset, mean_norm, std_norm = normalize_node_features(train_raw, val_raw)
+    _, test_dataset, _, _ = normalize_node_features(train_raw, test_raw)
     all_dataset, _, _, _ = normalize_node_features(raw_dataset, raw_dataset)
 
     # 5. DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
-
+    
+    train_neg = sum(1 for d in train_raw if d.y.item() == 0.0)
+    train_pos = sum(1 for d in train_raw if d.y.item() == 1.0)
+    
     # 6. Initialize GraphSAGE Model
     input_dim = len(NODE_FEATURE_NAMES)
     hidden_dim = 64
@@ -924,6 +928,8 @@ def main(graphs_dir: Path, summary_file: Path):
     weight_decay = 1e-4
 
     model = DualHeadGraphSAGE(input_dim=input_dim, hidden_dim=hidden_dim, dropout=dropout)
+    train_neg = sum(1 for d in train_raw if d.y.item() == 0.0)
+    train_pos = sum(1 for d in train_raw if d.y.item() == 1.0)
     pos_weight = float(train_neg / train_pos) if train_pos > 0 else 1.0
 
     # 7. Train Model with Early Stopping
