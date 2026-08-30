@@ -259,18 +259,9 @@ def get_pipeline_stats():
             xgb_f1 = "N/A"
 
         return {
-            "status": "online",
-            "uptime": "99.99%",
-            "database_mode": "read_write",
-            "processed_items": total_complaints,
-            "high_risk_alerts_emitted": high_conf,
-            "pipeline_metrics": {
-                "GraphSAGE_Latency_ms": "42ms",
-                "Throughput_tps": "4500",
-                "Active_Window": "72h",
-                "Max_Hops": 3
-            },
-            "incident_breakdown": {
+            "total_incidents_monitored": total_complaints,
+            "predictions_calibrated": total_preds,
+            "tier_breakdown": {
                 "HIGH_CONFIDENCE": high_conf,
                 "MEDIUM_CONFIDENCE": med_conf,
                 "NORMAL": normal_conf
