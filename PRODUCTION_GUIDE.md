@@ -21,6 +21,8 @@ This guide documents how to safely make future changes to the SIH AML Predictive
   * *Citation:* The entity-ID vs search-query validator split (`InputValidator.ts`). A generic validator failed because valid search queries permit different character sets than strict backend Entity IDs. One generic validator does not fit all.
 * **Never bulk-edit TSX/Python files with a single regex script without an immediate build/execution check.**
   * *Citation:* Two separate incidents: Regex patching broke the ML training loops (`val_loader` undefined scope error) and caused Vite build crashes (missing template literal backticks `` ` `` stripped by the shell in `api.ts`).
+* **Any script that writes to a file also read by `api.py` or the dashboard needs that dependency documented, or the write should be removed/redirected.**
+  * *Citation:* The benchmark CSV clobbering bug. The master presentation file `data/three_way_benchmark_comparison.csv` was silently overwritten with stale numbers by a side-effect output block at the end of `ibm_graphsage_classifier.py` during a routine training run, causing the API to serve regressed benchmark metrics. Files must not be treated as a source of truth by one part of the system while another treats them as disposable intermediate output.
 * **Never report a fix as "done" without running it and pasting raw output.**
   * *Citation:* Describing what code "should" do is not verification. This audit required live curls, raw build logs, and confusion matrices to expose discrepancies between the code's intent and reality.
 
