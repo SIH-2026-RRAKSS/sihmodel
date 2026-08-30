@@ -31,7 +31,9 @@ if str(ROOT_DIR) not in sys.path:
 
 from src.ibm_xgboost_baseline import train_and_eval_ibm_xgboost
 
-DATA_DIR = Path("data")
+ROOT_DIR = Path(__file__).parent.parent
+DATA_DIR = ROOT_DIR / "data"
+MODELS_DIR = ROOT_DIR / "models"
 IBM_GRAPHS_DIR = DATA_DIR / "ibm_graphs"
 IBM_SUMMARY_FILE = DATA_DIR / "ibm_graph_summary.csv"
 CACHED_PT_FILE = DATA_DIR / "ibm_pyg_dataset.pt"
@@ -217,7 +219,7 @@ def train_and_eval_ibm_gnn(raw_dataset, df_summary, seed=42, epochs=30):
             # SAVE CHECKPOINT AT BEST EPOCH
             import os
             os.makedirs("models/ibm_seed_checkpoints", exist_ok=True)
-            torch.save(model.state_dict(), f"models/ibm_seed_checkpoints/seed{seed}.pt")
+            torch.save(model.state_dict(), MODELS_DIR / f"ibm_seed_checkpoints/seed{seed}.pt")
             
             acc = accuracy_score(y_true, y_pred)
             prec = precision_score(y_true, y_pred, zero_division=0)

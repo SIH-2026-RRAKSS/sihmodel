@@ -157,8 +157,8 @@ class GraphStructureResponse(BaseModel):
 
 
 class LivePredictRequest(BaseModel):
-    seed_entity_id: str
-    max_hops: Optional[int] = 3
+    seed_entity_id: str = Field(..., min_length=1, max_length=32, pattern="^[A-Za-z0-9_-]+$")
+    max_hops: Optional[int] = Field(3, ge=1, le=10)
 
 
 class LivePredictResponse(BaseModel):
@@ -172,9 +172,9 @@ class LivePredictResponse(BaseModel):
 
 
 class TransactionIngestRequest(BaseModel):
-    source_entity: str
-    destination_entity: str
-    amount: float
+    source_entity: str = Field(..., min_length=1, max_length=32, pattern="^[A-Za-z0-9_-]+$")
+    destination_entity: str = Field(..., min_length=1, max_length=32, pattern="^[A-Za-z0-9_-]+$")
+    amount: float = Field(..., ge=0)
     timestamp: Optional[float] = None
     transaction_id: Optional[str] = None
 
@@ -449,6 +449,42 @@ def get_incident_graph(incident_id: str):
         nodes=nodes_out,
         edges=edges_out
     )
+
+
+
+@app.get("/api/entities/locations", tags=["Geo Mapping"])
+def get_entity_locations():
+    """Returns coordinates for high-risk entities to plot on the Geospatial Map."""
+    session = get_db_session()
+    try:
+        results = session.query(
+            EntityMaster, Complaint, IncidentPrediction
+        ).outerjoin(
+            Complaint, EntityMaster.canonical_account_number == Complaint.reported_account_number
+        ).outerjoin(
+            IncidentPrediction, Complaint.complaint_id == IncidentPrediction.complaint_id
+        ).filter(
+            EntityMaster.latitude.isnot(None),
+            EntityMaster.longitude.isnot(None)
+        ).limit(100).all()
+
+        data = []
+        for em, comp, pred in results:
+            data.append({
+                "entity_id": em.entity_id,
+                "entity_type": "ATM_TERMINAL" if str(em.entity_id).startswith("ATM") else "MULE_ACCOUNT",
+                "holder_name": em.canonical_holder_name or "Unknown",
+                "city": comp.district if comp and hasattr(comp, "district") else "Unknown",
+                "state": em.state or (comp.state if comp and hasattr(comp, "state") else "Unknown"),
+                "latitude": em.latitude,
+                "longitude": em.longitude,
+                "risk_probability": pred.graphsage_risk_probability if pred else 0.5,
+                "confidence_tier": pred.confidence_tier if pred else "NORMAL",
+                "flagged_amount": comp.reported_amount if comp and hasattr(comp, "reported_amount") else 0.0
+            })
+        return data
+    finally:
+        session.close()
 
 
 @app.post("/api/predict/subgraph", response_model=LivePredictResponse, tags=["Live Inference"])
