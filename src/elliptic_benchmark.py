@@ -57,7 +57,7 @@ class EllipticGraphSAGE(nn.Module):
         self.classifier = nn.Linear(out_channels, 1)
         self.dropout = nn.Dropout(0.3)
 
-    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         h = self.conv1(x, edge_index)
         h = F.relu(h)
         h = self.dropout(h)
@@ -65,7 +65,7 @@ class EllipticGraphSAGE(nn.Module):
         h = F.relu(h)
         h = self.dropout(h)
         logits = self.classifier(h).squeeze(-1)
-        return logits
+        return logits, h
 
 
 def wilson_score_interval(successes: int, total: int, confidence: float = 0.95) -> Tuple[float, float]:
@@ -106,7 +106,7 @@ def train_and_eval_elliptic(seed: int = 42, epochs: int = 60) -> Dict[str, Any]:
     model.train()
     for epoch in range(1, epochs + 1):
         optimizer.zero_grad()
-        out = model(x, edge_index)
+        out, _ = model(x, edge_index)
         loss = criterion(out[train_mask], y[train_mask])
         loss.backward()
         optimizer.step()
@@ -114,7 +114,7 @@ def train_and_eval_elliptic(seed: int = 42, epochs: int = 60) -> Dict[str, Any]:
     # Evaluation on test split (T > 34)
     model.eval()
     with torch.no_grad():
-        logits = model(x, edge_index)
+        logits, _ = model(x, edge_index)
         probs = torch.sigmoid(logits)
         
         y_test_true = y[test_mask].cpu().numpy().astype(int)
