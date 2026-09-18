@@ -39,6 +39,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+from sqlalchemy import text
 from src.database import get_db_session, Complaint, EntityMaster, TransactionRecord, IncidentPrediction, AuditLog
 from src.streaming_engine import TemporalTransactionGraph
 
@@ -463,33 +464,76 @@ def get_incident_graph(incident_id: str):
 
 @app.get("/api/entities/locations", tags=["Geo Mapping"])
 def get_entity_locations():
-    """Returns coordinates for high-risk entities to plot on the Geospatial Map."""
+    """Returns coordinates for entities (accounts and ATM terminals) to plot on the Geospatial Map."""
     session = get_db_session()
     try:
-        results = session.query(
-            EntityMaster, Complaint, IncidentPrediction
-        ).outerjoin(
-            Complaint, EntityMaster.canonical_account_number == Complaint.reported_account_number
-        ).outerjoin(
-            IncidentPrediction, Complaint.complaint_id == IncidentPrediction.complaint_id
-        ).filter(
-            EntityMaster.latitude.isnot(None),
-            EntityMaster.longitude.isnot(None)
-        ).limit(1000).all()
+        query = text("""
+            SELECT 
+                em.entity_id,
+                'MULE_ACCOUNT' as entity_type,
+                em.canonical_holder_name as holder_name,
+                em.district as city,
+                em.state as state,
+                em.latitude,
+                em.longitude,
+                COALESCE(MAX(p.graphsage_risk_probability), 0.0) as risk_probability,
+                CASE 
+                    WHEN SUM(CASE WHEN p.confidence_tier = 'HIGH_CONFIDENCE' THEN 1 ELSE 0 END) > 0 THEN 'HIGH_CONFIDENCE'
+                    WHEN SUM(CASE WHEN p.confidence_tier = 'MEDIUM_CONFIDENCE' THEN 1 ELSE 0 END) > 0 THEN 'MEDIUM_CONFIDENCE'
+                    ELSE 'NORMAL'
+                END as confidence_tier,
+                COALESCE(SUM(c.reported_amount), 0.0) as flagged_amount
+            FROM entity_master em
+            LEFT JOIN complaints c ON em.entity_id = c.predicted_entity_id
+            LEFT JOIN incident_predictions p ON c.complaint_id = p.complaint_id
+            WHERE em.entity_type = 'ACCOUNT' AND em.latitude IS NOT NULL AND em.longitude IS NOT NULL
+            GROUP BY em.entity_id
 
+            UNION ALL
+
+            SELECT 
+                em.entity_id,
+                'ATM_TERMINAL' as entity_type,
+                em.canonical_holder_name as holder_name,
+                em.district as city,
+                em.state as state,
+                em.latitude,
+                em.longitude,
+                COALESCE(MAX(p.top_terminal_score), 0.0) as risk_probability,
+                CASE 
+                    WHEN SUM(CASE WHEN p.confidence_tier = 'HIGH_CONFIDENCE' THEN 1 ELSE 0 END) > 0 THEN 'HIGH_CONFIDENCE'
+                    WHEN SUM(CASE WHEN p.confidence_tier = 'MEDIUM_CONFIDENCE' THEN 1 ELSE 0 END) > 0 THEN 'MEDIUM_CONFIDENCE'
+                    WHEN MAX(p.top_terminal_score) >= 0.70 THEN 'HIGH_CONFIDENCE'
+                    WHEN MAX(p.top_terminal_score) >= 0.35 THEN 'MEDIUM_CONFIDENCE'
+                    ELSE 'NORMAL'
+                END as confidence_tier,
+                COALESCE(tx_sum.total_cash_out, 0.0) as flagged_amount
+            FROM entity_master em
+            LEFT JOIN incident_predictions p ON em.entity_id = p.top_terminal_id
+            LEFT JOIN (
+                SELECT receiver_entity_id, SUM(amount) as total_cash_out
+                FROM transactions
+                WHERE is_cash_out = 1
+                GROUP BY receiver_entity_id
+            ) tx_sum ON em.entity_id = tx_sum.receiver_entity_id
+            WHERE em.entity_type = 'ATM' AND em.latitude IS NOT NULL AND em.longitude IS NOT NULL
+            GROUP BY em.entity_id
+        """)
+
+        rows = session.execute(query).fetchall()
         data = []
-        for em, comp, pred in results:
+        for r in rows:
             data.append({
-                "entity_id": em.entity_id,
-                "entity_type": "ATM_TERMINAL" if str(em.entity_id).startswith("ATM") else "MULE_ACCOUNT",
-                "holder_name": em.canonical_holder_name or "Unknown",
-                "city": em.district or (comp.district if comp and hasattr(comp, "district") else "Unknown"),
-                "state": em.state or (comp.state if comp and hasattr(comp, "state") else "Unknown"),
-                "latitude": em.latitude,
-                "longitude": em.longitude,
-                "risk_probability": pred.graphsage_risk_probability if pred else 0.5,
-                "confidence_tier": pred.confidence_tier if pred else "NORMAL",
-                "flagged_amount": comp.reported_amount if comp and hasattr(comp, "reported_amount") else 0.0
+                "entity_id": str(r[0]),
+                "entity_type": str(r[1]),
+                "holder_name": str(r[2]) if r[2] else ("ATM Terminal " + str(r[0]).replace("ATM_", "") if str(r[1]) == "ATM_TERMINAL" else "Unknown Account"),
+                "city": str(r[3]) if r[3] else "Unknown",
+                "state": str(r[4]) if r[4] else "Unknown",
+                "latitude": float(r[5]),
+                "longitude": float(r[6]),
+                "risk_probability": round(float(r[7]), 4),
+                "confidence_tier": str(r[8]),
+                "flagged_amount": round(float(r[9]), 2)
             })
         return data
     finally:
