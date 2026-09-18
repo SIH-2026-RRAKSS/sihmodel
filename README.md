@@ -37,12 +37,11 @@ A standardized, multi-seed comparison across all three evaluated datasets demons
 | :--- | :--- | :--- | :--- |
 | **Evaluation Task** | Inductive Subgraph Binary Classification | Inductive Subgraph Binary Classification | Inductive Node Classification (Temporal Split) |
 | **Test Sample Size ($N_{\text{test}}$)** | $N = 200$ subgraphs ($37$ Positives / $18.5\%$) | $N = 200$ subgraphs ($59$ Positives / $29.5\%$) | $N = 16,670$ nodes ($1,083$ Illicit / $6.50\%$) |
-| **XGBoost Baseline F1 (Mean $\pm$ Std)** | $86.98\% \pm 2.28\%$ | $73.93\% \pm 3.37\%$ | N/A (DAG Node Benchmark) |
-| **GraphSAGE GNN F1 (Mean $\pm$ Std)** | **$90.66\% \pm 1.58\%$** | **$77.70\% \pm 2.57\%$** | **$46.44\% \pm 2.52\%$** ($49.45\%$ single run) |
-| **F1 Delta ($\Delta$) & Significance** | **$+3.69\%$** ($t=3.583$, **$p = 0.0231 < 0.05$**) | **$+3.76\%$** ($t=6.323$, **$p = 0.0032 < 0.01$**) | N/A |
-| **GraphSAGE Precision** | $89.66\% \pm 3.54\%$ | $72.33\% \pm 2.11\%$ | $35.75\% \pm 3.58\%$ ($40.18\%$ single run) |
-| **GraphSAGE Recall** | $91.89\% \pm 3.82\%$ | $84.41\% \pm 7.80\%$ | $66.85\% \pm 2.40\%$ ($64.27\%$ single run) |
-| **GraphSAGE PR-AUC** | $0.9680 \pm 0.0117$ | $0.8775 \pm 0.0198$ | $0.5118 \pm 0.0396$ ($0.5194$ single run) |
+| **XGBoost Baseline F1 (Mean $\pm$ Std)** | $87.16\% \pm 2.68\%$ | $67.53\% \pm 3.98\%$ | **$76.88\% \pm 1.20\%$** |
+| **GraphSAGE GNN F1 (Mean $\pm$ Std)** | **$90.71\% \pm 2.02\%$** | **$77.81\% \pm 3.07\%$** | $44.00\% \pm 1.84\%$ |
+| **Final Audited Verdict** | **GraphSAGE Wins** (Topology is signal) | **GraphSAGE Wins** (Topology is signal) | **XGBoost Wins** (Message passing dilutes sharp tabular features) |
+
+> 📊 **Note on Architecture & Baselines:** See [FINAL_REPORT.md](FINAL_REPORT.md) in the repository root for the comprehensive technical audit, explaining why ensembling and architectural capacity ablations were formally deprecated in favor of these strictly validated standalone baselines.
 
 ---
 

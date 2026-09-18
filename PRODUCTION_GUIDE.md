@@ -25,6 +25,8 @@ This guide documents how to safely make future changes to the SIH AML Predictive
   * *Citation:* The benchmark CSV clobbering bug. The master presentation file `data/three_way_benchmark_comparison.csv` was silently overwritten with stale numbers by a side-effect output block at the end of `ibm_graphsage_classifier.py` during a routine training run, causing the API to serve regressed benchmark metrics. Files must not be treated as a source of truth by one part of the system while another treats them as disposable intermediate output.
 * **Never report a fix as "done" without running it and pasting raw output.**
   * *Citation:* Describing what code "should" do is not verification. This audit required live curls, raw build logs, and confusion matrices to expose discrepancies between the code's intent and reality.
+* **Never push code to origin or deployment branches without explicitly presenting the changes and confirming the outcomes with the user first.**
+  * *Citation:* A previous automated push merged architectural fixes directly into the live `Deployment` pipeline immediately after a training run finished, without allowing the user to review the final benchmark outcomes, F1 jumps, or test the live behavior. This bypasses the mandatory user-approval checkpoint.
 
 ---
 
