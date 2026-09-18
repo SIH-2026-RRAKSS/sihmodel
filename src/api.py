@@ -20,6 +20,7 @@ Endpoints:
 
 import os
 import sys
+import csv
 import json
 import time
 from pathlib import Path
@@ -72,24 +73,132 @@ STREAMING_ENGINE = TemporalTransactionGraph(window_hours=72, max_hops=3)
 # Helper Cache for Explainability Data
 # ==============================================================================
 
+_EXPLAINABILITY_CACHE: Optional[Dict[str, Dict[str, Any]]] = None
+
 def get_explainability_cache() -> Dict[str, Dict[str, Any]]:
-    """Loads explainability examples and indexes by complaint_id."""
+    """Loads explainability records and indexes by complaint_id with in-memory caching."""
+    global _EXPLAINABILITY_CACHE
+    if _EXPLAINABILITY_CACHE is not None:
+        return _EXPLAINABILITY_CACHE
+
+    cache: Dict[str, Dict[str, Any]] = {}
+
+    # 1. Primary Source: explanations.csv containing all 1,000 incident cases
+    exp_csv = DATA_DIR / "explanations.csv"
+    if exp_csv.exists():
+        try:
+            with open(exp_csv, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cid = (row.get("complaint_id") or "").strip()
+                    if not cid:
+                        continue
+
+                    reasons_raw = row.get("explanation_reasons") or ""
+                    bullets = [r.strip() for r in reasons_raw.split(" ; ") if r.strip()]
+
+                    term_id = (row.get("top_terminal") or "").strip()
+                    term_city = (row.get("top_terminal_city") or "").strip()
+                    try:
+                        term_score = float(row.get("terminal_score", 0.0))
+                    except (ValueError, TypeError):
+                        term_score = 0.0
+
+                    term_summary = (row.get("terminal_evidence_summary") or "").strip()
+
+                    term_details = None
+                    if term_id and term_id != "NONE":
+                        term_details = {
+                            "terminal_id": term_id,
+                            "atm_id": term_id,
+                            "city": term_city if term_city != "NONE" else "",
+                            "terminal_score": term_score,
+                            "rationale": term_summary if term_summary != "NONE" else f"Downstream cash exit identified at {term_id}."
+                        }
+
+                    try:
+                        prob = float(row.get("graphsage_probability", 0.0))
+                    except (ValueError, TypeError):
+                        prob = 0.0
+
+                    try:
+                        risk_class = int(row.get("predicted_risk_class", 0))
+                    except (ValueError, TypeError):
+                        risk_class = 0
+
+                    inv_summary = (row.get("investigator_summary") or "").strip()
+
+                    cache[cid] = {
+                        "complaint_id": cid,
+                        "incident_entity_id": (row.get("incident_entity_id") or "").strip(),
+                        "graphsage_probability": prob,
+                        "predicted_risk_class": risk_class,
+                        "confidence_tier": (row.get("confidence_tier") or "NORMAL").strip(),
+                        "reasons": bullets,
+                        "investigative_evidence_bullets": bullets,
+                        "investigator_summary": inv_summary,
+                        "executive_summary": inv_summary,
+                        "terminal_prediction": term_details,
+                        "top_terminal_details": term_details or {}
+                    }
+        except Exception as e:
+            print(f"[WARN] Failed loading explanations.csv: {e}")
+
+    # 2. Enrich/Overlay with explainability_examples.json if present
     exp_file = DATA_DIR / "explainability_examples.json"
-    cache = {}
     if exp_file.exists():
         try:
             with open(exp_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if isinstance(data, list):
-                    for item in data:
-                        cid = item.get("complaint_id")
-                        if cid:
-                            cache[cid] = item
-                elif isinstance(data, dict):
-                    cache = data
-        except Exception:
-            pass
-    return cache
+                items = data if isinstance(data, list) else data.values() if isinstance(data, dict) else []
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    cid = item.get("complaint_id")
+                    if not cid:
+                        continue
+                    if cid in cache:
+                        # Overlay richer graph metrics & reference similarity
+                        if "graph_metrics" in item:
+                            cache[cid]["graph_metrics"] = item["graph_metrics"]
+                        if "nearest_reference_similarity" in item:
+                            cache[cid]["nearest_reference_similarity"] = item["nearest_reference_similarity"]
+                        # Standardize terminal_prediction if present
+                        if item.get("terminal_prediction") and not cache[cid].get("terminal_prediction"):
+                            tp = item["terminal_prediction"]
+                            term_id = tp.get("atm_id") or tp.get("terminal_id")
+                            if term_id and term_id != "NONE":
+                                std_term = {
+                                    "terminal_id": term_id,
+                                    "atm_id": term_id,
+                                    "city": tp.get("city", ""),
+                                    "terminal_score": tp.get("terminal_score", 0.0),
+                                    "rationale": f"Downstream cash exit identified at {term_id} ({tp.get('city', '')})."
+                                }
+                                cache[cid]["terminal_prediction"] = std_term
+                                cache[cid]["top_terminal_details"] = std_term
+                    else:
+                        reasons = item.get("reasons", [])
+                        cache[cid] = {
+                            "complaint_id": cid,
+                            "incident_entity_id": item.get("incident_entity_id", ""),
+                            "graphsage_probability": item.get("graphsage_probability", 0.0),
+                            "predicted_risk_class": item.get("predicted_risk_class", 0),
+                            "confidence_tier": item.get("confidence_tier", "NORMAL"),
+                            "graph_metrics": item.get("graph_metrics"),
+                            "nearest_reference_similarity": item.get("nearest_reference_similarity"),
+                            "reasons": reasons,
+                            "investigative_evidence_bullets": reasons,
+                            "investigator_summary": item.get("investigator_summary", ""),
+                            "executive_summary": item.get("investigator_summary", ""),
+                            "terminal_prediction": item.get("terminal_prediction"),
+                            "top_terminal_details": item.get("terminal_prediction") or {}
+                        }
+        except Exception as e:
+            print(f"[WARN] Failed loading explainability_examples.json: {e}")
+
+    _EXPLAINABILITY_CACHE = cache
+    return _EXPLAINABILITY_CACHE
 
 
 # ==============================================================================
@@ -348,7 +457,16 @@ def get_incident_detail(incident_id: str):
         exp_data = exp_cache.get(incident_id, {})
         bullets = exp_data.get("reasons") or exp_data.get("investigative_evidence_bullets", [])
         summary = exp_data.get("investigator_summary") or exp_data.get("executive_summary") or (pred.executive_summary if pred else "")
-        term_details = exp_data.get("terminal_prediction") or exp_data.get("top_terminal_details", {})
+        
+        term_details = exp_data.get("terminal_prediction")
+        if not term_details and pred and pred.top_terminal_id and pred.top_terminal_id != "NONE":
+            term_details = {
+                "terminal_id": pred.top_terminal_id,
+                "atm_id": pred.top_terminal_id,
+                "city": pred.top_terminal_city or "",
+                "terminal_score": pred.top_terminal_score or 0.0,
+                "rationale": f"Downstream cash exit identified at {pred.top_terminal_id} ({pred.top_terminal_city or 'Unknown'})."
+            }
 
         return {
             "complaint": {

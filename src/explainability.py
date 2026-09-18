@@ -572,7 +572,7 @@ def main():
     print(f"[SUCCESS] Saved full incident explanations to: {EXPLANATIONS_FILE}")
 
     with open(EXPLAINABILITY_JSON_FILE, "w") as f:
-        json.dump(json_records[:50], f, indent=2)  # Save structured sample for API/UI
+        json.dump(json_records, f, indent=2)  # Save structured JSON for all 1,000 incidents
     print(f"[SUCCESS] Saved API-ready JSON representations to: {EXPLAINABILITY_JSON_FILE}")
 
     # 4. Generate Summary & Examples

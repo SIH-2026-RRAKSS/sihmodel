@@ -129,6 +129,14 @@ def test_api_incident_detail():
     assert data["complaint"]["complaint_id"] == "C000003"
     assert "resolved_canonical_entity" in data
     assert "model_prediction" in data
+    assert len(data.get("investigative_evidence_bullets", [])) >= 3
+
+    # Test case beyond 50 (Issue #04 regression test)
+    res_beyond = client.get("/api/incidents/C000100")
+    assert res_beyond.status_code == 200
+    data_beyond = res_beyond.json()
+    assert len(data_beyond.get("investigative_evidence_bullets", [])) >= 3
+    assert len(data_beyond["model_prediction"].get("executive_summary", "")) > 0
 
 
 def test_api_incident_graph():
