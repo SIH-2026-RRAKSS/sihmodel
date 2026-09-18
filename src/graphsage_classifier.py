@@ -195,7 +195,8 @@ def build_pyg_data_from_graphml(
     edge_is_illicit = []
     for u, v, edata in G.edges(data=True):
         edge_list.append([node_to_idx[u], node_to_idx[v]])
-        edge_is_illicit.append(1.0 if str(edata.get('d16', '0')) == '1' else 0.0)
+        is_illicit = 1.0 if (str(edata.get('is_suspicious', '0')) == '1' or str(edata.get('d16', '0')) == '1') else 0.0
+        edge_is_illicit.append(is_illicit)
 
     if edge_list:
         edge_index = torch.tensor(edge_list, dtype=torch.long).t().contiguous()

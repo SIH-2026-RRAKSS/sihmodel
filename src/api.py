@@ -248,6 +248,7 @@ class GraphNode(BaseModel):
     total_incoming_amount: float = 0.0
     total_outgoing_amount: float = 0.0
     color: str
+    node_mule_score: Optional[float] = 0.0
 
 
 class GraphEdge(BaseModel):
@@ -491,6 +492,7 @@ def get_incident_detail(incident_id: str):
                 "top_terminal_id": pred.top_terminal_id if pred else None,
                 "top_terminal_score": pred.top_terminal_score if pred else None,
                 "top_terminal_city": pred.top_terminal_city if pred else None,
+                "node_mule_probability_head2": pred.node_mule_probability_head2 if pred else None,
                 "executive_summary": summary
             },
             "investigative_evidence_bullets": bullets,
@@ -524,6 +526,19 @@ def get_incident_graph(incident_id: str):
     nodes_out = []
     edges_out = []
 
+    # Fetch node-level mule predictions if available in DB
+    node_mule_scores: Dict[str, float] = {}
+    session = get_db_session()
+    try:
+        pred_rec = session.query(IncidentPrediction).filter(IncidentPrediction.complaint_id == incident_id).first()
+        if pred_rec and pred_rec.node_mule_probabilities:
+            try:
+                node_mule_scores = json.loads(pred_rec.node_mule_probabilities)
+            except Exception:
+                node_mule_scores = {}
+    finally:
+        session.close()
+
     for node in G.nodes():
         nd = G.nodes[node]
         is_inc = bool(nd.get("is_incident", False) or node == incident_id)
@@ -544,9 +559,10 @@ def get_incident_graph(incident_id: str):
         out_edges = list(G.out_edges(node, data=True))
         in_amt = sum(float(e[2].get("amount", 0.0)) for e in in_edges)
         out_amt = sum(float(e[2].get("amount", 0.0)) for e in out_edges)
+        node_str = str(node)
 
         nodes_out.append(GraphNode(
-            id=str(node),
+            id=node_str,
             label=f"{node} ({ntype})",
             node_type=ntype,
             is_incident=is_inc,
@@ -557,7 +573,8 @@ def get_incident_graph(incident_id: str):
             out_degree=len(out_edges),
             total_incoming_amount=round(in_amt, 2),
             total_outgoing_amount=round(out_amt, 2),
-            color=color
+            color=color,
+            node_mule_score=float(node_mule_scores.get(node_str, 0.0))
         ))
 
     for u, v, data in G.edges(data=True):

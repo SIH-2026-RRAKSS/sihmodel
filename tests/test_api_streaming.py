@@ -137,6 +137,9 @@ def test_api_incident_detail():
     data_beyond = res_beyond.json()
     assert len(data_beyond.get("investigative_evidence_bullets", [])) >= 3
     assert len(data_beyond["model_prediction"].get("executive_summary", "")) > 0
+    # Issue #14: Head 2 Node Mule Probability
+    assert "node_mule_probability_head2" in data_beyond["model_prediction"]
+    assert data_beyond["model_prediction"]["node_mule_probability_head2"] is not None
 
 
 def test_api_incident_graph():
@@ -148,6 +151,9 @@ def test_api_incident_graph():
     assert len(data["nodes"]) > 0
     assert "id" in data["nodes"][0]
     assert "color" in data["nodes"][0]
+    # Issue #14: Head 2 Node Mule Score attached to graph nodes
+    assert "node_mule_score" in data["nodes"][0]
+    assert data["nodes"][0]["node_mule_score"] >= 0.0
 
 
 def test_api_live_prediction():

@@ -14,6 +14,7 @@ Tables:
 
 import os
 import sys
+import json
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
@@ -107,6 +108,8 @@ class IncidentPrediction(Base):
     num_nodes = Column(Integer)
     num_edges = Column(Integer)
     executive_summary = Column(Text, nullable=True)
+    node_mule_probability_head2 = Column(Float, nullable=True)  # Micro Node Risk (Head 2)
+    node_mule_probabilities = Column(Text, nullable=True)       # JSON mapping of node_id -> Head 2 score
     evaluated_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -318,6 +321,15 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                 for r in df_exp.to_dict(orient="records"):
                     exp_dict[r["complaint_id"]] = r.get("investigator_summary", "")
 
+            mule_file = data_dir / "node_mule_predictions.json"
+            mule_dict = {}
+            if mule_file.exists():
+                try:
+                    with open(mule_file, "r", encoding="utf-8") as f:
+                        mule_dict = json.load(f)
+                except Exception:
+                    mule_dict = {}
+
             preds_to_add = []
             for r in df_tiers.to_dict(orient="records"):
                 cid = r["complaint_id"]
@@ -329,6 +341,10 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                 n_nodes, n_edges = graph_dict.get(cid, (1, 0))
                 summary = exp_dict.get(cid, "")
 
+                mule_info = mule_dict.get(cid, {})
+                head2_score = float(mule_info.get("node_mule_probability_head2", 0.0))
+                node_scores_json = json.dumps(mule_info.get("node_scores", {}))
+
                 preds_to_add.append(IncidentPrediction(
                     incident_id=cid,
                     complaint_id=cid,
@@ -339,7 +355,9 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                     top_terminal_city=t_city if t_city != "NONE" else None,
                     num_nodes=n_nodes,
                     num_edges=n_edges,
-                    executive_summary=summary
+                    executive_summary=summary,
+                    node_mule_probability_head2=head2_score,
+                    node_mule_probabilities=node_scores_json
                 ))
             session.bulk_save_objects(preds_to_add)
             session.commit()
