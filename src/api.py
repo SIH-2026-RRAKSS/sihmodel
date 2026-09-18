@@ -40,7 +40,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from sqlalchemy import text
+from sqlalchemy import text, func
 from src.database import get_db_session, Complaint, EntityMaster, TransactionRecord, IncidentPrediction, AuditLog
 from src.streaming_engine import TemporalTransactionGraph
 
@@ -249,6 +249,8 @@ class GraphNode(BaseModel):
     total_outgoing_amount: float = 0.0
     color: str
     node_mule_score: Optional[float] = 0.0
+    is_dormant: Optional[bool] = False
+    isolation_reason: Optional[str] = None
 
 
 class GraphEdge(BaseModel):
@@ -264,6 +266,11 @@ class GraphStructureResponse(BaseModel):
     incident_id: str
     num_nodes: int
     num_edges: int
+    is_dormant: bool = False
+    dormant_reason: Optional[str] = None
+    lifetime_tx_count: int = 0
+    nearest_activity: Optional[str] = None
+    is_historical_expanded: bool = False
     nodes: List[GraphNode]
     edges: List[GraphEdge]
 
@@ -503,9 +510,121 @@ def get_incident_detail(incident_id: str):
 
 
 @app.get("/api/incidents/{incident_id}/graph", response_model=GraphStructureResponse, tags=["Graph Structure"])
-def get_incident_graph(incident_id: str):
+def get_incident_graph(incident_id: str, expand_historical: bool = Query(False, description="Expand to full lifetime transactions if surveillance window is dormant")):
     """Returns interactive graph nodes and edges for dynamic network rendering."""
-    # Attempt to load GraphML from data/graphs/
+    # Fetch node-level mule predictions if available in DB
+    node_mule_scores: Dict[str, float] = {}
+    session = get_db_session()
+    eid = incident_id
+    try:
+        comp = session.query(Complaint).filter(Complaint.complaint_id == incident_id).first()
+        if comp and comp.predicted_entity_id:
+            eid = comp.predicted_entity_id
+
+        pred_rec = session.query(IncidentPrediction).filter(IncidentPrediction.complaint_id == incident_id).first()
+        if pred_rec and pred_rec.node_mule_probabilities:
+            try:
+                node_mule_scores = json.loads(pred_rec.node_mule_probabilities)
+            except Exception:
+                node_mule_scores = {}
+    finally:
+        session.close()
+
+    if expand_historical:
+        # Dynamic extraction of all historical transactions from SQLite
+        session = get_db_session()
+        try:
+            tx_records = session.query(TransactionRecord).filter(
+                (TransactionRecord.sender_entity_id == eid) | (TransactionRecord.receiver_entity_id == eid)
+            ).order_by(TransactionRecord.timestamp.desc()).all()
+
+            entities_master = {e.entity_id: e for e in session.query(EntityMaster).all()}
+        finally:
+            session.close()
+
+        nodes_dict: Dict[str, Dict[str, Any]] = {}
+        inc_meta = entities_master.get(eid)
+        nodes_dict[eid] = {
+            "id": eid,
+            "label": f"{eid} (ACCOUNT)",
+            "node_type": "ACCOUNT",
+            "is_incident": True,
+            "is_terminal": False,
+            "hop_distance": 0,
+            "city": inc_meta.district if inc_meta and inc_meta.district else "UNKNOWN",
+            "in_degree": 0,
+            "out_degree": 0,
+            "total_incoming_amount": 0.0,
+            "total_outgoing_amount": 0.0,
+            "color": "#E53E3E",
+            "node_mule_score": float(node_mule_scores.get(eid, 0.0)),
+            "is_dormant": False,
+            "isolation_reason": None
+        }
+
+        edges_out = []
+        for tx in tx_records:
+            u = tx.sender_entity_id
+            v = tx.receiver_entity_id
+            amt = float(tx.amount)
+            is_cash_out = bool(tx.is_cash_out or str(v).startswith("ATM_"))
+
+            for n in (u, v):
+                if n not in nodes_dict:
+                    is_term = bool(str(n).startswith("ATM_"))
+                    ntype = "ATM" if is_term else "ACCOUNT"
+                    color = "#DD6B20" if is_term else "#3182CE"
+                    ent_meta = entities_master.get(n)
+                    city = ent_meta.district if ent_meta and ent_meta.district else "UNKNOWN"
+                    nodes_dict[n] = {
+                        "id": n,
+                        "label": f"{n} ({ntype})",
+                        "node_type": ntype,
+                        "is_incident": False,
+                        "is_terminal": is_term,
+                        "hop_distance": 1,
+                        "city": city,
+                        "in_degree": 0,
+                        "out_degree": 0,
+                        "total_incoming_amount": 0.0,
+                        "total_outgoing_amount": 0.0,
+                        "color": color,
+                        "node_mule_score": float(node_mule_scores.get(n, 0.0)),
+                        "is_dormant": False,
+                        "isolation_reason": None
+                    }
+
+            if u in nodes_dict:
+                nodes_dict[u]["out_degree"] += 1
+                nodes_dict[u]["total_outgoing_amount"] = round(nodes_dict[u]["total_outgoing_amount"] + amt, 2)
+            if v in nodes_dict:
+                nodes_dict[v]["in_degree"] += 1
+                nodes_dict[v]["total_incoming_amount"] = round(nodes_dict[v]["total_incoming_amount"] + amt, 2)
+
+            edges_out.append(GraphEdge(
+                source=u,
+                target=v,
+                transaction_id=str(tx.transaction_id),
+                amount=amt,
+                timestamp=str(tx.timestamp),
+                is_cash_out=is_cash_out
+            ))
+
+        nodes_out = [GraphNode(**nd) for nd in nodes_dict.values()]
+        return GraphStructureResponse(
+            incident_id=incident_id,
+            num_nodes=len(nodes_out),
+            num_edges=len(edges_out),
+            is_dormant=False,
+            dormant_reason=f"Displaying {len(edges_out)} lifetime historical transactions across full observation window.",
+            lifetime_tx_count=len(edges_out),
+            nearest_activity=str(tx_records[0].timestamp) if tx_records else None,
+            is_historical_expanded=True,
+            nodes=nodes_out,
+            edges=edges_out
+        )
+
+    # Standard 72-hour surveillance window
     graphml_path = DATA_DIR / "graphs" / f"{incident_id}.graphml"
     G = None
 
@@ -516,32 +635,14 @@ def get_incident_graph(incident_id: str):
             G = None
 
     if G is None:
-        # Fallback to dynamic subgraph extraction
-        session = get_db_session()
-        comp = session.query(Complaint).filter(Complaint.complaint_id == incident_id).first()
-        eid = comp.predicted_entity_id if comp and comp.predicted_entity_id else incident_id
-        session.close()
         G = STREAMING_ENGINE.extract_subgraph_around_entity(eid, max_hops=3)
 
     nodes_out = []
     edges_out = []
 
-    # Fetch node-level mule predictions if available in DB
-    node_mule_scores: Dict[str, float] = {}
-    session = get_db_session()
-    try:
-        pred_rec = session.query(IncidentPrediction).filter(IncidentPrediction.complaint_id == incident_id).first()
-        if pred_rec and pred_rec.node_mule_probabilities:
-            try:
-                node_mule_scores = json.loads(pred_rec.node_mule_probabilities)
-            except Exception:
-                node_mule_scores = {}
-    finally:
-        session.close()
-
     for node in G.nodes():
         nd = G.nodes[node]
-        is_inc = bool(nd.get("is_incident", False) or node == incident_id)
+        is_inc = bool(nd.get("is_incident", False) or node == incident_id or node == eid)
         is_term = bool(nd.get("is_terminal", False) or str(node).startswith("ATM_"))
         ntype = "ATM" if is_term else "ACCOUNT"
 
@@ -574,7 +675,9 @@ def get_incident_graph(incident_id: str):
             total_incoming_amount=round(in_amt, 2),
             total_outgoing_amount=round(out_amt, 2),
             color=color,
-            node_mule_score=float(node_mule_scores.get(node_str, 0.0))
+            node_mule_score=float(node_mule_scores.get(node_str, 0.0)),
+            is_dormant=False,
+            isolation_reason=None
         ))
 
     for u, v, data in G.edges(data=True):
@@ -587,10 +690,43 @@ def get_incident_graph(incident_id: str):
             is_cash_out=bool(data.get("is_cash_out", False) or str(v).startswith("ATM_"))
         ))
 
+    is_dormant = (len(edges_out) == 0)
+    lifetime_tx_count = len(edges_out)
+    nearest_activity = None
+    dormant_reason = None
+
+    if is_dormant:
+        session = get_db_session()
+        try:
+            res = session.query(
+                func.count(TransactionRecord.transaction_id),
+                func.max(TransactionRecord.timestamp)
+            ).filter(
+                (TransactionRecord.sender_entity_id == eid) | (TransactionRecord.receiver_entity_id == eid)
+            ).first()
+            if res:
+                lifetime_tx_count = int(res[0] or 0)
+                nearest_activity = str(res[1]) if res[1] else None
+        finally:
+            session.close()
+
+        dormant_reason = (
+            f"No fund transfers recorded within ±72-hour surveillance window around complaint filing date. "
+            f"Account has {lifetime_tx_count} lifetime transaction(s) recorded across other observation dates."
+        )
+        if nodes_out:
+            nodes_out[0].is_dormant = True
+            nodes_out[0].isolation_reason = "No transactions within ±72h surveillance window"
+
     return GraphStructureResponse(
         incident_id=incident_id,
         num_nodes=len(nodes_out),
         num_edges=len(edges_out),
+        is_dormant=is_dormant,
+        dormant_reason=dormant_reason,
+        lifetime_tx_count=lifetime_tx_count,
+        nearest_activity=nearest_activity,
+        is_historical_expanded=False,
         nodes=nodes_out,
         edges=edges_out
     )

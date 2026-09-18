@@ -310,11 +310,14 @@ def _add_single_node(
     is_incident: bool,
     hop_dist: int,
     entity_name_lookup: Dict[str, str],
-    location_lookup: Dict[str, Dict[str, Any]]
+    location_lookup: Dict[str, Dict[str, Any]],
+    isolation_reason: str = "No recorded transactions within ±72h surveillance window"
 ) -> None:
     """Helper to add an isolated node with complete attributes."""
     G.add_node(node_id)
     _set_node_attributes(G, node_id, is_incident, hop_dist, entity_name_lookup, location_lookup)
+    G.nodes[node_id]["is_dormant"] = True
+    G.nodes[node_id]["isolation_reason"] = str(isolation_reason)
 
 
 def _set_node_attributes(

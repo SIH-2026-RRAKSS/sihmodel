@@ -154,6 +154,25 @@ def test_api_incident_graph():
     # Issue #14: Head 2 Node Mule Score attached to graph nodes
     assert "node_mule_score" in data["nodes"][0]
     assert data["nodes"][0]["node_mule_score"] >= 0.0
+    assert data["is_dormant"] is False
+
+    # Issue #16: Test dormant incident handling (C000001 has 0 transfers in 72h window)
+    res_dormant = client.get("/api/incidents/C000001/graph")
+    assert res_dormant.status_code == 200
+    data_dormant = res_dormant.json()
+    assert data_dormant["is_dormant"] is True
+    assert data_dormant["num_edges"] == 0
+    assert data_dormant["lifetime_tx_count"] == 32
+    assert "surveillance window" in data_dormant["dormant_reason"].lower()
+    assert data_dormant["nodes"][0]["is_dormant"] is True
+
+    # Issue #16: Test expanded historical graph for C000001
+    res_expanded = client.get("/api/incidents/C000001/graph?expand_historical=true")
+    assert res_expanded.status_code == 200
+    data_expanded = res_expanded.json()
+    assert data_expanded["is_historical_expanded"] is True
+    assert data_expanded["num_nodes"] == 20
+    assert data_expanded["num_edges"] == 32
 
 
 def test_api_live_prediction():
