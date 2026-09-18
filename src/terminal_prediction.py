@@ -223,10 +223,29 @@ def process_all_incident_terminal_predictions(
 ) -> Tuple[pd.DataFrame, pd.DataFrame, List[Dict[str, Any]]]:
     """
     Extracts, scores, and ranks candidate ATM nodes for all incident graphs.
+    For subgraphs with observed ATM withdrawals, scores directly observed ATMs.
+    For high-risk suspicious subgraphs without ATM nodes, extrapolates the nearest
+    candidate cash-out ATMs based on geospatial proximity to the leaf mule accounts.
     """
     all_candidate_records: List[Dict[str, Any]] = []
     top3_records: List[Dict[str, Any]] = []
     evaluation_tracking: List[Dict[str, Any]] = []
+
+    # Load all physical ATM locations for geospatial proximity extrapolation
+    loc_file = DATA_DIR / "entity_locations.csv"
+    all_atms: List[Dict[str, Any]] = []
+    if loc_file.exists():
+        df_loc = pd.read_csv(loc_file)
+        for _, l_row in df_loc.iterrows():
+            eid = str(l_row["entity_id"])
+            if eid.startswith("ATM_"):
+                all_atms.append({
+                    "atm_id": eid,
+                    "city": str(l_row.get("city", "Unknown")),
+                    "state": str(l_row.get("state", "Unknown")),
+                    "latitude": float(l_row.get("latitude", 0.0)),
+                    "longitude": float(l_row.get("longitude", 0.0))
+                })
 
     for _, row in df_summary.iterrows():
         c_id = str(row["complaint_id"])
@@ -261,18 +280,107 @@ def process_all_incident_terminal_predictions(
                     actual_cash_atms.add(v)
 
         if not atm_nodes:
-            evaluation_tracking.append({
-                "complaint_id": c_id,
-                "incident_entity_id": inc_ent,
-                "has_atm_candidate": False,
-                "has_actual_cashout": len(actual_cash_atms) > 0,
-                "num_candidates": 0,
-                "actual_cash_atms": list(actual_cash_atms),
-                "ranked_atms": [],
-                "top1_hit": 0,
-                "top3_hit": 0,
-                "reciprocal_rank": 0.0
-            })
+            # Check if this is a suspicious / elevated risk incident requiring candidate ATM extrapolation
+            if gs_prob >= HIGH_RISK_THRESHOLD and all_atms:
+                # Find terminal leaf account nodes (downstream mule endpoints)
+                account_nodes = [n for n, d in G.nodes(data=True) if not n.startswith("ATM_")]
+                leaf_nodes = [n for n in account_nodes if G.out_degree(n) == 0]
+                if not leaf_nodes:
+                    max_h = max([int(G.nodes[n].get("hop_distance", 0)) for n in account_nodes] or [1])
+                    leaf_nodes = [n for n in account_nodes if int(G.nodes[n].get("hop_distance", 0)) == max_h]
+
+                def _leaf_inflow(n: str) -> float:
+                    return sum(float(ed.get("amount", 0.0)) for _, _, ed in G.in_edges(n, data=True))
+
+                leaf_nodes.sort(key=_leaf_inflow, reverse=True)
+                primary_leaf = leaf_nodes[0] if leaf_nodes else (inc_nodes[0] if inc_nodes else inc_ent)
+                leaf_data = G.nodes.get(primary_leaf, {})
+                leaf_lat = float(leaf_data.get("latitude", inc_lat))
+                leaf_lon = float(leaf_data.get("longitude", inc_lon))
+                leaf_hop = int(leaf_data.get("hop_distance", 1))
+                leaf_vol = _leaf_inflow(primary_leaf)
+
+                # Rank all 50 physical ATMs by great-circle distance to the leaf mule entity
+                atm_dists = []
+                for atm in all_atms:
+                    d_km = haversine_distance_km(leaf_lat, leaf_lon, atm["latitude"], atm["longitude"])
+                    atm_dists.append((d_km, atm))
+                atm_dists.sort(key=lambda x: x[0])
+
+                extrapolated_candidates = []
+                for r_idx, (d_km, atm) in enumerate(atm_dists[:3], 1):
+                    s_gnn = max(0.0, min(1.0, gs_prob))
+                    s_geo = max(0.0, 1.0 - min(1.0, d_km / 500.0))
+                    s_hop = max(0.0, 1.0 - 0.25 * max(0, leaf_hop - 1))
+                    s_vol = min(1.0, leaf_vol / 250000.0)
+                    raw_score = 0.35 * s_gnn + 0.35 * s_geo + 0.15 * s_hop + 0.15 * s_vol
+                    score = round(float(min(0.85, max(0.10, raw_score))), 4)
+
+                    reason_str = (
+                        f"Extrapolated candidate cash-out hub: {atm['atm_id']} in {atm['city']} "
+                        f"located {d_km:.1f} km from terminal mule account {primary_leaf} (hop {leaf_hop}). "
+                        f"Proximity surveillance target based on downstream fund routing of ₹{leaf_vol:,.2f}."
+                    )
+
+                    rec = {
+                        "complaint_id": c_id,
+                        "incident_entity_id": inc_ent,
+                        "graphsage_probability": round(gs_prob, 4),
+                        "atm_id": atm["atm_id"],
+                        "atm_city": atm["city"],
+                        "atm_latitude": atm["latitude"],
+                        "atm_longitude": atm["longitude"],
+                        "hop_distance": leaf_hop + 1,
+                        "num_upstream_entities": 1,
+                        "num_cash_withdrawals": 0,
+                        "total_cash_withdrawal_amount": 0.0,
+                        "max_cash_withdrawal_amount": 0.0,
+                        "nearest_withdrawal_time": inc_time_str,
+                        "hours_from_incident": 0.0,
+                        "terminal_score": score,
+                        "reason": reason_str,
+                        "rank": r_idx
+                    }
+                    extrapolated_candidates.append(rec)
+                    all_candidate_records.append(rec)
+                    top3_records.append({
+                        "complaint_id": rec["complaint_id"],
+                        "incident_entity_id": rec["incident_entity_id"],
+                        "risk_probability": rec["graphsage_probability"],
+                        "rank": rec["rank"],
+                        "atm_id": rec["atm_id"],
+                        "city": rec["atm_city"],
+                        "latitude": rec["atm_latitude"],
+                        "longitude": rec["atm_longitude"],
+                        "terminal_score": rec["terminal_score"],
+                        "reason": rec["reason"]
+                    })
+
+                evaluation_tracking.append({
+                    "complaint_id": c_id,
+                    "incident_entity_id": inc_ent,
+                    "has_atm_candidate": True,
+                    "has_actual_cashout": len(actual_cash_atms) > 0,
+                    "num_candidates": len(extrapolated_candidates),
+                    "actual_cash_atms": list(actual_cash_atms),
+                    "ranked_atms": [item["atm_id"] for item in extrapolated_candidates],
+                    "top1_hit": 0,
+                    "top3_hit": 0,
+                    "reciprocal_rank": 0.0
+                })
+            else:
+                evaluation_tracking.append({
+                    "complaint_id": c_id,
+                    "incident_entity_id": inc_ent,
+                    "has_atm_candidate": False,
+                    "has_actual_cashout": len(actual_cash_atms) > 0,
+                    "num_candidates": 0,
+                    "actual_cash_atms": list(actual_cash_atms),
+                    "ranked_atms": [],
+                    "top1_hit": 0,
+                    "top3_hit": 0,
+                    "reciprocal_rank": 0.0
+                })
             continue
 
         # Score all candidate ATMs in G
