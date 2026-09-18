@@ -206,11 +206,15 @@ class TemporalTransactionGraph:
         amount = float(tx.get("amount", 0.0))
         ts_val = tx.get("timestamp")
         if isinstance(ts_val, str):
-            ts = pd.to_datetime(ts_val)
+            ts = pd.to_datetime(ts_val).to_pydatetime()
         elif isinstance(ts_val, datetime):
             ts = ts_val
+        elif isinstance(ts_val, (int, float)):
+            ts = datetime.fromtimestamp(ts_val)
         else:
             ts = datetime.utcnow()
+        if hasattr(ts, "tzinfo") and ts.tzinfo is not None:
+            ts = ts.replace(tzinfo=None)
 
         # Add / update source node
         if not self.graph.has_node(src):

@@ -21,6 +21,7 @@ Endpoints:
 import os
 import sys
 import csv
+import io
 import json
 import time
 from pathlib import Path
@@ -31,7 +32,7 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 import torch
-from fastapi import FastAPI, HTTPException, Query, Depends, status
+from fastapi import FastAPI, HTTPException, Query, Depends, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
 from pydantic import BaseModel, Field
@@ -41,7 +42,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from sqlalchemy import text, func
-from src.database import get_db_session, Complaint, EntityMaster, TransactionRecord, IncidentPrediction, AuditLog
+from src.database import get_db_session, Complaint, EntityMaster, TransactionRecord, IncidentPrediction, AuditLog, log_action
 from src.streaming_engine import TemporalTransactionGraph
 
 DATA_DIR = ROOT_DIR / "data"
@@ -324,6 +325,66 @@ class PolicyTuneResponse(BaseModel):
     f1_score_percent: float
     false_positives: int
     true_positives: int
+
+
+class ComplaintCreateRequest(BaseModel):
+    complaint_id: Optional[str] = Field(None, description="Custom Complaint/FIR ID. Auto-generated if omitted.")
+    complaint_date: Optional[str] = Field(None, description="Date of complaint (YYYY-MM-DD). Defaults to current date.")
+    complainant_name: Optional[str] = Field(None, description="Victim/Complainant full name.")
+    police_station_id: Optional[str] = Field("PS_ONLINE", description="Police station jurisdiction code.")
+    district: str = Field("Central", description="District location.")
+    state: str = Field("Delhi", description="State location.")
+    reported_account_number: str = Field(..., min_length=1, description="Suspect/Beneficiary bank account number.")
+    reported_ifsc: Optional[str] = Field("UNKNOWN", description="IFSC code of reported account.")
+    reported_amount: float = Field(..., ge=0.0, description="Defrauded/disputed financial amount in INR.")
+    scam_category: Optional[str] = Field("CYBER_FRAUD", description="Scam typology category (e.g. KYC Fraud, Part-Time Job, Ponzi).")
+    description: Optional[str] = Field("", description="Investigative narrative or victim FIR statement.")
+
+
+class ComplaintCreateResponse(BaseModel):
+    complaint_id: str
+    incident_id: str
+    predicted_entity_id: str
+    graphsage_risk_probability: float
+    confidence_tier: str
+    top_terminal_id: Optional[str] = None
+    top_terminal_city: Optional[str] = None
+    created_at: str
+    message: str
+
+
+class EntityCreateRequest(BaseModel):
+    entity_id: Optional[str] = Field(None, description="Unique entity ID (e.g. ENT_... or ATM_...). Auto-generated if omitted.")
+    canonical_account_number: Optional[str] = Field(None, description="Bank account number or terminal serial.")
+    canonical_ifsc: Optional[str] = Field("UNKNOWN", description="Bank IFSC code.")
+    canonical_holder_name: Optional[str] = Field("UNKNOWN", description="Account holder or merchant name.")
+    bank_name: Optional[str] = Field("UNKNOWN", description="Bank name.")
+    branch_name: Optional[str] = Field("UNKNOWN", description="Branch name.")
+    state: Optional[str] = Field("UNKNOWN", description="State.")
+    district: Optional[str] = Field("UNKNOWN", description="District.")
+    latitude: Optional[float] = Field(None, description="Geographic latitude coordinate.")
+    longitude: Optional[float] = Field(None, description="Geographic longitude coordinate.")
+    entity_type: str = Field("ACCOUNT", description="Entity category: ACCOUNT or ATM.")
+
+
+class EntityCreateResponse(BaseModel):
+    entity_id: str
+    entity_type: str
+    canonical_account_number: Optional[str] = None
+    created_at: str
+    message: str
+
+
+class TransactionBatchUploadResponse(BaseModel):
+    total_ingested: int
+    total_amount: float
+    alerts_triggered: int
+    flagged_transactions: List[Dict[str, Any]]
+    message: str
+
+
+class TransactionBatchIngestRequest(BaseModel):
+    transactions: List[TransactionIngestRequest]
 
 
 # ==============================================================================
@@ -868,8 +929,449 @@ def ingest_single_transaction(req: TransactionIngestRequest):
             response.stage_2_terminals = res.get("terminals")
         except Exception:
             response.stage_2_confidence_tier = "UNCLASSIFIED"
-        
+
+    # Persist single transaction to DB
+    session = get_db_session()
+    try:
+        tx_rec = TransactionRecord(
+            transaction_id=tx_id,
+            sender_entity_id=req.source_entity,
+            receiver_entity_id=req.destination_entity,
+            amount=req.amount,
+            timestamp=tx_payload["timestamp"],
+            transaction_type="ONLINE",
+            channel="API_SINGLE",
+            is_cash_out=False,
+            is_suspicious_ground_truth=needs_triage
+        )
+        session.add(tx_rec)
+        session.commit()
+    except Exception:
+        session.rollback()
+    finally:
+        session.close()
+
     return response
+
+
+@app.post("/api/complaints", response_model=ComplaintCreateResponse, status_code=status.HTTP_201_CREATED, tags=["Data Ingestion"])
+def register_complaint(req: ComplaintCreateRequest):
+    """Registers a new citizen cybercrime complaint / FIR, resolves or provisions the suspect entity, and executes live GNN triage."""
+    session = get_db_session()
+    try:
+        # 1. Clean account number
+        raw_acc = str(req.reported_account_number).strip()
+        if raw_acc.endswith(".0"):
+            raw_acc = raw_acc[:-2]
+
+        # 2. Determine complaint_id
+        cid = req.complaint_id
+        if not cid:
+            existing_count = session.query(func.count(Complaint.complaint_id)).scalar() or 0
+            cid = f"C{str(existing_count + 1).zfill(6)}"
+        else:
+            existing = session.query(Complaint).filter(Complaint.complaint_id == cid).first()
+            if existing:
+                raise HTTPException(status_code=409, detail=f"Complaint ID {cid} already exists.")
+
+        # 3. Entity Resolution: Find or create EntityMaster
+        clean_ifsc = (req.reported_ifsc or "UNKNOWN").strip().upper()
+        entity = session.query(EntityMaster).filter(
+            EntityMaster.canonical_account_number == raw_acc
+        ).first()
+
+        if entity:
+            entity_id = entity.entity_id
+        else:
+            acc_tail = raw_acc[-6:] if len(raw_acc) >= 6 else raw_acc
+            entity_id = f"ENT_{acc_tail}_{int(time.time()) % 10000}"
+            entity = EntityMaster(
+                entity_id=entity_id,
+                canonical_account_number=raw_acc,
+                canonical_ifsc=clean_ifsc,
+                canonical_holder_name=req.complainant_name or "UNKNOWN",
+                bank_name="UNKNOWN",
+                branch_name="UNKNOWN",
+                state=req.state,
+                district=req.district,
+                latitude=28.6139,
+                longitude=77.2090,
+                entity_type="ACCOUNT"
+            )
+            session.add(entity)
+            session.flush()
+
+        # 4. Insert Complaint record
+        comp_date = req.complaint_date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        new_complaint = Complaint(
+            complaint_id=cid,
+            complaint_date=comp_date,
+            complainant_name=req.complainant_name or "Anonymous",
+            police_station_id=req.police_station_id or "PS_ONLINE",
+            district=req.district,
+            state=req.state,
+            reported_account_number=raw_acc,
+            reported_ifsc=clean_ifsc,
+            reported_amount=req.reported_amount,
+            scam_category=req.scam_category or "CYBER_FRAUD",
+            description=req.description or "",
+            predicted_entity_id=entity_id
+        )
+        session.add(new_complaint)
+
+        # 5. Live Automated Triage via STREAMING_ENGINE
+        risk_prob = 0.50
+        conf_tier = "UNCLASSIFIED"
+        num_nodes = 1
+        num_edges = 0
+        top_term_id = None
+        top_term_score = None
+        top_term_city = None
+        exec_summary = f"Complaint {cid} registered for account {raw_acc}. Initial state."
+
+        try:
+            subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(entity_id, max_hops=2)
+            num_nodes = subgraph.number_of_nodes()
+            num_edges = subgraph.number_of_edges()
+            triage = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=entity_id)
+            risk_prob = float(triage.get("risk_probability", 0.50))
+            conf_tier = str(triage.get("confidence_tier", "NORMAL"))
+            terms = triage.get("terminals", [])
+            if terms:
+                top_term = terms[0]
+                top_term_id = top_term.get("terminal_id")
+                top_term_score = top_term.get("score")
+                top_term_city = top_term.get("city")
+            exec_summary = f"Automated GNN triage scored {risk_prob:.2%} risk ({conf_tier}) across {num_nodes} nodes and {num_edges} edges."
+        except Exception:
+            pass
+
+        # 6. Insert IncidentPrediction
+        inc_id = f"INC_{cid}"
+        inc_pred = IncidentPrediction(
+            incident_id=inc_id,
+            complaint_id=cid,
+            graphsage_risk_probability=risk_prob,
+            confidence_tier=conf_tier,
+            top_terminal_id=top_term_id,
+            top_terminal_score=top_term_score,
+            top_terminal_city=top_term_city,
+            num_nodes=num_nodes,
+            num_edges=num_edges,
+            executive_summary=exec_summary,
+            evaluated_at=datetime.now(timezone.utc)
+        )
+        session.add(inc_pred)
+        session.commit()
+
+        # 7. Audit Log
+        try:
+            log_action(
+                action="COMPLAINT_REGISTERED",
+                target_id=cid,
+                details=f"FIR registered for account {raw_acc}, amount INR {req.reported_amount}. Triage tier: {conf_tier} ({risk_prob:.2%})"
+            )
+        except Exception:
+            pass
+
+        return ComplaintCreateResponse(
+            complaint_id=cid,
+            incident_id=inc_id,
+            predicted_entity_id=entity_id,
+            graphsage_risk_probability=risk_prob,
+            confidence_tier=conf_tier,
+            top_terminal_id=top_term_id,
+            top_terminal_city=top_term_city,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            message="Complaint registered and live GNN triage completed."
+        )
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to register complaint: {str(e)}")
+    finally:
+        session.close()
+
+
+@app.post("/api/upload/transactions", response_model=TransactionBatchUploadResponse, tags=["Data Ingestion"])
+async def upload_transactions_csv(file: UploadFile = File(...)):
+    """Uploads a bank ledger CSV file, persists transactions to SQLite, and updates the real-time sliding window graph."""
+    if not file.filename or not file.filename.lower().endswith((".csv", ".txt")):
+        raise HTTPException(status_code=400, detail="Uploaded file must be a CSV file.")
+    
+    contents = await file.read()
+    try:
+        text_content = contents.decode("utf-8")
+    except UnicodeDecodeError:
+        text_content = contents.decode("latin-1")
+    
+    reader = csv.DictReader(io.StringIO(text_content))
+    if not reader.fieldnames:
+        raise HTTPException(status_code=400, detail="CSV file is empty or missing headers.")
+    
+    normalized_headers = {h.strip().lower(): h for h in reader.fieldnames if h}
+    
+    def get_col_value(row, *candidates):
+        for c in candidates:
+            if c in normalized_headers:
+                val = row.get(normalized_headers[c])
+                if val is not None and str(val).strip() != "":
+                    return str(val).strip()
+        return None
+
+    session = get_db_session()
+    total_ingested = 0
+    total_amount = 0.0
+    alerts_triggered = 0
+    flagged_list = []
+    
+    try:
+        tx_records = []
+        for idx, r in enumerate(reader):
+            src = get_col_value(r, "sender_entity_id", "source_entity", "source", "sender", "src", "from_account", "from")
+            dst = get_col_value(r, "receiver_entity_id", "destination_entity", "destination", "receiver", "dst", "target", "to_account", "to")
+            amt_str = get_col_value(r, "amount", "amt", "value", "tx_amount")
+            tx_id = get_col_value(r, "transaction_id", "tx_id", "id") or f"TX_UP_{int(time.time()*1000)}_{idx}"
+            ts_str = get_col_value(r, "timestamp", "tx_date", "date", "time", "created_at")
+            tx_type = get_col_value(r, "transaction_type", "type", "txn_type") or "IMPS"
+            channel = get_col_value(r, "channel", "mode") or "ONLINE"
+            
+            if not src or not dst or not amt_str:
+                continue
+                
+            try:
+                amt = float(amt_str)
+            except ValueError:
+                continue
+                
+            if ts_str:
+                try:
+                    ts_dt = pd.to_datetime(ts_str).to_pydatetime()
+                except Exception:
+                    ts_dt = datetime.now(timezone.utc)
+            else:
+                ts_dt = datetime.now(timezone.utc)
+                
+            tx_payload = {
+                "transaction_id": tx_id,
+                "sender_entity_id": src,
+                "receiver_entity_id": dst,
+                "amount": amt,
+                "timestamp": ts_dt
+            }
+            
+            STREAMING_ENGINE.ingest_transaction(tx_payload)
+            flagged, reason = STREAMING_ENGINE.anomaly_trigger.evaluate_transaction(tx_payload)
+            if flagged:
+                alerts_triggered += 1
+                if len(flagged_list) < 50:
+                    flagged_list.append({
+                        "transaction_id": tx_id,
+                        "source": src,
+                        "destination": dst,
+                        "amount": amt,
+                        "reason": reason
+                    })
+                    
+            tx_records.append(TransactionRecord(
+                transaction_id=tx_id,
+                sender_entity_id=src,
+                receiver_entity_id=dst,
+                amount=amt,
+                timestamp=ts_dt,
+                transaction_type=tx_type,
+                channel=channel,
+                is_cash_out=False,
+                is_suspicious_ground_truth=flagged
+            ))
+            
+            total_ingested += 1
+            total_amount += amt
+            
+            if len(tx_records) >= 500:
+                session.bulk_save_objects(tx_records)
+                session.commit()
+                tx_records = []
+                
+        if tx_records:
+            session.bulk_save_objects(tx_records)
+            session.commit()
+            
+        try:
+            log_action(
+                action="TRANSACTION_BATCH_UPLOAD",
+                details=f"Uploaded CSV {file.filename}: ingested {total_ingested} transactions, amount INR {total_amount:.2f}, alerts: {alerts_triggered}"
+            )
+        except Exception:
+            pass
+        
+        return TransactionBatchUploadResponse(
+            total_ingested=total_ingested,
+            total_amount=total_amount,
+            alerts_triggered=alerts_triggered,
+            flagged_transactions=flagged_list,
+            message=f"Successfully ingested {total_ingested} transactions from {file.filename}."
+        )
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to process CSV file: {str(e)}")
+    finally:
+        session.close()
+
+
+@app.post("/api/ingest/transactions/batch", response_model=TransactionBatchUploadResponse, tags=["Data Ingestion"])
+def ingest_transactions_batch(req: TransactionBatchIngestRequest):
+    """Batch ingestion of transactions via JSON payload."""
+    session = get_db_session()
+    total_ingested = 0
+    total_amount = 0.0
+    alerts_triggered = 0
+    flagged_list = []
+    
+    try:
+        tx_records = []
+        for idx, item in enumerate(req.transactions):
+            ts = item.timestamp or time.time()
+            tx_id = item.transaction_id or f"TX_JSON_{int(ts * 1000)}_{idx}"
+            ts_dt = datetime.fromtimestamp(ts, tz=timezone.utc) if isinstance(ts, (int, float)) else ts
+            
+            tx_payload = {
+                "transaction_id": tx_id,
+                "sender_entity_id": item.source_entity,
+                "receiver_entity_id": item.destination_entity,
+                "amount": item.amount,
+                "timestamp": ts_dt
+            }
+            
+            STREAMING_ENGINE.ingest_transaction(tx_payload)
+            flagged, reason = STREAMING_ENGINE.anomaly_trigger.evaluate_transaction(tx_payload)
+            if flagged:
+                alerts_triggered += 1
+                if len(flagged_list) < 50:
+                    flagged_list.append({
+                        "transaction_id": tx_id,
+                        "source": item.source_entity,
+                        "destination": item.destination_entity,
+                        "amount": item.amount,
+                        "reason": reason
+                    })
+                    
+            tx_records.append(TransactionRecord(
+                transaction_id=tx_id,
+                sender_entity_id=item.source_entity,
+                receiver_entity_id=item.destination_entity,
+                amount=item.amount,
+                timestamp=ts_dt,
+                transaction_type="ONLINE",
+                channel="API_BATCH",
+                is_cash_out=False,
+                is_suspicious_ground_truth=flagged
+            ))
+            total_ingested += 1
+            total_amount += item.amount
+            
+            if len(tx_records) >= 500:
+                session.bulk_save_objects(tx_records)
+                session.commit()
+                tx_records = []
+                
+        if tx_records:
+            session.bulk_save_objects(tx_records)
+            session.commit()
+            
+        try:
+            log_action(
+                action="TRANSACTION_BATCH_UPLOAD",
+                details=f"Ingested JSON batch: {total_ingested} transactions, amount INR {total_amount:.2f}, alerts: {alerts_triggered}"
+            )
+        except Exception:
+            pass
+        
+        return TransactionBatchUploadResponse(
+            total_ingested=total_ingested,
+            total_amount=total_amount,
+            alerts_triggered=alerts_triggered,
+            flagged_transactions=flagged_list,
+            message=f"Successfully ingested {total_ingested} transactions."
+        )
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to ingest transaction batch: {str(e)}")
+    finally:
+        session.close()
+
+
+@app.post("/api/entities", response_model=EntityCreateResponse, status_code=status.HTTP_201_CREATED, tags=["Data Ingestion"])
+def create_entity(req: EntityCreateRequest):
+    """Registers a new account or ATM terminal entity into the master registry."""
+    session = get_db_session()
+    try:
+        eid = req.entity_id
+        if not eid:
+            prefix = "ATM" if req.entity_type.upper() == "ATM" else "ENT"
+            eid = f"{prefix}_{int(time.time() * 1000) % 1000000}"
+            
+        existing = session.query(EntityMaster).filter(EntityMaster.entity_id == eid).first()
+        if existing:
+            raise HTTPException(status_code=409, detail=f"Entity ID {eid} already exists.")
+            
+        raw_acc = req.canonical_account_number
+        if raw_acc:
+            raw_acc = str(raw_acc).strip()
+            if raw_acc.endswith(".0"):
+                raw_acc = raw_acc[:-2]
+                
+        entity = EntityMaster(
+            entity_id=eid,
+            canonical_account_number=raw_acc or eid,
+            canonical_ifsc=req.canonical_ifsc or "UNKNOWN",
+            canonical_holder_name=req.canonical_holder_name or "UNKNOWN",
+            bank_name=req.bank_name or "UNKNOWN",
+            branch_name=req.branch_name or "UNKNOWN",
+            state=req.state or "UNKNOWN",
+            district=req.district or "UNKNOWN",
+            latitude=req.latitude or 28.6139,
+            longitude=req.longitude or 77.2090,
+            entity_type=req.entity_type.upper()
+        )
+        session.add(entity)
+        session.commit()
+        
+        # Inject into in-memory streaming graph
+        if hasattr(STREAMING_ENGINE, "graph") and STREAMING_ENGINE.graph is not None:
+            STREAMING_ENGINE.graph.add_node(
+                eid,
+                entity_type=req.entity_type.upper(),
+                bank=req.bank_name or "UNKNOWN",
+                state=req.state or "UNKNOWN"
+            )
+            
+        try:
+            log_action(
+                action="ENTITY_REGISTERED",
+                target_id=eid,
+                details=f"Created {req.entity_type} entity {eid} ({raw_acc})"
+            )
+        except Exception:
+            pass
+        
+        return EntityCreateResponse(
+            entity_id=eid,
+            entity_type=req.entity_type.upper(),
+            canonical_account_number=raw_acc,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            message=f"Entity {eid} ({req.entity_type}) registered successfully."
+        )
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create entity: {str(e)}")
+    finally:
+        session.close()
 
 
 @app.post("/api/simulate/stream", tags=["Operational Simulations"])
