@@ -45,7 +45,7 @@ from src.ibm_graphsage_classifier import (
     IBMGraphSAGE, TARGET_COL as TARGET_IBM
 )
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 
 def wilson_ci(pos, n, conf=0.95):
     if n == 0: return (0.0, 0.0)

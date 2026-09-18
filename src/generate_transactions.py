@@ -41,7 +41,8 @@ RANDOM_SEED = 42
 TOTAL_TRANSACTIONS_TARGET = 15000
 NUM_SUSPICIOUS_RINGS = 25
 
-DATA_DIR = Path("data")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / "data"
 ENTITY_MASTER_FILE = DATA_DIR / "entity_master.csv"
 TRANSACTIONS_FILE = DATA_DIR / "transactions.csv"
 ENTITY_LOCATIONS_FILE = DATA_DIR / "entity_locations.csv"
@@ -705,7 +706,7 @@ def main():
 
     # Step 1: Generate Entity Geographic Locations & ATM Nodes
     print("Generating entity location mapping and ATM terminal nodes...")
-        df_locations, location_lookup = generate_entity_locations(entities, rng)
+    df_locations, location_lookup = generate_entity_locations(entities, rng)
     atm_lookup = generate_atm_nodes(rng)
     
     # ADD ATMs to df_locations so they are saved

@@ -23,7 +23,7 @@ if str(ROOT_DIR) not in sys.path:
 from src.ibm_graphsage_classifier import load_or_create_ibm_pyg_dataset, IBMGraphSAGE, normalize_node_features, TARGET_COL
 from torch_geometric.loader import DataLoader
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 IBM_SUMMARY_FILE = DATA_DIR / "ibm_graph_summary.csv"
 IBM_TIERS_FILE = DATA_DIR / "ibm_confidence_tiers.csv"
 IBM_TIER_EVAL_FILE = DATA_DIR / "ibm_confidence_tier_evaluation.csv"

@@ -99,6 +99,19 @@ def replay_incident(
     
     engine = TemporalTransactionGraph(window_hours=72, max_hops=3)
     
+    # Pre-register root entity in engine graph to ensure step-1 resilience
+    if not engine.graph.has_node(root_entity):
+        is_atm = str(root_entity).startswith("ATM_")
+        engine.graph.add_node(
+            root_entity,
+            node_type="ATM" if is_atm else "ACCOUNT",
+            city="UNKNOWN",
+            latitude=0.0,
+            longitude=0.0,
+            is_terminal=is_atm,
+            is_incident=True
+        )
+    
     for step, event in enumerate(edge_events, 1):
         engine.ingest_transaction({
             "transaction_id": event["tx_id"],
@@ -109,8 +122,13 @@ def replay_incident(
             "is_cash_out": event["is_cash_out"]
         }, purge_expired=False)
         
-        subg = engine.extract_subgraph_around_entity(root_entity, as_of_time=event["dt"])
-        res = engine.score_subgraph_live(subg, seed_entity_id=root_entity)
+        try:
+            subg = engine.extract_subgraph_around_entity(root_entity, as_of_time=event["dt"])
+            res = engine.score_subgraph_live(subg, seed_entity_id=root_entity)
+        except KeyError:
+            subg = nx.MultiDiGraph()
+            subg.add_node(root_entity, is_incident=True)
+            res = {"risk_probability": 0.0, "confidence_tier": "NORMAL"}
         
         p_risk = res.get("risk_probability", 0.0)
         tier = res.get("confidence_tier", "NORMAL")

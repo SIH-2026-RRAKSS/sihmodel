@@ -43,8 +43,12 @@ from sklearn.metrics import (
 )
 from src.adapters.elliptic_adapter import EllipticAdapter
 
-DATA_DIR = Path("data")
-MODELS_DIR = Path("models")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+DATA_DIR = ROOT_DIR / "data"
+MODELS_DIR = ROOT_DIR / "models"
 OUTPUT_CSV = DATA_DIR / "elliptic_graphsage_evaluation.csv"
 OUTPUT_MULTI_SEED_CSV = DATA_DIR / "elliptic_multi_seed_evaluation.csv"
 

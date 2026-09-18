@@ -53,9 +53,13 @@ from src.graphsage_classifier import (
 # Configuration & Paths
 # ==============================================================================
 
-DATA_DIR = Path("data")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+DATA_DIR = ROOT_DIR / "data"
 GRAPHS_DIR = DATA_DIR / "graphs"
-MODELS_DIR = Path("models")
+MODELS_DIR = ROOT_DIR / "models"
 
 GRAPH_SUMMARY_FILE = DATA_DIR / "graph_summary.csv"
 GRAPHSAGE_MODEL_FILE = MODELS_DIR / "graphsage_model.pt"

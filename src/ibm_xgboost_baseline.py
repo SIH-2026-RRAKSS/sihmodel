@@ -27,7 +27,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 SUMMARY_FILE = DATA_DIR / "ibm_graph_summary.csv"
 EVAL_FILE = DATA_DIR / "ibm_xgboost_evaluation.csv"
 MULTI_SEED_FILE = DATA_DIR / "ibm_xgboost_multi_seed_evaluation.csv"

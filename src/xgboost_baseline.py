@@ -49,8 +49,12 @@ from sklearn.metrics import (
 )
 from src.adapters.synthetic_adapter import SyntheticAdapter
 
-DATA_DIR = Path("data")
-MODELS_DIR = Path("models")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+DATA_DIR = ROOT_DIR / "data"
+MODELS_DIR = ROOT_DIR / "models"
 GRAPH_SUMMARY_FILE = DATA_DIR / "graph_summary.csv"
 MODEL_FILE = MODELS_DIR / "xgboost_baseline.json"
 FEATURE_SCHEMA_FILE = MODELS_DIR / "xgboost_features.json"

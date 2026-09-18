@@ -37,7 +37,7 @@ if str(ROOT_DIR) not in sys.path:
 # Configuration & Paths
 # ==============================================================================
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 
 GRAPH_SUMMARY_FILE = DATA_DIR / "graph_summary.csv"
 CONFIDENCE_TIERS_FILE = DATA_DIR / "confidence_tiers.csv"

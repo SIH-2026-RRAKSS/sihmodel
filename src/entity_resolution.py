@@ -35,7 +35,8 @@ from rapidfuzz import fuzz
 # Configuration & Constants
 # ==============================================================================
 
-DEFAULT_DATA_DIR = Path("data")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_DATA_DIR = ROOT_DIR / "data"
 COMPLAINTS_FILE = DEFAULT_DATA_DIR / "complaints.csv"
 GROUND_TRUTH_FILE = DEFAULT_DATA_DIR / "entity_ground_truth.csv"
 RESOLVED_ENTITIES_FILE = DEFAULT_DATA_DIR / "resolved_entities.csv"

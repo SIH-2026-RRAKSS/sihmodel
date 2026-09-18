@@ -42,7 +42,8 @@ import matplotlib.pyplot as plt
 # Configuration & Paths
 # ==============================================================================
 
-DATA_DIR = Path("data")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / "data"
 COMPLAINTS_FILE = DATA_DIR / "complaints.csv"
 RESOLVED_ENTITIES_FILE = DATA_DIR / "resolved_entities.csv"
 ENTITY_MASTER_FILE = DATA_DIR / "entity_master.csv"

@@ -61,8 +61,9 @@ from torch_geometric.nn import SAGEConv, global_mean_pool
 
 RANDOM_SEED = 42
 
-DATA_DIR = Path("data")
-MODELS_DIR = Path("models")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / "data"
+MODELS_DIR = ROOT_DIR / "models"
 GRAPHS_DIR = DATA_DIR / "graphs"
 
 XGB_PREDICTIONS_FILE = DATA_DIR / "xgboost_predictions.csv"
@@ -1046,8 +1047,8 @@ if __name__ == "__main__":
     import argparse
     from pathlib import Path
     parser = argparse.ArgumentParser(description="Train GraphSAGE Classifier")
-    parser.add_argument("--graphs-dir", type=str, default="data/graphs", help="Directory containing GraphML files")
-    parser.add_argument("--summary-file", type=str, default="data/synthetic_complaints.csv", help="Path to the summary CSV")
+    parser.add_argument("--graphs-dir", type=str, default=str(GRAPHS_DIR), help="Directory containing GraphML files")
+    parser.add_argument("--summary-file", type=str, default=str(DATA_DIR / "graph_summary.csv"), help="Path to the summary CSV")
     args = parser.parse_args()
     
     main(graphs_dir=Path(args.graphs_dir), summary_file=Path(args.summary_file))

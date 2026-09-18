@@ -25,7 +25,7 @@ if str(ROOT_DIR) not in sys.path:
 
 from src.adapters.ibm_adapter import IBMAMLAdapter
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 IBM_GRAPHS_DIR = DATA_DIR / "ibm_graphs"
 IBM_SUMMARY_FILE = DATA_DIR / "ibm_graph_summary.csv"
 

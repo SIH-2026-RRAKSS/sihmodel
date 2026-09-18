@@ -22,14 +22,17 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+DEFAULT_IBM_PATH = ROOT_DIR / "data" / "ibm_aml" / "HI-Small_Trans.csv"
+
 class IBMAMLAdapter:
-    def __init__(self, file_path: Optional[str] = None):
+    def __init__(self, file_path: Optional[Any] = None):
         if file_path is None:
             cache_path = Path.home() / ".cache" / "kagglehub" / "datasets" / "ealtman2019" / "ibm-transactions-for-anti-money-laundering-aml" / "versions" / "8" / "HI-Small_Trans.csv"
             if cache_path.exists():
                 self.file_path = cache_path
             else:
-                self.file_path = Path("data/ibm_aml/HI-Small_Trans.csv")
+                self.file_path = DEFAULT_IBM_PATH
         else:
             self.file_path = Path(file_path)
 
