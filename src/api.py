@@ -838,28 +838,36 @@ def ingest_single_transaction(req: TransactionIngestRequest):
     ts = req.timestamp or time.time()
     tx_id = req.transaction_id or f"TX_{int(ts * 1000)}"
     
-    # Run through Stage 1 O(1) Anomaly Gate
-    needs_triage, reason = STREAMING_ENGINE.ingest_transaction(
-        src=req.source_entity,
-        dst=req.destination_entity,
-        amt=req.amount,
-        timestamp=ts,
-        tx_id=tx_id
-    )
+    tx_payload = {
+        "transaction_id": tx_id,
+        "sender_entity_id": req.source_entity,
+        "receiver_entity_id": req.destination_entity,
+        "amount": req.amount,
+        "timestamp": datetime.fromtimestamp(ts) if isinstance(ts, (int, float)) else ts
+    }
+
+    # Ingest into sliding window graph
+    STREAMING_ENGINE.ingest_transaction(tx_payload)
+
+    # Evaluate Stage 1 O(1) Anomaly Gate
+    needs_triage, reason = STREAMING_ENGINE.anomaly_trigger.evaluate_transaction(tx_payload)
     
     response = TransactionIngestResponse(
         transaction_id=tx_id,
         stage_1_flagged=needs_triage,
-        stage_1_reason=reason
+        stage_1_reason=reason or "Transaction conforms to baseline parameters."
     )
     
     # If Stage 1 is breached, automatically trigger Stage 2 (GNN)
     if needs_triage:
-        subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(req.source_entity, max_hops=2)
-        res = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=req.source_entity)
-        response.stage_2_risk_probability = res.get("risk_probability")
-        response.stage_2_confidence_tier = res.get("confidence_tier")
-        response.stage_2_terminals = res.get("terminals")
+        try:
+            subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(req.source_entity, max_hops=2)
+            res = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=req.source_entity)
+            response.stage_2_risk_probability = res.get("risk_probability")
+            response.stage_2_confidence_tier = res.get("confidence_tier")
+            response.stage_2_terminals = res.get("terminals")
+        except Exception:
+            response.stage_2_confidence_tier = "UNCLASSIFIED"
         
     return response
 

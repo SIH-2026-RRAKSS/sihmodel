@@ -19,6 +19,7 @@ import json
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Any, Optional, Set
+import heapq
 from collections import defaultdict, deque
 
 import numpy as np
@@ -126,11 +127,12 @@ class TemporalTransactionGraph:
     Maintains accounts, ATM terminals, and directed payment transactions.
     """
 
-    def __init__(self, window_hours: int = 72, max_hops: int = 3):
+    def __init__(self, window_hours: int = 72, max_hops: int = 3, warmup: bool = True):
         self.window_hours = window_hours
         self.max_hops = max_hops
         self.graph = nx.MultiDiGraph()
-        self.events = deque()  # stores (timestamp, u, v, key)
+        self.events: List[Tuple[Any, str, str, Any]] = []  # min-heap storing (timestamp, u, v, key)
+        self.latest_timestamp: Optional[datetime] = None
         self.entity_locations: Dict[str, Tuple[float, float]] = {}
         self.entity_cities: Dict[str, str] = {}
         self.model: Optional[DualHeadGraphSAGE] = None
@@ -141,6 +143,19 @@ class TemporalTransactionGraph:
         self.anomaly_trigger = DynamicAnomalyTrigger()
         self.proactive_alerts = []
         self.trigger_count = 0
+        if warmup:
+            self._warmup_recent_transactions()
+
+    def _warmup_recent_transactions(self, limit: int = 2000):
+        """Pre-warms the in-memory sliding window with recent transactions from CSV or SQLite."""
+        tx_file = DATA_DIR / "transactions.csv"
+        if tx_file.exists():
+            try:
+                df_t = pd.read_csv(tx_file)
+                recent_txs = df_t.tail(limit).to_dict(orient="records")
+                self.ingest_batch(recent_txs)
+            except Exception as e:
+                print(f"[Streaming] Notice: Warmup fallback: {e}")
 
     def _load_metadata_and_models(self):
         """Loads node metadata (coordinates/cities) and GraphSAGE model."""
@@ -234,12 +249,15 @@ class TemporalTransactionGraph:
             is_cash_out=bool(tx.get("is_cash_out", 0) or dst.startswith("ATM_"))
         )
 
-        self.events.append((ts, src, dst, key))
+        if self.latest_timestamp is None or ts > self.latest_timestamp:
+            self.latest_timestamp = ts
 
-        if purge_expired and self.events:
-            cutoff = ts - timedelta(hours=self.window_hours)
+        heapq.heappush(self.events, (ts, src, dst, key))
+
+        if purge_expired and self.events and self.latest_timestamp:
+            cutoff = self.latest_timestamp - timedelta(hours=self.window_hours)
             while self.events and self.events[0][0] < cutoff:
-                old_ts, u, v, old_key = self.events.popleft()
+                old_ts, u, v, old_key = heapq.heappop(self.events)
                 if self.graph.has_edge(u, v, key=old_key):
                     self.graph.remove_edge(u, v, key=old_key)
 
@@ -286,7 +304,32 @@ class TemporalTransactionGraph:
         subgraph = nx.MultiDiGraph()
         
         if not self.graph.has_node(seed_entity_id):
-            raise KeyError(f"Entity {seed_entity_id} not found in active streaming graph. It may not have transacted in the current time window, or the pipeline is not correctly ingesting it.")
+            # Check if entity is known in metadata or DB
+            if seed_entity_id in self.entity_locations or str(seed_entity_id).startswith("ATM_"):
+                tx_file = DATA_DIR / "transactions.csv"
+                loaded = False
+                if tx_file.exists():
+                    try:
+                        df_t = pd.read_csv(tx_file)
+                        matching = df_t[(df_t["sender_entity_id"] == seed_entity_id) | (df_t["receiver_entity_id"] == seed_entity_id)]
+                        if not matching.empty:
+                            self.ingest_batch(matching.to_dict(orient="records"))
+                            loaded = True
+                    except Exception:
+                        pass
+
+                if not loaded and not self.graph.has_node(seed_entity_id):
+                    src_type = "ATM" if str(seed_entity_id).startswith("ATM_") else "ACCOUNT"
+                    self.graph.add_node(
+                        seed_entity_id,
+                        node_type=src_type,
+                        city=self.entity_cities.get(seed_entity_id, "UNKNOWN"),
+                        latitude=self.entity_locations.get(seed_entity_id, (0.0, 0.0))[0],
+                        longitude=self.entity_locations.get(seed_entity_id, (0.0, 0.0))[1],
+                        is_terminal=bool(src_type == "ATM")
+                    )
+            else:
+                raise KeyError(f"Entity {seed_entity_id} not found in database or active streaming index.")
             
         # Optional: Start BFS queue from earliest transaction of seed entity to enforce downstream tracking
         start_time = as_of_time

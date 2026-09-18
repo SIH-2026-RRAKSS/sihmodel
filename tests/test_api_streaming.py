@@ -221,3 +221,66 @@ def test_api_three_way_benchmark():
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
+
+
+def test_api_transaction_ingest():
+    """Tests POST /api/ingest/transaction endpoint for Stage 1 gate & Stage 2 triage."""
+    # 1. Normal transaction (Stage 1 not flagged)
+    res_norm = client.post("/api/ingest/transaction", json={
+        "source_entity": "ENT_000001",
+        "destination_entity": "ENT_000002",
+        "amount": 2000.0
+    })
+    assert res_norm.status_code == 200
+    data_norm = res_norm.json()
+    assert "transaction_id" in data_norm
+    assert data_norm["stage_1_flagged"] is False
+
+    # 2. Anomaly transaction (high volume triggering Stage 1 & Stage 2)
+    res_high = client.post("/api/ingest/transaction", json={
+        "source_entity": "ENT_000001",
+        "destination_entity": "ATM_001",
+        "amount": 500000.0
+    })
+    assert res_high.status_code == 200
+    data_high = res_high.json()
+    assert data_high["stage_1_flagged"] is True
+    assert data_high["stage_2_risk_probability"] is not None
+
+
+def test_out_of_order_streaming_eviction():
+    """Tests out-of-order event ingestion & min-heap sliding-window eviction."""
+    from datetime import datetime, timedelta
+    engine = TemporalTransactionGraph(window_hours=72, warmup=False)
+    base_time = datetime(2026, 8, 1, 12, 0, 0)
+
+    # Ingest event at T0
+    engine.ingest_transaction({
+        "transaction_id": "TX_1",
+        "sender_entity_id": "ENT_000001",
+        "receiver_entity_id": "ENT_000002",
+        "amount": 1000.0,
+        "timestamp": base_time
+    })
+
+    # Ingest out-of-order event at T0 - 10h
+    engine.ingest_transaction({
+        "transaction_id": "TX_0",
+        "sender_entity_id": "ENT_000001",
+        "receiver_entity_id": "ENT_000003",
+        "amount": 500.0,
+        "timestamp": base_time - timedelta(hours=10)
+    })
+    assert engine.graph.number_of_edges() == 2
+
+    # Ingest event at T0 + 70h (purges TX_0 which is 80h old, retains TX_1 and TX_2)
+    engine.ingest_transaction({
+        "transaction_id": "TX_2",
+        "sender_entity_id": "ENT_000002",
+        "receiver_entity_id": "ENT_000004",
+        "amount": 2000.0,
+        "timestamp": base_time + timedelta(hours=70)
+    })
+    assert not engine.graph.has_edge("ENT_000001", "ENT_000003", key="TX_0")
+    assert engine.graph.has_edge("ENT_000001", "ENT_000002", key="TX_1")
+    assert engine.graph.has_edge("ENT_000002", "ENT_000004", key="TX_2")
