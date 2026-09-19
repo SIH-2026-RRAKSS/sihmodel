@@ -639,8 +639,9 @@ def validate_transaction_dataset(
         assert (ring_group["is_cash_out"] == 1).any(), f"{ring_id} does not contain any cash-out event!"
 
     # 12. Location mapping validation
-    assert len(df_locations) == len(entities), "entity_locations.csv must contain exactly 700 rows!"
-    assert df_locations["entity_id"].nunique() == len(entities), "entity_id must be unique in entity_locations.csv!"
+    expected_locations = len(entities) + 50  # 700 entities + 50 ATMs
+    assert len(df_locations) == expected_locations, f"entity_locations.csv must contain exactly {expected_locations} rows!"
+    assert df_locations["entity_id"].nunique() == expected_locations, "entity_id must be unique in entity_locations.csv!"
 
     print("All data quality validations PASSED successfully!")
 
@@ -697,9 +698,9 @@ def main():
     if not ENTITY_MASTER_FILE.exists():
         raise FileNotFoundError(f"Missing required entity master file: {ENTITY_MASTER_FILE}")
 
-    # Load 700 resolved entities from Stage 0
+    # Load 700 resolved entities from Stage 0 (exclude existing ATMs)
     df_entity_master = pd.read_csv(ENTITY_MASTER_FILE)
-    entities = df_entity_master["entity_id"].tolist()
+    entities = df_entity_master[~df_entity_master["entity_id"].str.startswith("ATM")]["entity_id"].tolist()
     print(f"Loaded {len(entities)} master entities from {ENTITY_MASTER_FILE}")
 
     rng = random.Random(RANDOM_SEED)
@@ -714,6 +715,8 @@ def main():
     for atm_id, atm_data in atm_lookup.items():
         atm_records.append({
             "entity_id": atm_id,
+            "state": atm_data.get("state", "Unknown"),
+            "city": atm_data.get("city", "Unknown"),
             "latitude": atm_data["latitude"],
             "longitude": atm_data["longitude"]
         })
