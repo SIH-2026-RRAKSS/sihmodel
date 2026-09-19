@@ -126,23 +126,14 @@ def run_live_stream_simulation(
             "is_cash_out": bool("ATM_" in to_ent)
         }
         
-        # Stage 1: Fast O(1) Anomaly Trigger Evaluation
-        triggered, reason = engine.anomaly_trigger.evaluate_transaction(tx_dict)
-        engine.ingest_transaction(tx_dict)
-        
-        out_deg = engine.graph.out_degree(from_ent) if engine.graph.has_node(from_ent) else 0
-        in_deg = engine.graph.in_degree(to_ent) if engine.graph.has_node(to_ent) else 0
+        t0 = time.time()
+        tx_id_ret, triggered, reason, res = engine.ingest_transaction(tx_dict)
+        inf_time = (time.time() - t0) * 1000
         
         if triggered:
             stage1_triggers += 1
             
-        # Stage 2: Deep GNN Triage
-        if triggered or out_deg >= 3 or in_deg >= 3 or "ATM_" in to_ent or amt >= 150000:
-            t0 = time.time()
-            subg = engine.extract_subgraph_around_entity(from_ent, as_of_time=pd.to_datetime(ts_str))
-            res = engine.score_subgraph_live(subg, seed_entity_id=from_ent)
-            inf_time = (time.time() - t0) * 1000
-            
+        if res:
             total_latency_ms += inf_time
             scored_graphs += 1
             
@@ -155,10 +146,11 @@ def run_live_stream_simulation(
                 print(f"{prog_str:<12} {ts_str[:19]:<20} {tx_id:<12} {from_ent:<14} {to_ent:<14} ₹{amt:>10,.2f}")
                 print(f"   └── {C_RED}{C_BOLD}🚨 GNN ALERT ({p_risk:.2f}){C_RESET} | Trigger: {reason or 'Degree Spike'} | Latency: {inf_time:.1f}ms | Tier: {tier}")
                 
-                atm_nodes = [n for n, d in subg.nodes(data=True) if d.get("node_type") == "ATM" or "ATM_" in str(n)]
-                if atm_nodes:
-                    atm_id = atm_nodes[0]
+                # We can't extract atm_nodes easily without the subgraph, but we can check if it's cashout
+                if "ATM_" in to_ent:
+                    atm_id = to_ent
                     atm_city = engine.entity_cities.get(atm_id, "Kochi")
+                    print(f"       {C_YELLOW}⮑ 🏧 CASH-OUT HORIZON WARNING: Exit via {to_ent}{C_RESET}")
                     print(f"       └── {C_CYAN}🏧 ATM Exit Lead: {atm_id} ({atm_city}) | Intercept Downstream Cash-Out{C_RESET}")
         
         # Periodic Progress Checkpoint

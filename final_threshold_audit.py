@@ -283,4 +283,5 @@ def run_audit():
     print(f"XGB Thresholds: {[round(t,3) for t in t_xgb]}")
     print(f"GNN Thresholds: {[round(t,3) for t in t_gnn]}")
 
-run_audit()
+if __name__ == "__main__":
+    run_audit()

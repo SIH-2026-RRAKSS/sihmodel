@@ -159,13 +159,19 @@ def replay_incident(
     print("=" * 88 + "\n")
 
 
-def replay_batch_incidents(num_incidents: int = 100):
+def replay_batch_incidents(num_incidents: int = 100, dataset: str = "synthetic"):
     print("=" * 88)
     print(f"{C_BOLD}{C_CYAN}  SIMULATION 2 (BATCH MODE): LARGE-SCALE INCIDENT TIMELINE REPLAY{C_RESET}")
     print(f"  Batch Volume: {num_incidents} Incident Subgraphs (>4,000 Real Transactions)")
     print("=" * 88)
     
-    summary_file = ROOT_DIR / "data" / "graph_summary.csv"
+    summary_filename = "ibm_graph_summary.csv" if dataset == "ibm" else "graph_summary.csv"
+    summary_file = ROOT_DIR / "data" / summary_filename
+    
+    if not summary_file.exists():
+        print(f"{C_RED}Error: {summary_file.name} not found! Generate graphs first.{C_RESET}")
+        return
+
     df = pd.read_csv(summary_file)
     sample_cases = df[df["num_edges"] > 0].head(num_incidents)
     
@@ -204,6 +210,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if args.batch:
-        replay_batch_incidents(num_incidents=100)
+        replay_batch_incidents(num_incidents=100, dataset=args.dataset)
     else:
         replay_incident(incident_id=args.id, dataset=args.dataset, delay_sec=args.delay)

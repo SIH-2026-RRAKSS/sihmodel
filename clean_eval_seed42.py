@@ -124,7 +124,11 @@ def evaluate_clean_ibm(seed=42):
     
     model = IBMGraphSAGE(input_dim=7, hidden_dim=64, dropout=0.2)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
-    criterion = torch.nn.BCEWithLogitsLoss()
+    
+    num_pos = sum([d.y.item() for d in train_raw])
+    num_neg = len(train_raw) - num_pos
+    pw = torch.tensor([num_neg / max(1, num_pos)], dtype=torch.float32)
+    criterion = torch.nn.BCEWithLogitsLoss(pos_weight=pw)
     
     best_val_f1 = -1
     best_weights = None

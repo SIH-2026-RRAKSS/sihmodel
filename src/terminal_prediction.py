@@ -264,8 +264,11 @@ def process_all_incident_terminal_predictions(
 
         G = nx.read_graphml(graph_file)
 
+        def _is_truthy(val):
+            return val in (True, "True", "true", 1, "1")
+
         # Locate root incident node coordinates
-        inc_nodes = [n for n, d in G.nodes(data=True) if d.get("is_incident") is True]
+        inc_nodes = [n for n, d in G.nodes(data=True) if _is_truthy(d.get("is_incident"))]
         if inc_nodes:
             inc_lat = float(G.nodes[inc_nodes[0]].get("latitude", 0.0))
             inc_lon = float(G.nodes[inc_nodes[0]].get("longitude", 0.0))
@@ -280,7 +283,7 @@ def process_all_incident_terminal_predictions(
         actual_cash_atms: Set[str] = set()
         for u, v, edata in G.edges(data=True):
             if v.startswith("ATM_") and (edata.get("is_cash_out") == 1 or edata.get("transaction_type") == "CASH_WITHDRAWAL"):
-                if edata.get("is_suspicious") == 1:
+                if _is_truthy(edata.get("is_suspicious")):
                     actual_cash_atms.add(v)
 
         if not atm_nodes:
