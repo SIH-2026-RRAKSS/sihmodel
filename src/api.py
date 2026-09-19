@@ -1637,7 +1637,7 @@ def export_case_dossier(incident_id: str, format: str = Query("markdown", descri
 ---
 
 ## 5. Physical Cash Exit & ATM Terminal Intelligence
-- **Target Exit Terminal**: `{term.get('terminal_id') or term.get('atm_id', 'ATM_014')}`
+- **Target Exit Terminal**: `{term.get('terminal_id') or term.get('atm_id') or 'NOT_IDENTIFIED'}`
 - **Predicted Exit City**: {term.get('city', 'Unknown')}
 - **Confidence Ranking Score**: `{term.get('terminal_score', 'N/A')}`
 - **Terminal Exit Rationale**: {term.get('rationale') or term.get('reason', 'Rapid downstream fund forwarding terminated at this cash withdrawal node.')}
