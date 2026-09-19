@@ -1040,7 +1040,7 @@ def register_complaint(req: ComplaintCreateRequest):
             if terms:
                 top_term = terms[0]
                 top_term_id = top_term.get("terminal_id")
-                top_term_score = top_term.get("score")
+                top_term_score = top_term.get("terminal_score")
                 top_term_city = top_term.get("city")
             exec_summary = f"Automated GNN triage scored {risk_prob:.2%} risk ({conf_tier}) across {num_nodes} nodes and {num_edges} edges."
         except Exception:
