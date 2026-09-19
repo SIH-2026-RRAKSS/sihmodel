@@ -164,7 +164,7 @@ def main():
     # 2. ITEM 8: IBM Explainability Layer
     # -------------------------------------------------------------
     exp_dict = {}
-    for _, row in df_tiers.head(100).iterrows():
+    for _, row in df_tiers.iterrows():
         sub_id = row["subgraph_id"]
         seed = row["seed_account"]
         bullets = [
