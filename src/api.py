@@ -696,7 +696,10 @@ def get_incident_graph(incident_id: str, expand_historical: bool = Query(False, 
             G = None
 
     if G is None:
-        G = STREAMING_ENGINE.extract_subgraph_around_entity(eid, max_hops=3)
+        try:
+            G = STREAMING_ENGINE.extract_subgraph_around_entity(eid, max_hops=3)
+        except Exception as e:
+            raise HTTPException(status_code=404, detail="Entity not found in graph.")
 
     nodes_out = []
     edges_out = []
