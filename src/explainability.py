@@ -448,28 +448,6 @@ def generate_explanation_examples_table(
     first_time = df_explanations[df_explanations["confidence_tier"] == "FIRST_TIME_RING_CANDIDATE"]
     if not first_time.empty:
         example_records.append(first_time.iloc[0])
-    else:
-        demo_first = {
-            "complaint_id": "DEMO_NOVEL_RING",
-            "incident_entity_id": "ENT_000999",
-            "graphsage_probability": 0.8800,
-            "predicted_risk_class": 1,
-            "confidence_tier": "FIRST_TIME_RING_CANDIDATE",
-            "top_terminal": "NONE",
-            "top_terminal_city": "NONE",
-            "terminal_score": 0.0,
-            "explanation_reasons": (
-                "GraphSAGE GNN assessed an elevated risk probability of 0.8800 (Tier: FIRST_TIME_RING_CANDIDATE) ; "
-                "Unusual concentration of transaction activity observed within the 72-hour incident window ; "
-                "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account ; "
-                "Cumulative transaction volume reached ₹412,000.00 with a peak single transfer of ₹180,000.00 ; "
-                "Potential novel transaction structure: Graph topology exhibits low similarity (0.73) to cataloged reference patterns. Treat as an emerging ring lead."
-            ),
-            "explanation_count": 5,
-            "investigator_summary": "Potential novel transaction structure detected around entity ENT_000999. Elevated model risk with low similarity to known reference patterns warrants manual new-pattern review.",
-            "terminal_evidence_summary": "NONE"
-        }
-        example_records.append(pd.Series(demo_first))
 
     # 5. NORMAL
     norm = df_explanations[df_explanations["confidence_tier"] == "NORMAL"]
@@ -634,22 +612,12 @@ def main():
             first_case["graphsage_probability"], first_case["confidence_tier"],
             first_case["explanation_reasons"].split(" ; "), first_case["investigator_summary"]
         )
-    else:
-        f_cid, f_ent, f_p, f_tier = "DEMO_NOVEL_RING", "ENT_000999", 0.8800, "FIRST_TIME_RING_CANDIDATE"
-        f_reasons = [
-            "GraphSAGE GNN assessed an elevated risk probability of 0.8800 (Tier: FIRST_TIME_RING_CANDIDATE).",
-            "Unusual concentration of transaction activity observed within the 72-hour incident window.",
-            "The incident graph spans 3 transaction hops, indicating multi-stage fund routing away from the complaint account.",
-            "Cumulative transaction volume reached ₹412,000.00 with a peak single transfer of ₹180,000.00.",
-            "Potential novel transaction structure: Graph topology exhibits low similarity (0.73) to cataloged reference patterns. Treat as an emerging ring lead."
-        ]
-        f_sum = "Potential novel transaction structure detected around entity ENT_000999. Elevated model risk with low similarity to known reference patterns warrants manual new-pattern review."
-    print(f"[FIRST_TIME_RING_CANDIDATE] Complaint: {f_cid} | Root Entity: {f_ent}")
-    print(f"Risk Probability : {f_p:.4f} | Confidence: {f_tier}")
-    print("Why this incident was flagged:")
-    for idx, r_item in enumerate(f_reasons, 1):
-        print(f"  {idx}. {r_item}")
-    print(f"Investigator Summary:\n  \"{f_sum}\"")
+        print(f"[FIRST_TIME_RING_CANDIDATE] Complaint: {f_cid} | Root Entity: {f_ent}")
+        print(f"Risk Probability : {f_p:.4f} | Confidence: {f_tier}")
+        print("Why this incident was flagged:")
+        for idx, r_item in enumerate(f_reasons, 1):
+            print(f"  {idx}. {r_item}")
+        print(f"Investigator Summary:\n  \"{f_sum}\"")
 
     # Normal Representative Case
     print("-" * 60)
