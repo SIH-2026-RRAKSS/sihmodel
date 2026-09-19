@@ -914,26 +914,25 @@ def main(graphs_dir: Path, summary_file: Path):
     # 2. Load all 1,000 GraphML subgraphs
     raw_dataset, df_summary = load_all_graphs_dataset(summary_file)
 
-    # Proper 70/10/20 split
+    train_ids, test_ids = get_or_create_train_test_split(df_summary)
+    
     from sklearn.model_selection import train_test_split
-    train_val_ids, test_ids = train_test_split(
-        df_summary['complaint_id'].tolist(), test_size=0.20, random_state=RANDOM_SEED, stratify=df_summary['contains_suspicious_activity']
-    )
-    df_train_val = df_summary[df_summary['complaint_id'].isin(set(train_val_ids))]
-    train_ids, val_ids = train_test_split(
-        train_val_ids, test_size=0.125, random_state=RANDOM_SEED, stratify=df_train_val['contains_suspicious_activity']
+    df_train = df_summary[df_summary['complaint_id'].astype(str).isin(train_ids)]
+    actual_train_ids, val_ids = train_test_split(
+        train_ids, test_size=0.125, random_state=RANDOM_SEED, stratify=df_train['contains_suspicious_activity']
     )
     
     test_set = set(test_ids)
     val_set = set(val_ids)
+    actual_train_set = set(actual_train_ids)
     
-    train_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") not in test_set and getattr(d, "complaint_id", "") not in val_set]
-    val_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") in val_set]
-    test_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") in test_set]
+    train_raw = [d for d in raw_dataset if str(getattr(d, "complaint_id", "")) in actual_train_set]
+    val_raw = [d for d in raw_dataset if str(getattr(d, "complaint_id", "")) in val_set]
+    test_raw = [d for d in raw_dataset if str(getattr(d, "complaint_id", "")) in test_set]
     
     train_dataset, val_dataset, mean_norm, std_norm = normalize_node_features(train_raw, val_raw)
     _, test_dataset, _, _ = normalize_node_features(train_raw, test_raw)
-    all_dataset, _, _, _ = normalize_node_features(raw_dataset, raw_dataset)
+    _, all_dataset, _, _ = normalize_node_features(train_raw, raw_dataset)
 
     # 5. DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
