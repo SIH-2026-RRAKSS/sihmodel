@@ -91,6 +91,7 @@ def build_ibm_subgraphs(n_pos=200, n_neg=800, seed=42):
         visited_nodes = {seed_acc}
         frontier = {seed_acc}
         subgraph_edges = []
+        seen_txs = set()
         
         for hop in range(1, 4):
             next_frontier = set()
@@ -99,7 +100,9 @@ def build_ibm_subgraphs(n_pos=200, n_neg=800, seed=42):
                 if u in tx_by_sender.groups:
                     out_df = tx_by_sender.get_group(u)
                     out_window = out_df[(out_df["timestamp"] >= t_start) & (out_df["timestamp"] <= t_end)]
-                    for _, r in out_window.iterrows():
+                    for idx, r in out_window.iterrows():
+                        if idx in seen_txs: continue
+                        seen_txs.add(idx)
                         v = r["to_acc"]
                         subgraph_edges.append((u, v, r))
                         if v not in visited_nodes:
@@ -108,7 +111,9 @@ def build_ibm_subgraphs(n_pos=200, n_neg=800, seed=42):
                 if u in tx_by_receiver.groups:
                     in_df = tx_by_receiver.get_group(u)
                     in_window = in_df[(in_df["timestamp"] >= t_start) & (in_df["timestamp"] <= t_end)]
-                    for _, r in in_window.iterrows():
+                    for idx, r in in_window.iterrows():
+                        if idx in seen_txs: continue
+                        seen_txs.add(idx)
                         v = r["from_acc"]
                         subgraph_edges.append((v, u, r))
                         if v not in visited_nodes:
