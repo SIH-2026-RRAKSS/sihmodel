@@ -195,7 +195,7 @@ class TemporalTransactionGraph:
             except Exception as e:
                 print(f"[Streaming] Notice: Model checkpoint loading fallback: {e}")
 
-    def ingest_transaction(self, tx: Dict[str, Any], purge_expired: bool = True) -> str:
+    def ingest_transaction(self, tx: Dict[str, Any], purge_expired: bool = True) -> Tuple[str, bool, Optional[str], Optional[Dict[str, Any]]]:
         """
         Ingests a single transaction event into the sliding window.
         Purges events older than (current_timestamp - window_hours).
@@ -264,15 +264,20 @@ class TemporalTransactionGraph:
                 old_ts, u, v, old_key = heapq.heappop(self.events)
                 if self.graph.has_edge(u, v, key=old_key):
                     self.graph.remove_edge(u, v, key=old_key)
+                    if self.graph.degree(u) == 0:
+                        self.graph.remove_node(u)
+                    if self.graph.degree(v) == 0:
+                        self.graph.remove_node(v)
 
-        # Stage 1: Fast O(1) Anomaly Trigger
         triggered, reason = self.anomaly_trigger.evaluate_transaction(tx)
+        res = None
         if triggered:
             self.trigger_count += 1
             # Stage 2: Event-Driven Graph Triage
             subgraph = self.extract_subgraph_around_entity(src, as_of_time=ts)
             res = self.score_subgraph_live(subgraph, seed_entity_id=src)
-            if res["risk_probability"] >= 0.70:
+            res_prob = res.get("risk_probability")
+            if res_prob is not None and res_prob >= 0.70:
                 alert = {
                     "timestamp": str(ts),
                     "transaction_id": tx_id,
@@ -284,7 +289,7 @@ class TemporalTransactionGraph:
                 }
                 self.proactive_alerts.append(alert)
 
-        return tx_id
+        return tx_id, triggered, reason, res
 
     def ingest_batch(self, transactions: List[Dict[str, Any]]) -> int:
         """High-throughput ingestion of transaction batch."""
@@ -310,17 +315,33 @@ class TemporalTransactionGraph:
         if not self.graph.has_node(seed_entity_id):
             # Check if entity is known in metadata or DB
             if seed_entity_id in self.entity_locations or str(seed_entity_id).startswith("ATM_"):
-                tx_file = DATA_DIR / "transactions.csv"
                 loaded = False
-                if tx_file.exists():
-                    try:
-                        df_t = pd.read_csv(tx_file)
-                        matching = df_t[(df_t["sender_entity_id"] == seed_entity_id) | (df_t["receiver_entity_id"] == seed_entity_id)]
-                        if not matching.empty:
-                            self.ingest_batch(matching.to_dict(orient="records"))
-                            loaded = True
-                    except Exception:
-                        pass
+                try:
+                    from src.database import get_db_session, TransactionRecord
+                    session = get_db_session()
+                    records = session.query(TransactionRecord).filter(
+                        (TransactionRecord.sender_entity_id == seed_entity_id) |
+                        (TransactionRecord.receiver_entity_id == seed_entity_id)
+                    ).order_by(TransactionRecord.timestamp.desc()).limit(100).all()
+                    
+                    if records:
+                        dicts = []
+                        for r in records:
+                            dicts.append({
+                                "transaction_id": r.transaction_id,
+                                "sender_entity_id": r.sender_entity_id,
+                                "receiver_entity_id": r.receiver_entity_id,
+                                "amount": float(r.amount),
+                                "timestamp": r.timestamp,
+                                "transaction_type": r.transaction_type,
+                                "channel": r.channel
+                            })
+                        self.ingest_batch(dicts)
+                        loaded = True
+                except Exception as e:
+                    pass
+                finally:
+                    if 'session' in locals(): session.close()
 
                 if not loaded and not self.graph.has_node(seed_entity_id):
                     src_type = "ATM" if str(seed_entity_id).startswith("ATM_") else "ACCOUNT"
@@ -429,7 +450,7 @@ class TemporalTransactionGraph:
                 float(in_deg + out_deg),
                 1.0 if nd.get("is_incident", False) or n == seed_entity_id else 0.0,
                 1.0 if nd.get("is_terminal", False) or str(n).startswith("ATM_") else 0.0,
-                15.0  # city code placeholder (default to 15 matching CITY_MAP unknown)
+                float(nd.get("city_code", 15.0))
             ]
             features.append(feat)
 
@@ -469,8 +490,23 @@ class TemporalTransactionGraph:
         terminal_candidates = []
         for n in node_list:
             if str(n).startswith("ATM_") or subgraph.nodes[n].get("is_terminal"):
-                in_amt = sum(e[2].get("amount", 0.0) for e in subgraph.in_edges(n, data=True))
-                score = round(0.25 * prob + 0.35 * (1.0 / (subgraph.nodes[n].get("hop_distance", 1) + 1)) + 0.40 * min(in_amt / 50000.0, 1.0), 4)
+                in_edges = list(subgraph.in_edges(n, data=True))
+                in_amt = sum(e[2].get("amount", 0.0) for e in in_edges)
+                num_cw = sum(1 for e in in_edges if e[2].get("transaction_type") == "CASH_WITHDRAWAL")
+                num_up = len(set(u for u, v, d in in_edges))
+                hop_dist = subgraph.nodes[n].get("hop_distance", 1)
+                
+                from src.terminal_prediction import calculate_terminal_score
+                score = calculate_terminal_score(
+                    gs_prob=prob,
+                    hop=hop_dist,
+                    num_cw=num_cw,
+                    tot_amt=in_amt,
+                    hours_diff=0.0,
+                    num_up=num_up,
+                    geo_dist=0.0
+                )
+                
                 terminal_candidates.append({
                     "terminal_id": n,
                     "city": self.entity_cities.get(n, "UNKNOWN"),

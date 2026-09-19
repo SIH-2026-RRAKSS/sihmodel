@@ -437,6 +437,14 @@ def get_pipeline_stats():
             gs_f1 = "N/A"
             xgb_f1 = "N/A"
 
+        try:
+            term_df = pd.read_csv(DATA_DIR / "terminal_prediction_evaluation.csv")
+            term_mrr = str(term_df.iloc[0]["mean_reciprocal_rank_mrr"])
+            term_top1 = str(term_df.iloc[0]["top_1_hit_rate"]) + "%"
+        except Exception:
+            term_mrr = "N/A"
+            term_top1 = "N/A"
+
         return {
             "total_incidents_monitored": total_complaints,
             "predictions_calibrated": total_preds,
@@ -448,8 +456,8 @@ def get_pipeline_stats():
             "model_comparison": {
                 "GraphSAGE_Test_F1": str(gs_f1),
                 "XGBoost_Baseline_F1": str(xgb_f1),
-                "Terminal_Prediction_MRR": "1.0000",
-                "Top1_CashOut_Accuracy": "100.0%"
+                "Terminal_Prediction_MRR": term_mrr,
+                "Top1_CashOut_Accuracy": term_top1
             }
         }
     finally:
@@ -910,28 +918,20 @@ def ingest_single_transaction(req: TransactionIngestRequest):
         "timestamp": datetime.fromtimestamp(ts) if isinstance(ts, (int, float)) else ts
     }
 
-    # Ingest into sliding window graph
-    STREAMING_ENGINE.ingest_transaction(tx_payload)
+    # Ingest into sliding window graph (which internally evaluates Stage 1 and Stage 2)
+    _, needs_triage, reason, res = STREAMING_ENGINE.ingest_transaction(tx_payload)
 
-    # Evaluate Stage 1 O(1) Anomaly Gate
-    needs_triage, reason = STREAMING_ENGINE.anomaly_trigger.evaluate_transaction(tx_payload)
-    
     response = TransactionIngestResponse(
         transaction_id=tx_id,
         stage_1_flagged=needs_triage,
         stage_1_reason=reason or "Transaction conforms to baseline parameters."
     )
     
-    # If Stage 1 is breached, automatically trigger Stage 2 (GNN)
-    if needs_triage:
-        try:
-            subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(req.source_entity, max_hops=2)
-            res = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=req.source_entity)
-            response.stage_2_risk_probability = res.get("risk_probability")
-            response.stage_2_confidence_tier = res.get("confidence_tier")
-            response.stage_2_terminals = res.get("terminals")
-        except Exception:
-            response.stage_2_confidence_tier = "UNCLASSIFIED"
+    # If Stage 1 is breached and Stage 2 executed successfully, populate risk
+    if needs_triage and res is not None:
+        response.stage_2_risk_probability = res.get("risk_probability")
+        response.stage_2_confidence_tier = res.get("confidence_tier")
+        response.stage_2_terminals = res.get("terminals")
 
     # Persist single transaction to DB
     session = get_db_session()
@@ -1165,8 +1165,7 @@ async def upload_transactions_csv(file: UploadFile = File(...)):
                 "timestamp": ts_dt
             }
             
-            STREAMING_ENGINE.ingest_transaction(tx_payload)
-            flagged, reason = STREAMING_ENGINE.anomaly_trigger.evaluate_transaction(tx_payload)
+            _, flagged, reason, _ = STREAMING_ENGINE.ingest_transaction(tx_payload)
             if flagged:
                 alerts_triggered += 1
                 if len(flagged_list) < 50:
@@ -1248,8 +1247,7 @@ def ingest_transactions_batch(req: TransactionBatchIngestRequest):
                 "timestamp": ts_dt
             }
             
-            STREAMING_ENGINE.ingest_transaction(tx_payload)
-            flagged, reason = STREAMING_ENGINE.anomaly_trigger.evaluate_transaction(tx_payload)
+            _, flagged, reason, _ = STREAMING_ENGINE.ingest_transaction(tx_payload)
             if flagged:
                 alerts_triggered += 1
                 if len(flagged_list) < 50:

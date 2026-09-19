@@ -643,8 +643,8 @@ def main():
 
         # 72-hour window anchored at complaint_date 00:00:00
         incident_time = datetime.strptime(c_date_str, "%Y-%m-%d")
-        window_start = incident_time - timedelta(hours=DEFAULT_WINDOW_HOURS)
-        window_end = incident_time + timedelta(hours=DEFAULT_WINDOW_HOURS)
+        window_start = incident_time - timedelta(hours=DEFAULT_WINDOW_HOURS / 2)
+        window_end = incident_time + timedelta(hours=DEFAULT_WINDOW_HOURS / 2)
 
         # Filter window transactions
         df_window_tx = filter_transactions_by_time(df_transactions, window_start, window_end)

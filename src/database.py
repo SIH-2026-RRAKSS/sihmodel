@@ -340,9 +340,11 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                 cid = r["complaint_id"]
                 prob = float(r.get("graphsage_probability") or r.get("graphsage_risk_probability") or 0.0)
                 tier = str(r.get("confidence_tier", "NORMAL"))
-                t_id = str(r.get("top_terminal", "NONE"))
-                t_city = str(r.get("top_terminal_city", "NONE"))
-                t_score = float(r.get("terminal_score", 0.0))
+                raw_t_id = r.get("top_terminal")
+                t_id = str(raw_t_id) if pd.notna(raw_t_id) and raw_t_id != "NONE" else None
+                raw_t_city = r.get("top_terminal_city")
+                t_city = str(raw_t_city) if pd.notna(raw_t_city) and raw_t_city != "NONE" else None
+                t_score = float(r.get("terminal_score") or 0.0) if pd.notna(r.get("terminal_score")) else 0.0
                 n_nodes, n_edges = graph_dict.get(cid, (1, 0))
                 summary = exp_dict.get(cid, "")
 
