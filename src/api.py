@@ -1549,10 +1549,10 @@ def tune_policy_threshold(req: PolicyTuneRequest):
         diffs = (df_p["threshold"] - tau).abs()
         best_row = df_p.loc[diffs.idxmin()]
 
-        alerts = int(best_row.get("alerts_generated", int(total_eval * 0.17)))
+        alerts = int(best_row.get("alerts", int(total_eval * 0.17)))
         prec = float(best_row.get("precision", 0.90)) * 100.0
         rec = float(best_row.get("recall", 0.86)) * 100.0
-        f1 = float(best_row.get("f1_score", 0.88)) * 100.0
+        f1 = float(best_row.get("f1", 0.88)) * 100.0
         tp = int(best_row.get("true_positives", 32))
         fp = int(best_row.get("false_positives", 2))
         tier_name = str(best_row.get("tier_name", "CUSTOM_POLICY"))
