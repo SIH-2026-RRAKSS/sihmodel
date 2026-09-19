@@ -469,6 +469,7 @@ def list_incidents(
     tier: Optional[str] = Query(None, description="Filter by tier: HIGH_CONFIDENCE, MEDIUM_CONFIDENCE, NORMAL"),
     min_risk: Optional[float] = Query(None, description="Minimum GraphSAGE risk probability (0.0 - 1.0)"),
     search: Optional[str] = Query(None, description="Search query by complaint ID or account number"),
+    dataset: Optional[str] = Query(None, description="Filter by dataset (synthetic or ibm)"),
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=1000)
 ):
@@ -478,6 +479,12 @@ def list_incidents(
         query = session.query(Complaint, IncidentPrediction).outerjoin(
             IncidentPrediction, Complaint.complaint_id == IncidentPrediction.complaint_id
         )
+
+        if dataset:
+            if dataset.lower() == "ibm":
+                query = query.filter(Complaint.complaint_id.startswith("IBM_"))
+            elif dataset.lower() == "synthetic":
+                query = query.filter(~Complaint.complaint_id.startswith("IBM_"))
 
         if tier:
             query = query.filter(IncidentPrediction.confidence_tier == tier)
