@@ -137,10 +137,15 @@ Index("idx_tx_receiver_time", TransactionRecord.receiver_entity_id, TransactionR
 # Database Helper Functions
 # ==============================================================================
 
+_ENGINE = None
+
 def get_engine(db_path: Path = DEFAULT_DB_PATH):
     """Creates a SQLite engine with multi-threading support."""
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    return create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    global _ENGINE
+    if _ENGINE is None:
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        _ENGINE = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    return _ENGINE
 
 
 def get_db_session(db_path: Path = DEFAULT_DB_PATH) -> Session:
