@@ -284,3 +284,10 @@ def test_out_of_order_streaming_eviction():
     assert not engine.graph.has_edge("ENT_000001", "ENT_000003", key="TX_0")
     assert engine.graph.has_edge("ENT_000001", "ENT_000002", key="TX_1")
     assert engine.graph.has_edge("ENT_000002", "ENT_000004", key="TX_2")
+
+def test_api_entities_locations():
+    response = client.get("/api/entities/locations")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    # Could be empty depending on the test data, but it shouldn't 500

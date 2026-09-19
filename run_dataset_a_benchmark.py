@@ -64,7 +64,7 @@ def run_benchmark():
         model, _, _ = train_graphsage_model(
             model=model,
             train_loader=train_loader,
-            test_loader=test_loader,
+            val_loader=test_loader,
             pos_weight_val=pos_weight,
             max_epochs=150,
             patience=20,
