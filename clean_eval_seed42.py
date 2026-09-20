@@ -93,7 +93,8 @@ def evaluate_clean_dataset_a(seed=42):
             test_targets.extend(batch.y.view(-1).cpu().numpy().astype(int))
             
     gnn_test_f1 = f1_score(test_targets, test_preds, zero_division=0)
-    print(f'Dataset A - Seed {seed} | GNN Clean Test F1: {gnn_test_f1:.4f}')
+    pd.DataFrame([{"seed": seed, "gnn_test_f1": gnn_test_f1}]).to_csv("data/clean_eval_seed42_results_dataset_a.csv", index=False)
+    print(f"Dataset A - Seed {seed} | GNN Clean Test F1: {gnn_test_f1:.4f}')
 
 def evaluate_clean_ibm(seed=42):
     torch.manual_seed(seed)
@@ -167,7 +168,8 @@ def evaluate_clean_ibm(seed=42):
             test_targets.extend(batch.y.squeeze(-1).cpu().numpy().astype(int))
             
     gnn_test_f1 = f1_score(test_targets, test_preds, zero_division=0)
-    print(f'Dataset B (IBM) - Seed {seed} | GNN Clean Test F1: {gnn_test_f1:.4f}')
+    pd.DataFrame([{"seed": seed, "gnn_test_f1": gnn_test_f1}]).to_csv("data/clean_eval_seed42_results_ibm.csv", index=False)
+    print(f"Dataset B (IBM) - Seed {seed} | GNN Clean Test F1: {gnn_test_f1:.4f}')
 
 if __name__ == '__main__':
     evaluate_clean_dataset_a(42)
