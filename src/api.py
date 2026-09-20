@@ -893,15 +893,23 @@ def get_entity_locations():
 @app.post("/api/predict/subgraph", response_model=LivePredictResponse, tags=["Live Inference"])
 def predict_live_subgraph(req: LivePredictRequest):
     """Runs on-the-fly GraphSAGE classification for any arbitrary entity ID."""
+    seed_id = req.seed_entity_id
+    if seed_id.startswith("C0"):
+        session = get_db_session()
+        comp = session.query(Complaint).filter(Complaint.complaint_id == seed_id).first()
+        if comp and comp.predicted_entity_id:
+            seed_id = comp.predicted_entity_id
+        session.close()
+
     try:
-        subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(req.seed_entity_id, max_hops=req.max_hops)
+        subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(seed_id, max_hops=req.max_hops)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
         
-    res = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=req.seed_entity_id)
+    res = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=seed_id)
 
     return LivePredictResponse(
-        seed_entity_id=req.seed_entity_id,
+        seed_entity_id=seed_id,
         risk_probability=res["risk_probability"],
         confidence_tier=res["confidence_tier"],
         is_suspicious=res["is_suspicious"],
@@ -1497,56 +1505,48 @@ def simulate_stream_batch(
     gnn_runs = 0
     total_gnn_lat_ms = 0.0
 
+    from src.streaming_engine import STREAMING_ENGINE
+
     for idx_tx, tx in enumerate(events):
-        amt = float(tx["amount"])
-        is_illicit = tx["ground_truth_illicit"] == 1
-        is_cash_out = tx["is_cash_out"]
+        t_tx_0 = time.time()
         
-        # Stage 1: Fast O(1) Anomaly Filter (filters out ~88-92% benign traffic)
-        is_large_outlier = amt >= 400000.0
-        # Core alerts: ATM cash-out terminus or high-value mule seed
-        is_syndicate_core = is_illicit and (is_cash_out or (is_large_outlier and idx_tx % 4 == 0) or (idx_tx % 24 == 0))
-        is_syndicate_layering = is_illicit and (idx_tx % 5 == 0) and not is_syndicate_core
+        # Ingest into live streaming engine (this runs Stage 1 and optionally Stage 2)
+        tx_id, triggered, reason, res = STREAMING_ENGINE.ingest_transaction(tx)
         
-        if is_syndicate_core or is_syndicate_layering or is_large_outlier or is_cash_out:
-            stage1_flag = True
-            reason = "SINGLE_TX_OUTLIER" if is_large_outlier else ("ATM_CASH_OUT_SPIKE" if is_cash_out else "VELOCITY_BURST")
+        if triggered:
             stage1_breaches += 1
-            
-            # Stage 2: DualHeadGraphSAGE forward pass simulation
-            t_gnn_0 = time.time()
-            if is_syndicate_core:
-                risk_prob = round(0.85 + (amt % 1200) / 10000.0, 4)
-                tier = "HIGH_CONFIDENCE"
-                alerts_emitted += 1
+            if res is not None:
+                gnn_runs += 1
+                risk_prob = res.get("graphsage_risk_probability", 0.0)
+                tier = res.get("confidence_tier", "LOW_CONFIDENCE")
+                if risk_prob >= 0.70:
+                    alerts_emitted += 1
+                term_id = res.get("top_terminal_id", "NONE")
+                term_city = res.get("top_terminal_city", "N/A")
             else:
-                risk_prob = round(0.42 + (amt % 1500) / 10000.0, 4)
-                tier = "MEDIUM_CONFIDENCE"
-                
-            gnn_lat = (time.time() - t_gnn_0) * 1000.0 + 0.70
-            total_gnn_lat_ms += gnn_lat
-            gnn_runs += 1
-            term_id = f"ATM_{int(amt) % 30:03d}" if is_cash_out or tier == "HIGH_CONFIDENCE" else "NONE"
-            term_city = "Mumbai" if int(amt) % 3 == 0 else ("Bhopal" if int(amt) % 3 == 1 else "Delhi")
-            lat_ms = gnn_lat
+                risk_prob = 0.0
+                tier = "UNCLASSIFIED"
+                term_id = "NONE"
+                term_city = "N/A"
         else:
-            stage1_flag = False
-            reason = None
-            risk_prob = round(0.02 + (amt % 300) / 10000.0, 4)
+            risk_prob = 0.0
             tier = "NORMAL"
             term_id = "NONE"
             term_city = "No Exit Convergence"
-            lat_ms = 0.001
+
+        lat_ms = (time.time() - t_tx_0) * 1000
+        if triggered and res is not None:
+            total_gnn_lat_ms += lat_ms
 
         processed_items.append({
             "transaction_id": tx["transaction_id"],
             "sender_entity_id": tx["sender_entity_id"],
             "receiver_entity_id": tx["receiver_entity_id"],
-            "amount": amt,
+            "amount": float(tx["amount"]),
             "timestamp": tx["timestamp"],
-            "is_cash_out": is_cash_out,
+            "is_cash_out": tx["is_cash_out"],
             "channel": tx["channel"],
-            "stage_1_flagged": stage1_flag,
+            "stage_1_flagged": triggered,
             "stage_1_reason": reason,
             "stage_2_risk_probability": risk_prob,
             "stage_2_confidence_tier": tier,

@@ -95,7 +95,7 @@ def evaluate_synthetic_degradation():
         print(f"Warning: Checkpoint {model_path} not found. Skipping evaluation or training...")
             
     # Load transactions for temporal truncation
-    df_tx = pd.read_csv("data/transactions.csv")
+    df_tx = pd.read_csv(DATA_DIR / "transactions.csv")
     df_tx["timestamp"] = pd.to_datetime(df_tx["timestamp"])
     df_summary["incident_time"] = pd.to_datetime(df_summary["incident_time"])
     comp_to_t0 = dict(zip(df_summary["complaint_id"], df_summary["incident_time"]))

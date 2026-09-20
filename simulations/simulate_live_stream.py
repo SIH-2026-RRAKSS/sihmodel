@@ -149,7 +149,7 @@ def run_live_stream_simulation(
                 # We can't extract atm_nodes easily without the subgraph, but we can check if it's cashout
                 if "ATM_" in to_ent:
                     atm_id = to_ent
-                    atm_city = engine.entity_cities.get(atm_id, "Kochi")
+                    atm_city = engine.entity_cities.get(atm_id, "Unknown")
                     print(f"       {C_YELLOW}⮑ 🏧 CASH-OUT HORIZON WARNING: Exit via {to_ent}{C_RESET}")
                     print(f"       └── {C_CYAN}🏧 ATM Exit Lead: {atm_id} ({atm_city}) | Intercept Downstream Cash-Out{C_RESET}")
         
