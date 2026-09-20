@@ -292,8 +292,12 @@ def build_entity_master(
         canonical_name = name_counts.index[0]
 
         # Extract normalized account number and ifsc
-        first_valid_acct = group["account_number"].dropna().astype(str).str.strip().iloc[0]
-        first_valid_ifsc = group["ifsc"].dropna().astype(str).str.strip().str.upper().iloc[0]
+        valid_accts = group["account_number"].dropna().astype(str).str.strip()
+        first_valid_acct = valid_accts.iloc[0] if not valid_accts.empty else "UNKNOWN"
+        
+        valid_ifscs = group["ifsc"].dropna().astype(str).str.strip().str.upper()
+        first_valid_ifsc = valid_ifscs.iloc[0] if not valid_ifscs.empty else "UNKNOWN"
+        
         identity_key = f"{first_valid_acct}_{first_valid_ifsc}"
 
         master_records.append({

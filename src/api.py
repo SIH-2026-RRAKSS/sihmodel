@@ -1382,6 +1382,43 @@ def create_entity(req: EntityCreateRequest):
         session.close()
 
 
+@app.get("/api/geo/corridors", tags=["Geo Mapping"])
+def get_geo_corridors():
+    """Returns top multi-hop laundering corridors dynamically from the database."""
+    session = get_db_session()
+    try:
+        query = text("""
+            SELECT t.sender_entity_id as entityId, t.receiver_entity_id as atmId, t.amount,
+                   e1.district as fromCity, e1.latitude as from_lat, e1.longitude as from_lon,
+                   e2.district as toCity, e2.latitude as to_lat, e2.longitude as to_lon
+            FROM transactions t
+            JOIN entity_master e1 ON t.sender_entity_id = e1.entity_id
+            JOIN entity_master e2 ON t.receiver_entity_id = e2.entity_id
+            WHERE e1.district != e2.district AND e1.latitude IS NOT NULL AND e2.latitude IS NOT NULL
+            ORDER BY t.amount DESC
+            LIMIT 15
+        """)
+        results = session.execute(query).fetchall()
+        corridors = []
+        for r in results:
+            corridors.append({
+                "entityId": r.entityId,
+                "atmId": r.atmId,
+                "amount": f"₹{r.amount/100000:.2f}L",
+                "fromCity": r.fromCity,
+                "from": [r.from_lat, r.from_lon],
+                "toCity": r.toCity,
+                "to": [r.to_lat, r.to_lon],
+                "risk": "HIGH" if r.amount > 100000 else "MEDIUM"
+            })
+        return corridors
+    except Exception as e:
+        logger.error(f"Failed to fetch corridors: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+    finally:
+        session.close()
+
+
 @app.post("/api/simulate/stream", tags=["Operational Simulations"])
 def simulate_stream_batch(
     dataset: str = Query("synthetic", description="Dataset source: synthetic or ibm"),

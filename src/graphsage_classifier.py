@@ -596,16 +596,7 @@ def evaluate_test_set(
     pr_auc = average_precision_score(y_test, y_prob)
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
 
-    # Predictions DataFrame
-    df_preds = pd.DataFrame({
-        "complaint_id": all_complaint_ids,
-        "incident_entity_id": all_incident_entities,
-        "actual_label": y_test,
-        "predicted_probability": np.round(y_prob, 4),
-        "predicted_label": y_pred
-    })
-    df_preds.to_csv(GRAPHSAGE_PREDICTIONS_FILE, index=False)
-    print(f"[SUCCESS] Saved GraphSAGE test predictions to: {GRAPHSAGE_PREDICTIONS_FILE}")
+    # CSV generation moved to separate function for full dataset
 
     return {
         "accuracy": acc,
@@ -682,6 +673,36 @@ def extract_and_save_graph_embeddings(
     df_emb.to_csv(output_path, index=False)
     print(f"[SUCCESS] Saved 64-dimensional graph embeddings ({df_emb.shape[0]} graphs) to: {output_path}")
     return df_emb
+
+def generate_full_predictions(
+    model: DualHeadGraphSAGE,
+    full_dataset: List[Data],
+    output_path: Path = GRAPHSAGE_PREDICTIONS_FILE
+) -> pd.DataFrame:
+    model.eval()
+    full_loader = DataLoader(full_dataset, batch_size=64, shuffle=False)
+
+    all_probs = []
+    all_complaint_ids = []
+
+    with torch.no_grad():
+        for batch in full_loader:
+            graph_out, _, _ = model(batch.x, batch.edge_index, batch.batch)
+            probs = torch.sigmoid(graph_out).squeeze(-1).cpu().numpy()
+            all_probs.extend(probs)
+            all_complaint_ids.extend(batch.complaint_id)
+
+    y_prob = np.array(all_probs)
+    y_pred = (y_prob >= 0.50).astype(int)
+
+    df_preds = pd.DataFrame({
+        "complaint_id": all_complaint_ids,
+        "predicted_risk_class": y_pred,
+        "graphsage_risk_probability": np.round(y_prob, 4)
+    })
+    df_preds.to_csv(output_path, index=False)
+    print(f"[SUCCESS] Saved GraphSAGE full predictions ({df_preds.shape[0]} graphs) to: {output_path}")
+    return df_preds
 
 
 # ==============================================================================
@@ -986,6 +1007,9 @@ def main(graphs_dir: Path, summary_file: Path):
 
     # 11. Extract 64-dim Graph Embeddings for all 1,000 graphs
     df_embeddings = extract_and_save_graph_embeddings(model, all_dataset)
+
+    # 11b. Generate full predictions
+    df_full_preds = generate_full_predictions(model, all_dataset)
 
     # 12. Visualizations
     plot_training_curves(df_history)
