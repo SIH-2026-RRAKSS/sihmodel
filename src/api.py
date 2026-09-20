@@ -68,6 +68,8 @@ app.add_middleware(
 
 # Global in-memory streaming graph engine instance
 STREAMING_ENGINE = TemporalTransactionGraph(window_hours=72, max_hops=3)
+import threading
+STREAMING_LOCK = threading.Lock()
 
 
 # ==============================================================================
@@ -902,7 +904,8 @@ def predict_live_subgraph(req: LivePredictRequest):
         session.close()
 
     try:
-        subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(seed_id, max_hops=req.max_hops)
+        with STREAMING_LOCK:
+            subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(seed_id, max_hops=req.max_hops)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
         
@@ -934,7 +937,8 @@ def ingest_single_transaction(req: TransactionIngestRequest):
     }
 
     # Ingest into sliding window graph (which internally evaluates Stage 1 and Stage 2)
-    _, needs_triage, reason, res = STREAMING_ENGINE.ingest_transaction(tx_payload)
+    with STREAMING_LOCK:
+        _, needs_triage, reason, res = STREAMING_ENGINE.ingest_transaction(tx_payload)
 
     response = TransactionIngestResponse(
         transaction_id=tx_id,
@@ -1048,10 +1052,11 @@ def register_complaint(req: ComplaintCreateRequest):
         exec_summary = f"Complaint {cid} registered for account {raw_acc}. Initial state."
 
         try:
-            subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(entity_id, max_hops=2)
-            num_nodes = subgraph.number_of_nodes()
-            num_edges = subgraph.number_of_edges()
-            triage = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=entity_id)
+            with STREAMING_LOCK:
+                subgraph = STREAMING_ENGINE.extract_subgraph_around_entity(entity_id, max_hops=2)
+                num_nodes = subgraph.number_of_nodes()
+                num_edges = subgraph.number_of_edges()
+                triage = STREAMING_ENGINE.score_subgraph_live(subgraph, seed_entity_id=entity_id)
             risk_prob = float(triage.get("risk_probability", 0.50))
             conf_tier = str(triage.get("confidence_tier", "NORMAL"))
             terms = triage.get("terminals", [])
@@ -1180,7 +1185,8 @@ async def upload_transactions_csv(file: UploadFile = File(...)):
                 "timestamp": ts_dt
             }
             
-            _, flagged, reason, _ = STREAMING_ENGINE.ingest_transaction(tx_payload)
+            with STREAMING_LOCK:
+                _, flagged, reason, _ = STREAMING_ENGINE.ingest_transaction(tx_payload)
             if flagged:
                 alerts_triggered += 1
                 if len(flagged_list) < 50:
@@ -1262,7 +1268,8 @@ def ingest_transactions_batch(req: TransactionBatchIngestRequest):
                 "timestamp": ts_dt
             }
             
-            _, flagged, reason, _ = STREAMING_ENGINE.ingest_transaction(tx_payload)
+            with STREAMING_LOCK:
+                _, flagged, reason, _ = STREAMING_ENGINE.ingest_transaction(tx_payload)
             if flagged:
                 alerts_triggered += 1
                 if len(flagged_list) < 50:
@@ -1505,24 +1512,30 @@ def simulate_stream_batch(
     gnn_runs = 0
     total_gnn_lat_ms = 0.0
 
-    from src.streaming_engine import STREAMING_ENGINE
 
     for idx_tx, tx in enumerate(events):
         t_tx_0 = time.time()
         
         # Ingest into live streaming engine (this runs Stage 1 and optionally Stage 2)
-        tx_id, triggered, reason, res = STREAMING_ENGINE.ingest_transaction(tx)
+        with STREAMING_LOCK:
+            tx_id, triggered, reason, res = STREAMING_ENGINE.ingest_transaction(tx)
         
         if triggered:
             stage1_breaches += 1
             if res is not None:
                 gnn_runs += 1
-                risk_prob = res.get("graphsage_risk_probability", 0.0)
+                risk_prob = res.get("risk_probability", 0.0)
                 tier = res.get("confidence_tier", "LOW_CONFIDENCE")
                 if risk_prob >= 0.70:
                     alerts_emitted += 1
-                term_id = res.get("top_terminal_id", "NONE")
-                term_city = res.get("top_terminal_city", "N/A")
+                
+                terminals = res.get("terminals", [])
+                if terminals:
+                    term_id = terminals[0].get("terminal_id", "NONE")
+                    term_city = terminals[0].get("city", "N/A")
+                else:
+                    term_id = "NONE"
+                    term_city = "N/A"
             else:
                 risk_prob = 0.0
                 tier = "UNCLASSIFIED"
