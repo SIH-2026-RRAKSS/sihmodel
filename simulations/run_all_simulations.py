@@ -65,17 +65,19 @@ def main():
     if choice == "1":
         run_live_stream_simulation(dataset=args.dataset, num_tx=args.num_tx, speed_factor=0.01)
     elif choice == "2":
-        replay_incident(incident_id="C000124", dataset=args.dataset, delay_sec=0.04)
+        target_incident = "IBM_POS_1" if args.dataset == "ibm" else "C000124"
+        replay_incident(incident_id=target_incident, dataset=args.dataset, delay_sec=0.04)
     elif choice == "3":
         run_adversarial_evasion_test()
     elif choice == "4":
         run_police_dispatch_simulation()
     elif choice == "5" or choice.lower() == "all":
         print(f"\n{C_BOLD}{C_YELLOW}>>> RUNNING COMPLETE 4-STAGE REAL DATASET DEMONSTRATION <<<{C_RESET}\n")
-        print("\n--- STAGE 1: REAL-TIME STREAMING INGESTION (15k Dataset) ---")
-        run_live_stream_simulation(dataset="synthetic", num_tx=40, speed_factor=0.01)
-        print("\n--- STAGE 2: REAL INCIDENT TIMELINE REPLAY (C000124 GraphML) ---")
-        replay_incident(incident_id="C000124", dataset="synthetic", delay_sec=0.03)
+        print(f"\n--- STAGE 1: REAL-TIME STREAMING INGESTION ({args.dataset.upper()} Dataset) ---")
+        run_live_stream_simulation(dataset=args.dataset, num_tx=40, speed_factor=0.01)
+        target_incident = "IBM_POS_1" if args.dataset == "ibm" else "C000124"
+        print(f"\n--- STAGE 2: REAL INCIDENT TIMELINE REPLAY ({target_incident} GraphML) ---")
+        replay_incident(incident_id=target_incident, dataset=args.dataset, delay_sec=0.03)
         print("\n--- STAGE 3: REAL DATASET ADVERSARIAL EVASION BENCHMARK (IBM AML) ---")
         run_adversarial_evasion_test()
         print("\n--- STAGE 4: MULTI-STATE POLICE TRIAGE & FIR AUTO-DISPATCH ---")

@@ -45,8 +45,8 @@ from src.terminal_prediction import compute_graphsage_risk_probabilities
 # Configuration & Thresholds
 # ==============================================================================
 
-DATA_DIR = Path("data")
-MODELS_DIR = Path("models")
+DATA_DIR = ROOT_DIR / "data"
+MODELS_DIR = ROOT_DIR / "models"
 
 GRAPH_SUMMARY_FILE = DATA_DIR / "graph_summary.csv"
 GRAPH_EMBEDDINGS_FILE = DATA_DIR / "graph_embeddings.csv"

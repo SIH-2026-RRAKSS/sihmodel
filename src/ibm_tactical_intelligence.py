@@ -23,7 +23,7 @@ if str(ROOT_DIR) not in sys.path:
 from src.ibm_graphsage_classifier import load_or_create_ibm_pyg_dataset, IBMGraphSAGE, normalize_node_features, TARGET_COL
 from torch_geometric.loader import DataLoader
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 IBM_SUMMARY_FILE = DATA_DIR / "ibm_graph_summary.csv"
 IBM_TIERS_FILE = DATA_DIR / "ibm_confidence_tiers.csv"
 IBM_TIER_EVAL_FILE = DATA_DIR / "ibm_confidence_tier_evaluation.csv"
@@ -164,7 +164,7 @@ def main():
     # 2. ITEM 8: IBM Explainability Layer
     # -------------------------------------------------------------
     exp_dict = {}
-    for _, row in df_tiers.head(100).iterrows():
+    for _, row in df_tiers.iterrows():
         sub_id = row["subgraph_id"]
         seed = row["seed_account"]
         bullets = [

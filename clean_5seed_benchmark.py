@@ -109,6 +109,7 @@ def evaluate_clean_dataset_a(seeds=[42, 101, 2024, 7, 99]):
         f1s.append(gnn_test_f1)
         print(f"Dataset A - Seed {seed:>4} | GNN Clean Test F1: {gnn_test_f1*100:.2f}%")
     
+    pd.DataFrame({"seed": [42, 100, 101, 102, 103], "gnn_test_f1": f1s}).to_csv("data/clean_5seed_results_dataset_a.csv", index=False)
     print(f"\nDataset A Clean F1 Summary: {np.mean(f1s)*100:.2f}% +/- {np.std(f1s)*100:.2f}%\n")
 
 
@@ -193,6 +194,7 @@ def evaluate_clean_ibm(seeds=[42, 101, 2024, 7, 99]):
         f1s.append(gnn_test_f1)
         print(f"Dataset B (IBM) - Seed {seed:>4} | GNN Clean Test F1: {gnn_test_f1*100:.2f}%")
         
+    pd.DataFrame({"seed": [42, 100, 101, 102, 103], "gnn_test_f1": f1s}).to_csv("data/clean_5seed_results_ibm.csv", index=False)
     print(f"\nDataset B Clean F1 Summary: {np.mean(f1s)*100:.2f}% +/- {np.std(f1s)*100:.2f}%\n")
 
 

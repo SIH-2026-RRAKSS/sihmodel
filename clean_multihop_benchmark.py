@@ -56,6 +56,7 @@ def eval_multihop_dataset_a(seeds=[42, 101, 2024, 7, 99]):
         gnn_test_f1 = f1_score(test_targets, test_preds, zero_division=0)
         f1s.append(gnn_test_f1)
     
+    pd.DataFrame({"seed": seeds, "gnn_test_f1": f1s}).to_csv("data/clean_multihop_benchmark_results_dataset_a.csv", index=False)
     print(f"Dataset A Multi-Node Clean F1: {np.mean(f1s)*100:.2f}% +/- {np.std(f1s)*100:.2f}%")
 
 def eval_multihop_ibm(seeds=[42, 101, 2024, 7, 99]):
@@ -104,6 +105,7 @@ def eval_multihop_ibm(seeds=[42, 101, 2024, 7, 99]):
         gnn_test_f1 = f1_score(test_targets, test_preds, zero_division=0)
         f1s.append(gnn_test_f1)
     
+    pd.DataFrame({"seed": seeds, "gnn_test_f1": f1s}).to_csv("data/clean_multihop_benchmark_results_ibm.csv", index=False)
     print(f"Dataset B (IBM) Multi-Node Clean F1: {np.mean(f1s)*100:.2f}% +/- {np.std(f1s)*100:.2f}%")
 
 if __name__ == '__main__':

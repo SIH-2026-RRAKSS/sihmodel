@@ -53,10 +53,8 @@ def load_ibm_to_networkx(ibm_csv_path: str = "data/HI-Small_Trans.csv") -> nx.Mu
         )
         
         # Ensure nodes exist with basic metadata
-        if not G.has_node(src):
-            G.nodes[src]['node_type'] = 'account'
-        if not G.has_node(dst):
-            G.nodes[dst]['node_type'] = 'account'
+        G.nodes[src]['node_type'] = 'account'
+        G.nodes[dst]['node_type'] = 'account'
 
     print(f"IBM Graph Loaded! Nodes: {G.number_of_nodes()} | Edges: {G.number_of_edges()}")
     return G, df

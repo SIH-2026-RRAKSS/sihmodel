@@ -45,7 +45,7 @@ from src.ibm_graphsage_classifier import (
     IBMGraphSAGE, TARGET_COL as TARGET_IBM
 )
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 
 def wilson_ci(pos, n, conf=0.95):
     if n == 0: return (0.0, 0.0)
@@ -65,8 +65,8 @@ def evaluate_synthetic_degradation():
     print("   [1/2] EVALUATING EXISTING GRAPHSAGE ON DATASET A (SYNTHETIC)")
     print("=" * 70)
     
-    df_summary = pd.read_csv("data/graph_summary.csv")
-    raw_dataset, _ = load_all_graphs_dataset()
+    df_summary = pd.read_csv(DATA_DIR / "graph_summary.csv")
+    raw_dataset, _ = load_all_graphs_dataset(summary_file=DATA_DIR / "graph_summary.csv")
     
     # Train/test split seed 42
     train_ids, test_ids = train_test_split(
@@ -95,7 +95,7 @@ def evaluate_synthetic_degradation():
         print(f"Warning: Checkpoint {model_path} not found. Skipping evaluation or training...")
             
     # Load transactions for temporal truncation
-    df_tx = pd.read_csv("data/transactions.csv")
+    df_tx = pd.read_csv(DATA_DIR / "transactions.csv")
     df_tx["timestamp"] = pd.to_datetime(df_tx["timestamp"])
     df_summary["incident_time"] = pd.to_datetime(df_summary["incident_time"])
     comp_to_t0 = dict(zip(df_summary["complaint_id"], df_summary["incident_time"]))
@@ -143,27 +143,33 @@ def evaluate_synthetic_degradation():
             node_list = list(G_trunc.nodes())
             node_map = {n: i for i, n in enumerate(node_list)}
             
+            CITY_MAP = {
+                "Mumbai": 1, "Delhi": 2, "Bangalore": 3, "Hyderabad": 4, "Ahmedabad": 5,
+                "Chennai": 6, "Kolkata": 7, "Surat": 8, "Pune": 9, "Jaipur": 10,
+                "Lucknow": 11, "Kanpur": 12, "Nagpur": 13, "Indore": 14
+            }
+            
             x_feats = []
             for n in node_list:
                 ndata = G_trunc.nodes[n]
-                in_d = G_trunc.in_degree(n)
-                out_d = G_trunc.out_degree(n)
-                tot_amt = sum(float(G_trunc.get_edge_data(u, v).get("amount", 0.0)) for u, v in G_trunc.in_edges(n))
-                # Approximate 13-dim vector matching Stage 3B feature format
+                nt_acc = 1.0 if ndata.get("node_type") == "ACCOUNT" else 0.0
+                nt_atm = 1.0 if ndata.get("node_type") == "ATM" else 0.0
+                hop = float(ndata.get("hop_distance", 0))
+                in_deg = float(G_trunc.in_degree(n))
+                out_deg = float(G_trunc.out_degree(n))
+                in_amt = sum(float(edata.get("amount", 0.0)) for _, _, edata in G_trunc.in_edges(n, data=True))
+                out_amt = sum(float(edata.get("amount", 0.0)) for _, _, edata in G_trunc.out_edges(n, data=True))
+                avg_in = in_amt / max(in_deg, 1.0)
+                avg_out = out_amt / max(out_deg, 1.0)
+                tx_cnt = in_deg + out_deg
+                is_inc = 1.0 if ndata.get("is_incident", False) else 0.0
+                is_term = 1.0 if ndata.get("is_terminal", False) else 0.0
+                city_code = float(CITY_MAP.get(str(ndata.get("city", "Unknown")), 15))
+                
                 x_row = [
-                    float(ndata.get("is_complaint_account", 0)),
-                    float(ndata.get("is_mule_candidate", 0)),
-                    float(ndata.get("account_age_days", 180)),
-                    float(ndata.get("dormancy_score", 0.0)),
-                    float(in_d),
-                    float(out_d),
-                    float(tot_amt),
-                    float(ndata.get("velocity_tph", in_d / max(1.0, hours))),
-                    float(ndata.get("velocity_vph", tot_amt / max(1.0, hours))),
-                    float(ndata.get("fan_out_ratio", out_d / max(1, in_d))),
-                    float(ndata.get("is_terminal", 0)),
-                    float(ndata.get("risk_tier", 0)),
-                    float(ndata.get("flow_balance", 0.0))
+                    nt_acc, nt_atm, hop, in_deg, out_deg,
+                    in_amt, out_amt, avg_in, avg_out, tx_cnt,
+                    is_inc, is_term, city_code
                 ]
                 x_feats.append(x_row)
                 
@@ -287,7 +293,7 @@ def evaluate_ibm_degradation():
             model.train()
             for batch in train_loader:
                 optimizer.zero_grad()
-                _, out, _ = model(batch.x, batch.edge_index, batch.batch)
+                out, _ = model(batch.x, batch.edge_index, batch.batch)
                 loss = criterion(out, batch.y.squeeze(-1))
                 loss.backward()
                 optimizer.step()
@@ -372,7 +378,7 @@ def evaluate_ibm_degradation():
         all_probs, all_targets = [], []
         with torch.no_grad():
             for batch in t_loader:
-                _, out, _ = model(batch.x, batch.edge_index, batch.batch)
+                out, _ = model(batch.x, batch.edge_index, batch.batch)
                 prob = torch.sigmoid(out).cpu().numpy()
                 all_probs.extend(prob.tolist())
                 all_targets.extend(batch.y.squeeze(-1).cpu().numpy().astype(int).tolist())

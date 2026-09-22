@@ -61,8 +61,9 @@ from torch_geometric.nn import SAGEConv, global_mean_pool
 
 RANDOM_SEED = 42
 
-DATA_DIR = Path("data")
-MODELS_DIR = Path("models")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / "data"
+MODELS_DIR = ROOT_DIR / "models"
 GRAPHS_DIR = DATA_DIR / "graphs"
 
 XGB_PREDICTIONS_FILE = DATA_DIR / "xgboost_predictions.csv"
@@ -195,7 +196,8 @@ def build_pyg_data_from_graphml(
     edge_is_illicit = []
     for u, v, edata in G.edges(data=True):
         edge_list.append([node_to_idx[u], node_to_idx[v]])
-        edge_is_illicit.append(1.0 if str(edata.get('d16', '0')) == '1' else 0.0)
+        is_illicit = 1.0 if (str(edata.get('is_suspicious', '0')) == '1' or str(edata.get('d16', '0')) == '1') else 0.0
+        edge_is_illicit.append(is_illicit)
 
     if edge_list:
         edge_index = torch.tensor(edge_list, dtype=torch.long).t().contiguous()
@@ -594,16 +596,7 @@ def evaluate_test_set(
     pr_auc = average_precision_score(y_test, y_prob)
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
 
-    # Predictions DataFrame
-    df_preds = pd.DataFrame({
-        "complaint_id": all_complaint_ids,
-        "incident_entity_id": all_incident_entities,
-        "actual_label": y_test,
-        "predicted_probability": np.round(y_prob, 4),
-        "predicted_label": y_pred
-    })
-    df_preds.to_csv(GRAPHSAGE_PREDICTIONS_FILE, index=False)
-    print(f"[SUCCESS] Saved GraphSAGE test predictions to: {GRAPHSAGE_PREDICTIONS_FILE}")
+    # CSV generation moved to separate function for full dataset
 
     return {
         "accuracy": acc,
@@ -680,6 +673,36 @@ def extract_and_save_graph_embeddings(
     df_emb.to_csv(output_path, index=False)
     print(f"[SUCCESS] Saved 64-dimensional graph embeddings ({df_emb.shape[0]} graphs) to: {output_path}")
     return df_emb
+
+def generate_full_predictions(
+    model: DualHeadGraphSAGE,
+    full_dataset: List[Data],
+    output_path: Path = GRAPHSAGE_PREDICTIONS_FILE
+) -> pd.DataFrame:
+    model.eval()
+    full_loader = DataLoader(full_dataset, batch_size=64, shuffle=False)
+
+    all_probs = []
+    all_complaint_ids = []
+
+    with torch.no_grad():
+        for batch in full_loader:
+            graph_out, _, _ = model(batch.x, batch.edge_index, batch.batch)
+            probs = torch.sigmoid(graph_out).squeeze(-1).cpu().numpy()
+            all_probs.extend(probs)
+            all_complaint_ids.extend(batch.complaint_id)
+
+    y_prob = np.array(all_probs)
+    y_pred = (y_prob >= 0.50).astype(int)
+
+    df_preds = pd.DataFrame({
+        "complaint_id": all_complaint_ids,
+        "predicted_risk_class": y_pred,
+        "graphsage_risk_probability": np.round(y_prob, 4)
+    })
+    df_preds.to_csv(output_path, index=False)
+    print(f"[SUCCESS] Saved GraphSAGE full predictions ({df_preds.shape[0]} graphs) to: {output_path}")
+    return df_preds
 
 
 # ==============================================================================
@@ -912,26 +935,25 @@ def main(graphs_dir: Path, summary_file: Path):
     # 2. Load all 1,000 GraphML subgraphs
     raw_dataset, df_summary = load_all_graphs_dataset(summary_file)
 
-    # Proper 70/10/20 split
+    train_ids, test_ids = get_or_create_train_test_split(df_summary)
+    
     from sklearn.model_selection import train_test_split
-    train_val_ids, test_ids = train_test_split(
-        df_summary['complaint_id'].tolist(), test_size=0.20, random_state=RANDOM_SEED, stratify=df_summary['contains_suspicious_activity']
-    )
-    df_train_val = df_summary[df_summary['complaint_id'].isin(set(train_val_ids))]
-    train_ids, val_ids = train_test_split(
-        train_val_ids, test_size=0.125, random_state=RANDOM_SEED, stratify=df_train_val['contains_suspicious_activity']
+    df_train = df_summary[df_summary['complaint_id'].astype(str).isin(train_ids)]
+    actual_train_ids, val_ids = train_test_split(
+        train_ids, test_size=0.125, random_state=RANDOM_SEED, stratify=df_train['contains_suspicious_activity']
     )
     
     test_set = set(test_ids)
     val_set = set(val_ids)
+    actual_train_set = set(actual_train_ids)
     
-    train_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") not in test_set and getattr(d, "complaint_id", "") not in val_set]
-    val_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") in val_set]
-    test_raw = [d for d in raw_dataset if getattr(d, "complaint_id", "") in test_set]
+    train_raw = [d for d in raw_dataset if str(getattr(d, "complaint_id", "")) in actual_train_set]
+    val_raw = [d for d in raw_dataset if str(getattr(d, "complaint_id", "")) in val_set]
+    test_raw = [d for d in raw_dataset if str(getattr(d, "complaint_id", "")) in test_set]
     
     train_dataset, val_dataset, mean_norm, std_norm = normalize_node_features(train_raw, val_raw)
     _, test_dataset, _, _ = normalize_node_features(train_raw, test_raw)
-    all_dataset, _, _, _ = normalize_node_features(raw_dataset, raw_dataset)
+    _, all_dataset, _, _ = normalize_node_features(train_raw, raw_dataset)
 
     # 5. DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
@@ -985,6 +1007,9 @@ def main(graphs_dir: Path, summary_file: Path):
 
     # 11. Extract 64-dim Graph Embeddings for all 1,000 graphs
     df_embeddings = extract_and_save_graph_embeddings(model, all_dataset)
+
+    # 11b. Generate full predictions
+    df_full_preds = generate_full_predictions(model, all_dataset)
 
     # 12. Visualizations
     plot_training_curves(df_history)
@@ -1045,8 +1070,8 @@ if __name__ == "__main__":
     import argparse
     from pathlib import Path
     parser = argparse.ArgumentParser(description="Train GraphSAGE Classifier")
-    parser.add_argument("--graphs-dir", type=str, default="data/graphs", help="Directory containing GraphML files")
-    parser.add_argument("--summary-file", type=str, default="data/synthetic_complaints.csv", help="Path to the summary CSV")
+    parser.add_argument("--graphs-dir", type=str, default=str(GRAPHS_DIR), help="Directory containing GraphML files")
+    parser.add_argument("--summary-file", type=str, default=str(DATA_DIR / "graph_summary.csv"), help="Path to the summary CSV")
     args = parser.parse_args()
     
     main(graphs_dir=Path(args.graphs_dir), summary_file=Path(args.summary_file))

@@ -29,7 +29,7 @@ import pandas as pd
 from src.adapters.synthetic_adapter import SyntheticAdapter
 from src.adapters.ibm_adapter import IBMAMLAdapter
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 OUTPUT_CSV = DATA_DIR / "terminal_ranking_multi_dataset_comparison.csv"
 
 
@@ -41,7 +41,7 @@ def main():
     # -------------------------------------------------------------
     print("")
     print("[1/2] Dataset A (Synthetic Incident Subgraphs):")
-    df_eval_a = pd.read_csv("data/terminal_prediction_evaluation.csv")
+    df_eval_a = pd.read_csv(DATA_DIR / "terminal_prediction_evaluation.csv")
     top1_a = float(df_eval_a["top_1_hit_rate"].iloc[0]) / 100.0 if df_eval_a["top_1_hit_rate"].iloc[0] > 1.0 else float(df_eval_a["top_1_hit_rate"].iloc[0])
     top3_a = float(df_eval_a["top_3_hit_rate"].iloc[0]) / 100.0 if df_eval_a["top_3_hit_rate"].iloc[0] > 1.0 else float(df_eval_a["top_3_hit_rate"].iloc[0])
     mrr_a = float(df_eval_a["mean_reciprocal_rank_mrr"].iloc[0])

@@ -56,7 +56,7 @@ if str(ROOT_DIR) not in sys.path:
 # Configuration & Threshold Definitions
 # ==============================================================================
 
-DATA_DIR = Path("data")
+DATA_DIR = ROOT_DIR / "data"
 
 GRAPHSAGE_PREDICTIONS_FILE = DATA_DIR / "graphsage_predictions.csv"
 EXPLANATIONS_FILE = DATA_DIR / "explanations.csv"

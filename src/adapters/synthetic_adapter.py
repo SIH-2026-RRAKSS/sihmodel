@@ -17,8 +17,13 @@ from typing import Dict, List, Optional, Tuple, Any
 import networkx as nx
 import pandas as pd
 
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+DEFAULT_DATA_DIR = ROOT_DIR / "data"
+
 class SyntheticAdapter:
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: Optional[Any] = None):
+        if data_dir is None:
+            data_dir = DEFAULT_DATA_DIR
         self.data_dir = Path(data_dir)
         self.complaints_file = self.data_dir / "complaints.csv"
         self.transactions_file = self.data_dir / "transactions.csv"

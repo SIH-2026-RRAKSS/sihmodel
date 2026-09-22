@@ -43,8 +43,12 @@ from sklearn.metrics import (
 )
 from src.adapters.elliptic_adapter import EllipticAdapter
 
-DATA_DIR = Path("data")
-MODELS_DIR = Path("models")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+DATA_DIR = ROOT_DIR / "data"
+MODELS_DIR = ROOT_DIR / "models"
 OUTPUT_CSV = DATA_DIR / "elliptic_graphsage_evaluation.csv"
 OUTPUT_MULTI_SEED_CSV = DATA_DIR / "elliptic_multi_seed_evaluation.csv"
 
@@ -86,7 +90,11 @@ def train_and_eval_elliptic(seed: int = 42, epochs: int = 60) -> Dict[str, Any]:
     np.random.seed(seed)
     
     adapter = EllipticAdapter()
-    data, train_mask, test_mask = adapter.get_train_test_split(split_timestep=34)
+    data, raw_train_mask, test_mask = adapter.get_train_test_split(split_timestep=34)
+    
+    labeled_mask = (data.y == 0) | (data.y == 1)
+    train_mask = labeled_mask & (data.timesteps <= 28)
+    val_mask = labeled_mask & (data.timesteps > 28) & (data.timesteps <= 34)
     
     device = torch.device("cpu")
     model = EllipticGraphSAGE(in_channels=data.x.size(1), hidden_channels=128, out_channels=64).to(device)
@@ -102,15 +110,46 @@ def train_and_eval_elliptic(seed: int = 42, epochs: int = 60) -> Dict[str, Any]:
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.003, weight_decay=1e-4)
     
-    # Training loop
-    model.train()
+    import copy
+    from sklearn.metrics import average_precision_score
+    
+    best_val_pr = 0.0
+    best_weights = copy.deepcopy(model.state_dict())
+    patience = 20
+    patience_counter = 0
+    
+    # Training loop with early stopping
     for epoch in range(1, epochs + 1):
+        model.train()
         optimizer.zero_grad()
         out, _ = model(x, edge_index)
         loss = criterion(out[train_mask], y[train_mask])
         loss.backward()
         optimizer.step()
-    
+        
+        model.eval()
+        with torch.no_grad():
+            out_val, _ = model(x, edge_index)
+            probs_val = torch.sigmoid(out_val[val_mask]).cpu().numpy()
+            y_val = y[val_mask].cpu().numpy()
+            if len(np.unique(y_val)) > 1:
+                val_pr = average_precision_score(y_val, probs_val)
+            else:
+                val_pr = 0.0
+                
+            if val_pr > best_val_pr:
+                best_val_pr = val_pr
+                best_weights = copy.deepcopy(model.state_dict())
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                
+            if patience_counter >= patience:
+                break
+                
+    if best_weights is not None:
+        model.load_state_dict(best_weights)
+        
     # Evaluation on test split (T > 34)
     model.eval()
     with torch.no_grad():

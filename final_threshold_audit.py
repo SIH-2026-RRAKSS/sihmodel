@@ -120,8 +120,8 @@ def run_audit():
                 'total_transaction_value', 'velocity_tph', 'velocity_vph', 
                 'fan_out_ratio']
     # engineer basic b features
-    df_b['in_degree_incident'] = df_b['in_degree_incident'] if 'in_degree_incident' in df_b else 0
-    df_b['out_degree_incident'] = df_b['out_degree_incident'] if 'out_degree_incident' in df_b else 0
+    df_b['in_degree_incident'] = df_b['in_degree_seed'] if 'in_degree_seed' in df_b else 0
+    df_b['out_degree_incident'] = df_b['out_degree_seed'] if 'out_degree_seed' in df_b else 0
     df_b['fan_out_ratio'] = df_b['out_degree_incident'] / (df_b['in_degree_incident'] + df_b['out_degree_incident'] + 1e-5)
     df_b['velocity_tph'] = df_b['num_edges'] / 72.0
     if 'total_transaction_value' not in df_b: df_b['total_transaction_value'] = 0
@@ -283,4 +283,5 @@ def run_audit():
     print(f"XGB Thresholds: {[round(t,3) for t in t_xgb]}")
     print(f"GNN Thresholds: {[round(t,3) for t in t_gnn]}")
 
-run_audit()
+if __name__ == "__main__":
+    run_audit()

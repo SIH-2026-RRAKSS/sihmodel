@@ -6,7 +6,7 @@ Triages all 1,000 real citizen cybercrime complaints across all 28 Indian States
 
 Features:
 - Full-scale automated ingestion of all 1,000 real complaints from data/complaints.csv.
-- Dynamic entity resolution & multi-hop graph classification with GraphSAGE GNN.
+- Retrospective batch aggregation of pre-computed GNN triage outputs from data/explanations.csv.
 - State-by-state cyber cell priority triage matrix and immediate freeze alert volume.
 - Generates complete printable Law Enforcement Action Dossiers in data/police_dispatch_dossiers.md.
 """

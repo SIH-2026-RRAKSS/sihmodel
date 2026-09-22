@@ -37,11 +37,12 @@ A standardized, multi-seed comparison across all three evaluated datasets demons
 | :--- | :--- | :--- | :--- |
 | **Evaluation Task** | Inductive Subgraph Binary Classification | Inductive Subgraph Binary Classification | Inductive Node Classification (Temporal Split) |
 | **Test Sample Size ($N_{\text{test}}$)** | $N = 200$ subgraphs ($37$ Positives / $18.5\%$) | $N = 200$ subgraphs ($59$ Positives / $29.5\%$) | $N = 16,670$ nodes ($1,083$ Illicit / $6.50\%$) |
-| **XGBoost Baseline F1 (Mean $\pm$ Std)** | $87.16\% \pm 2.68\%$ | $67.53\% \pm 3.98\%$ | **$76.88\% \pm 1.20\%$** |
-| **GraphSAGE GNN F1 (Mean $\pm$ Std)** | **$90.71\% \pm 2.02\%$** | **$77.81\% \pm 3.07\%$** | $44.00\% \pm 1.84\%$ |
-| **Final Audited Verdict** | **GraphSAGE Wins** (Topology is signal) | **GraphSAGE Wins** (Topology is signal) | **XGBoost Wins** (Message passing dilutes sharp tabular features) |
+| **XGBoost Baseline F1 (Mean $\pm$ Std)** | $86.87\% \pm 2.68\%$ | $73.93\% \pm 3.37\%$ | **$76.88\% \pm 1.20\%$** |
+| **GraphSAGE GNN F1 (Mean $\pm$ Std)** | **$89.77\% \pm 2.02\%$** | $73.57\% \pm 3.23\%$ | $44.00\% \pm 1.84\%$ |
+| **Final Audited Verdict** | **GraphSAGE Wins** (Topology is signal, $p = 0.0398$) | **Statistical Tie** (GNN ≈ XGB, $p = 0.5038$; original +3.76% was test-set leakage) | **XGBoost Wins** (Message passing dilutes sharp tabular features) |
 
-> 📊 **Note on Architecture & Baselines:** See [FINAL_REPORT.md](FINAL_REPORT.md) in the repository root for the comprehensive technical audit, explaining why ensembling and architectural capacity ablations were formally deprecated in favor of these strictly validated standalone baselines.
+> 📊 **Note on Benchmark Integrity:** Dataset B (IBM AML) metrics were revised following an internal audit (see [findings.md](findings.md)). The previously-reported GraphSAGE F1 of 77.70% (+3.76% over XGBoost) resulted from test-set epoch-selection leakage — the "best epoch" was chosen by maximising F1 against the held-out test split. Under a clean 3-way 70/12.5/17.5 train/val/test evaluation with validation-driven early stopping, GNN F1 drops to 73.57% ± 3.23%, which is statistically indistinguishable from XGBoost (73.93% ± 3.37%, paired $t=-0.734$, $p=0.5038$). Dataset A results are directionally real but narrowly significant at $N=5$ seeds.
+
 
 ---
 
@@ -87,7 +88,7 @@ The platform includes a large-scale simulation harness in [`simulations/`](simul
 | :--- | :--- | :--- | :--- |
 | **Sim 1: High-Volume Live Stream** | [`simulations/simulate_live_stream.py`](simulations/simulate_live_stream.py) | **5,000+ Real Transactions** (`data/transactions.csv` or `data/ibm_graphs/`) | Simulates high-velocity payment streams (**880+ Tx/sec**), tests Stage 1 $O(1)$ Welford anomaly filtering (**88.8% compute saved**), and executes live DualHeadGraphSAGE forward passes in **0.70 ms** ($<50\text{ms}$ SLA). |
 | **Sim 2: Step-by-Step Incident Replay** | [`simulations/simulate_incident_replay.py`](simulations/simulate_incident_replay.py) | **4,000+ Real Transactions** across 100+ subgraphs (or deep replay on `C000124`) | Minute-by-minute playback of multi-hop incidents showing dynamic risk probability escalation ($0.12 \rightarrow 0.67$) and downstream ATM cash-out exit alarms. |
-| **Sim 3: Large-Scale Adversarial Evasion** | [`simulations/simulate_adversarial_evasion.py`](simulations/simulate_adversarial_evasion.py) | **2,000 Real Subgraphs** (1,000 IBM AML + 1,000 Domestic Subgraphs) | Evaluates GraphSAGE vs XGBoost across 3 real evasion archetypes (**Micro-Smurfing** $N=154$, **Deep Layering** $N=6$, **Velocity Suppression** $N=47$), demonstrating a **+19% to +34% detection advantage** for topological GNNs. |
+| **Sim 3: Large-Scale Adversarial Evasion** | [`simulations/simulate_adversarial_evasion.py`](simulations/simulate_adversarial_evasion.py) | **2,000 Real Subgraphs** (1,000 IBM AML + 1,000 Domestic Subgraphs) | Live model inference (IBMGraphSAGE + DualHeadGraphSAGE vs XGBoost) across 3 evasion archetypes (**Micro-Smurfing** $N=154$: GNN 96.1% vs XGB 93.5%, **Deep Layering** $N=173$: GNN 100.0% vs XGB 98.8%, **Velocity Suppression** $N=47$: GNN 97.9% vs XGB 95.7%), yielding a consistent **+1.2% to +2.6% topological detection edge** on all-positive evasion cohorts. |
 | **Sim 4: National Police Triage & Dispatch** | [`simulations/simulate_police_dispatch.py`](simulations/simulate_police_dispatch.py) | **1,000 Real Citizen Complaints** across all 28 Indian States & UTs | Triages the entire national complaint corpus, calculates state hotspot matrices (MP, Delhi, AP, Punjab, UP, Kerala), emits **100 urgent inter-bank freeze alerts**, and generates [`data/police_dispatch_dossiers.md`](data/police_dispatch_dossiers.md). |
 | **Master Harness** | [`simulations/run_all_simulations.py`](simulations/run_all_simulations.py) | Full multi-dataset test harness | Interactive terminal menu and one-click execution of the entire 4-stage simulation suite. |
 

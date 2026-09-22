@@ -14,6 +14,7 @@ Tables:
 
 import os
 import sys
+import json
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
@@ -107,6 +108,8 @@ class IncidentPrediction(Base):
     num_nodes = Column(Integer)
     num_edges = Column(Integer)
     executive_summary = Column(Text, nullable=True)
+    node_mule_probability_head2 = Column(Float, nullable=True)  # Micro Node Risk (Head 2)
+    node_mule_probabilities = Column(Text, nullable=True)       # JSON mapping of node_id -> Head 2 score
     evaluated_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -134,10 +137,15 @@ Index("idx_tx_receiver_time", TransactionRecord.receiver_entity_id, TransactionR
 # Database Helper Functions
 # ==============================================================================
 
+_ENGINE = None
+
 def get_engine(db_path: Path = DEFAULT_DB_PATH):
     """Creates a SQLite engine with multi-threading support."""
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    return create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    global _ENGINE
+    if _ENGINE is None:
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        _ENGINE = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    return _ENGINE
 
 
 def get_db_session(db_path: Path = DEFAULT_DB_PATH) -> Session:
@@ -172,7 +180,7 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
         master_file = data_dir / "entity_master.csv"
         locations_file = data_dir / "entity_locations.csv"
         if master_file.exists():
-            df_master = pd.read_csv(master_file)
+            df_master = pd.read_csv(master_file, dtype=str)
             loc_dict = {}
             if locations_file.exists():
                 df_loc = pd.read_csv(locations_file)
@@ -184,24 +192,50 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                         "city": r.get("city", "")
                     }
 
+            bank_prefix_map = {
+                "BARB": "Bank of Baroda",
+                "UBIN": "Union Bank of India",
+                "ICIC": "ICICI Bank",
+                "CNRB": "Canara Bank",
+                "AXIS": "Axis Bank",
+                "SBIN": "State Bank of India",
+                "PUNB": "Punjab National Bank",
+                "KKBK": "Kotak Mahindra Bank",
+                "HDFC": "HDFC Bank",
+                "IDIB": "Indian Bank"
+            }
+
             entities_to_add = []
             for r in df_master.to_dict(orient="records"):
-                eid = r["entity_id"]
+                eid = str(r["entity_id"]).strip()
                 loc_data = loc_dict.get(eid, {})
                 lat = loc_data.get("lat")
                 lon = loc_data.get("lon")
                 l_state = loc_data.get("state", "")
                 l_city = loc_data.get("city", "")
-                etype = "ATM" if str(eid).startswith("ATM_") else "ACCOUNT"
+                etype = "ATM" if eid.startswith("ATM_") else "ACCOUNT"
+
+                raw_acc = str(r.get("account_number", "")).strip() if pd.notna(r.get("account_number")) else ""
+                if raw_acc.endswith(".0"):
+                    raw_acc = raw_acc[:-2]
+                acc_num = raw_acc if raw_acc and raw_acc.lower() not in ("nan", "none") else None
+
+                raw_ifsc = str(r.get("ifsc", "")).strip() if pd.notna(r.get("ifsc")) else ""
+                ifsc_code = raw_ifsc if raw_ifsc and raw_ifsc.lower() not in ("nan", "none") else None
+
+                bname = str(r.get("bank_name", "")).strip() if pd.notna(r.get("bank_name")) else ""
+                if not bname and ifsc_code and len(ifsc_code) >= 4:
+                    bname = bank_prefix_map.get(ifsc_code[:4].upper(), "")
+
                 entities_to_add.append(EntityMaster(
                     entity_id=eid,
-                    canonical_account_number=str(r.get("account_number", "")),
-                    canonical_ifsc=str(r.get("ifsc", "")),
-                    canonical_holder_name=str(r.get("canonical_name", "")),
-                    bank_name=str(r.get("bank_name", "")),
-                    branch_name=str(r.get("branch_name", "")),
-                    state=str(r.get("state", "")) or l_state,
-                    district=str(r.get("district", "")) or l_city,
+                    canonical_account_number=acc_num,
+                    canonical_ifsc=ifsc_code,
+                    canonical_holder_name=str(r.get("canonical_name", "")).strip() or (f"ATM Terminal {eid.replace('ATM_', '')}" if etype == "ATM" else "Unknown Account"),
+                    bank_name=bname,
+                    branch_name=str(r.get("branch_name", "")).strip() if pd.notna(r.get("branch_name")) else "",
+                    state=str(r.get("state", "")).strip() or l_state,
+                    district=str(r.get("district", "")).strip() or l_city,
                     latitude=float(lat) if pd.notna(lat) and lat is not None else None,
                     longitude=float(lon) if pd.notna(lon) and lon is not None else None,
                     entity_type=etype
@@ -214,10 +248,10 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
         complaints_file = data_dir / "complaints.csv"
         resolved_file = data_dir / "resolved_entities.csv"
         if complaints_file.exists():
-            df_comp = pd.read_csv(complaints_file)
+            df_comp = pd.read_csv(complaints_file, dtype=str)
             res_dict = {}
             if resolved_file.exists():
-                df_res = pd.read_csv(resolved_file)
+                df_res = pd.read_csv(resolved_file, dtype=str)
                 res_dict = dict(zip(df_res["complaint_id"], df_res["predicted_entity_id"]))
 
             complaints_to_add = []
@@ -225,6 +259,9 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                 cid = r["complaint_id"]
                 holder_name = r.get("account_holder_name") or r.get("complainant_name", "")
                 acc_num = r.get("account_number") or r.get("reported_account_number", "")
+                raw_acc = str(acc_num).strip()
+                if raw_acc.endswith(".0"):
+                    raw_acc = raw_acc[:-2]
                 ifsc_code = r.get("ifsc") or r.get("reported_ifsc", "")
                 scam = r.get("complaint_type") or r.get("scam_category", "")
                 complaints_to_add.append(Complaint(
@@ -234,7 +271,7 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                     police_station_id=str(r.get("police_station_id", "PS_DEFAULT")),
                     district=str(r.get("district", "")),
                     state=str(r.get("state", "")),
-                    reported_account_number=str(acc_num),
+                    reported_account_number=raw_acc,
                     reported_ifsc=str(ifsc_code),
                     reported_amount=float(r.get("reported_amount", 0.0)),
                     scam_category=str(scam),
@@ -289,16 +326,31 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                 for r in df_exp.to_dict(orient="records"):
                     exp_dict[r["complaint_id"]] = r.get("investigator_summary", "")
 
+            mule_file = data_dir / "node_mule_predictions.json"
+            mule_dict = {}
+            if mule_file.exists():
+                try:
+                    with open(mule_file, "r", encoding="utf-8") as f:
+                        mule_dict = json.load(f)
+                except Exception:
+                    mule_dict = {}
+
             preds_to_add = []
             for r in df_tiers.to_dict(orient="records"):
                 cid = r["complaint_id"]
                 prob = float(r.get("graphsage_probability") or r.get("graphsage_risk_probability") or 0.0)
                 tier = str(r.get("confidence_tier", "NORMAL"))
-                t_id = str(r.get("top_terminal", "NONE"))
-                t_city = str(r.get("top_terminal_city", "NONE"))
-                t_score = float(r.get("terminal_score", 0.0))
+                raw_t_id = r.get("top_terminal")
+                t_id = str(raw_t_id) if pd.notna(raw_t_id) and raw_t_id != "NONE" else None
+                raw_t_city = r.get("top_terminal_city")
+                t_city = str(raw_t_city) if pd.notna(raw_t_city) and raw_t_city != "NONE" else None
+                t_score = float(r.get("terminal_score") or 0.0) if pd.notna(r.get("terminal_score")) else 0.0
                 n_nodes, n_edges = graph_dict.get(cid, (1, 0))
                 summary = exp_dict.get(cid, "")
+
+                mule_info = mule_dict.get(cid, {})
+                head2_score = float(mule_info.get("node_mule_probability_head2", 0.0))
+                node_scores_json = json.dumps(mule_info.get("node_scores", {}))
 
                 preds_to_add.append(IncidentPrediction(
                     incident_id=cid,
@@ -310,7 +362,9 @@ def seed_database_from_csv(data_dir: Path = DATA_DIR, db_path: Path = DEFAULT_DB
                     top_terminal_city=t_city if t_city != "NONE" else None,
                     num_nodes=n_nodes,
                     num_edges=n_edges,
-                    executive_summary=summary
+                    executive_summary=summary,
+                    node_mule_probability_head2=head2_score,
+                    node_mule_probabilities=node_scores_json
                 ))
             session.bulk_save_objects(preds_to_add)
             session.commit()

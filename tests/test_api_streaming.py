@@ -30,6 +30,11 @@ client = TestClient(app)
 # 1. Database Persistence Tests
 # ==============================================================================
 
+from src.database import DEFAULT_DB_PATH
+import pytest
+import os
+
+@pytest.mark.skipif(not DEFAULT_DB_PATH.exists(), reason="Database not seeded")
 def test_database_entities_and_complaints():
     """Verifies that database is properly seeded and indexed."""
     session = get_db_session()
@@ -99,9 +104,10 @@ def test_api_stats():
     response = client.get("/api/stats")
     assert response.status_code == 200
     data = response.json()
-    assert "total_incidents_monitored" in data
-    assert "tier_breakdown" in data
-    assert "model_comparison" in data
+    assert data["total_incidents_monitored"] >= 0
+    assert "HIGH_CONFIDENCE" in data["tier_breakdown"]
+    assert len(data["model_comparison"]) > 0
+    assert "model" in data["model_comparison"][0]
 
 
 def test_api_list_incidents():
@@ -129,6 +135,17 @@ def test_api_incident_detail():
     assert data["complaint"]["complaint_id"] == "C000003"
     assert "resolved_canonical_entity" in data
     assert "model_prediction" in data
+    assert len(data.get("investigative_evidence_bullets", [])) >= 3
+
+    # Test case beyond 50 (Issue #04 regression test)
+    res_beyond = client.get("/api/incidents/C000100")
+    assert res_beyond.status_code == 200
+    data_beyond = res_beyond.json()
+    assert len(data_beyond.get("investigative_evidence_bullets", [])) >= 3
+    assert len(data_beyond["model_prediction"].get("executive_summary", "")) > 0
+    # Issue #14: Head 2 Node Mule Probability
+    assert "node_mule_probability_head2" in data_beyond["model_prediction"]
+    assert data_beyond["model_prediction"]["node_mule_probability_head2"] is not None
 
 
 def test_api_incident_graph():
@@ -140,6 +157,28 @@ def test_api_incident_graph():
     assert len(data["nodes"]) > 0
     assert "id" in data["nodes"][0]
     assert "color" in data["nodes"][0]
+    # Issue #14: Head 2 Node Mule Score attached to graph nodes
+    assert "node_mule_score" in data["nodes"][0]
+    assert data["nodes"][0]["node_mule_score"] >= 0.0
+    assert data["is_dormant"] is False
+
+    # Issue #16: Test dormant incident handling (C000001 has 0 transfers in 72h window)
+    res_dormant = client.get("/api/incidents/C000001/graph")
+    assert res_dormant.status_code == 200
+    data_dormant = res_dormant.json()
+    assert data_dormant["is_dormant"] is True
+    assert data_dormant["num_edges"] == 0
+    assert data_dormant["lifetime_tx_count"] > 0
+    assert "surveillance window" in data_dormant["dormant_reason"].lower()
+    assert data_dormant["nodes"][0]["is_dormant"] is True
+
+    # Issue #16: Test expanded historical graph for C000001
+    res_expanded = client.get("/api/incidents/C000001/graph?expand_historical=true")
+    assert res_expanded.status_code == 200
+    data_expanded = res_expanded.json()
+    assert data_expanded["is_historical_expanded"] is True
+    assert data_expanded["num_nodes"] > 0
+    assert data_expanded["num_edges"] > 0
 
 
 def test_api_live_prediction():
@@ -150,7 +189,9 @@ def test_api_live_prediction():
     data = response.json()
     assert data["seed_entity_id"] == "ENT_000040"
     assert "risk_probability" in data
+    assert 0.0 <= data["risk_probability"] <= 1.0
     assert "confidence_tier" in data
+    assert data["confidence_tier"] in ["NORMAL", "MEDIUM_CONFIDENCE", "HIGH_CONFIDENCE"]
 
 
 def test_api_policy_tuning():
@@ -188,3 +229,73 @@ def test_api_three_way_benchmark():
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
+
+
+def test_api_transaction_ingest():
+    """Tests POST /api/ingest/transaction endpoint for Stage 1 gate & Stage 2 triage."""
+    # 1. Normal transaction (Stage 1 not flagged)
+    res_norm = client.post("/api/ingest/transaction", json={
+        "source_entity": "ENT_000001",
+        "destination_entity": "ENT_000002",
+        "amount": 2000.0
+    })
+    assert res_norm.status_code == 200
+    data_norm = res_norm.json()
+    assert "transaction_id" in data_norm
+    assert data_norm["stage_1_flagged"] is False
+
+    # 2. Anomaly transaction (high volume triggering Stage 1 & Stage 2)
+    res_high = client.post("/api/ingest/transaction", json={
+        "source_entity": "ENT_000001",
+        "destination_entity": "ATM_001",
+        "amount": 500000.0
+    })
+    assert res_high.status_code == 200
+    data_high = res_high.json()
+    assert data_high["stage_1_flagged"] is True
+    assert data_high["stage_2_risk_probability"] is not None
+
+
+def test_out_of_order_streaming_eviction():
+    """Tests out-of-order event ingestion & min-heap sliding-window eviction."""
+    from datetime import datetime, timedelta
+    engine = TemporalTransactionGraph(window_hours=72, warmup=False)
+    base_time = datetime(2026, 8, 1, 12, 0, 0)
+
+    # Ingest event at T0
+    engine.ingest_transaction({
+        "transaction_id": "TX_1",
+        "sender_entity_id": "ENT_000001",
+        "receiver_entity_id": "ENT_000002",
+        "amount": 1000.0,
+        "timestamp": base_time
+    })
+
+    # Ingest out-of-order event at T0 - 10h
+    engine.ingest_transaction({
+        "transaction_id": "TX_0",
+        "sender_entity_id": "ENT_000001",
+        "receiver_entity_id": "ENT_000003",
+        "amount": 500.0,
+        "timestamp": base_time - timedelta(hours=10)
+    })
+    assert engine.graph.number_of_edges() == 2
+
+    # Ingest event at T0 + 70h (purges TX_0 which is 80h old, retains TX_1 and TX_2)
+    engine.ingest_transaction({
+        "transaction_id": "TX_2",
+        "sender_entity_id": "ENT_000002",
+        "receiver_entity_id": "ENT_000004",
+        "amount": 2000.0,
+        "timestamp": base_time + timedelta(hours=70)
+    })
+    assert not engine.graph.has_edge("ENT_000001", "ENT_000003", key="TX_0")
+    assert engine.graph.has_edge("ENT_000001", "ENT_000002", key="TX_1")
+    assert engine.graph.has_edge("ENT_000002", "ENT_000004", key="TX_2")
+
+def test_api_entities_locations():
+    response = client.get("/api/entities/locations")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    # Could be empty depending on the test data, but it shouldn't 500

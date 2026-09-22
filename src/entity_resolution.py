@@ -35,7 +35,8 @@ from rapidfuzz import fuzz
 # Configuration & Constants
 # ==============================================================================
 
-DEFAULT_DATA_DIR = Path("data")
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_DATA_DIR = ROOT_DIR / "data"
 COMPLAINTS_FILE = DEFAULT_DATA_DIR / "complaints.csv"
 GROUND_TRUTH_FILE = DEFAULT_DATA_DIR / "entity_ground_truth.csv"
 RESOLVED_ENTITIES_FILE = DEFAULT_DATA_DIR / "resolved_entities.csv"
@@ -291,8 +292,12 @@ def build_entity_master(
         canonical_name = name_counts.index[0]
 
         # Extract normalized account number and ifsc
-        first_valid_acct = group["account_number"].dropna().astype(str).str.strip().iloc[0]
-        first_valid_ifsc = group["ifsc"].dropna().astype(str).str.strip().str.upper().iloc[0]
+        valid_accts = group["account_number"].dropna().astype(str).str.strip()
+        first_valid_acct = valid_accts.iloc[0] if not valid_accts.empty else "UNKNOWN"
+        
+        valid_ifscs = group["ifsc"].dropna().astype(str).str.strip().str.upper()
+        first_valid_ifsc = valid_ifscs.iloc[0] if not valid_ifscs.empty else "UNKNOWN"
+        
         identity_key = f"{first_valid_acct}_{first_valid_ifsc}"
 
         master_records.append({
