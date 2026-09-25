@@ -1436,6 +1436,7 @@ def get_geo_corridors():
 
 # Global Cache for Serverless environments (Vercel)
 _CSV_CACHE = {}
+_ACTIVE_SESSION_OFFSETS = {}
 
 @app.post("/api/simulate/stream", tags=["Operational Simulations"])
 def simulate_stream_batch(
@@ -1455,8 +1456,17 @@ def simulate_stream_batch(
 
         df_ibm = _CSV_CACHE["ibm"]
         total_recs = len(df_ibm)
-        slice_end = min(total_recs, offset + num_tx)
-        sample_df = df_ibm.iloc[offset:slice_end]
+        
+        if offset == 0:
+            import random
+            max_start = max(0, total_recs - 15000)
+            _ACTIVE_SESSION_OFFSETS["ibm"] = random.randint(0, max_start)
+            
+        master_offset = _ACTIVE_SESSION_OFFSETS.get("ibm", 0)
+        actual_start = master_offset + offset
+        slice_end = min(total_recs, actual_start + num_tx)
+        
+        sample_df = df_ibm.iloc[actual_start:slice_end]
         events = sample_df.to_dict(orient="records")
     else:
         tx_file = DATA_DIR / "transactions.csv"
@@ -1466,8 +1476,16 @@ def simulate_stream_batch(
             df_tx = _CSV_CACHE["synthetic"]
             total_recs = len(df_tx)
 
-            slice_end = min(total_recs, offset + num_tx)
-            sample_df = df_tx.iloc[offset:slice_end]
+            if offset == 0:
+                import random
+                max_start = max(0, total_recs - 15000)
+                _ACTIVE_SESSION_OFFSETS["synthetic"] = random.randint(0, max_start)
+                
+            master_offset = _ACTIVE_SESSION_OFFSETS.get("synthetic", 0)
+            actual_start = master_offset + offset
+            slice_end = min(total_recs, actual_start + num_tx)
+            
+            sample_df = df_tx.iloc[actual_start:slice_end]
             for idx, row in sample_df.iterrows():
                 events.append({
                     "transaction_id": str(row.get("transaction_id", f"T{offset + idx + 1:06d}")),
