@@ -83,7 +83,8 @@ class DynamicAnomalyTrigger:
         # Rule 3: Cold-Start Safeguard
         if count == 0:
             self._update_profile(src, amount, date_str)
-            if amount >= 200000:
+            # Lowered cold-start from 200,000 to 5,000 to catch IBM dataset scale
+            if amount >= 5000:
                 return True, f"COLD_START_SPIKE (Amt: {amount})"
             return False, None
             
@@ -93,7 +94,8 @@ class DynamicAnomalyTrigger:
         
         # Rule 1: Single Transaction Outlier
         z_score = (amount - mean) / std
-        if z_score >= 3.5 and amount >= 25000:
+        # Lowered z-score to 3.0 and removed 25k hardcoded floor
+        if z_score >= 3.0 and amount >= 1000:
             self._update_profile(src, amount, date_str)
             return True, f"SINGLE_TX_OUTLIER (Z-Score: {z_score:.2f}, Amt: {amount})"
             
@@ -104,7 +106,8 @@ class DynamicAnomalyTrigger:
         if past_days:
             daily_avg = sum(daily_sums[d] for d in past_days) / len(past_days)
             current_day_sum = daily_sums[date_str] + amount
-            if current_day_sum >= max(2.5 * daily_avg, 50000):
+            # Lowered daily velocity floor from 50k to 5k
+            if current_day_sum >= max(2.5 * daily_avg, 5000):
                 self._update_profile(src, amount, date_str)
                 return True, f"DAILY_VELOCITY_SPIKE (Day Sum: {current_day_sum}, Avg: {daily_avg:.2f})"
         
@@ -203,6 +206,7 @@ class TemporalTransactionGraph:
         self.latest_timestamp = None
         self.trigger_count = 0
         self.proactive_alerts = []
+        self.anomaly_trigger.profiles.clear()
 
     def ingest_transaction(self, tx: Dict[str, Any], purge_expired: bool = True) -> Tuple[str, bool, Optional[str], Optional[Dict[str, Any]]]:
 
