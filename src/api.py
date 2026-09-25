@@ -1434,6 +1434,9 @@ def get_geo_corridors():
         session.close()
 
 
+# Global Cache for Serverless environments (Vercel)
+_CSV_CACHE = {}
+
 @app.post("/api/simulate/stream", tags=["Operational Simulations"])
 def simulate_stream_batch(
     dataset: str = Query("synthetic", description="Dataset source: synthetic or ibm"),
@@ -1446,7 +1449,9 @@ def simulate_stream_batch(
     if dataset.lower() == "ibm":
         ibm_summary = DATA_DIR / "ibm_graph_summary.csv"
         if ibm_summary.exists():
-            df_ibm = pd.read_csv(ibm_summary)
+            if "ibm" not in _CSV_CACHE:
+                _CSV_CACHE["ibm"] = pd.read_csv(ibm_summary)
+            df_ibm = _CSV_CACHE["ibm"]
             df_pos = df_ibm[df_ibm["contains_laundering"] == 1]
             df_neg = df_ibm[df_ibm["contains_laundering"] == 0]
             
@@ -1486,8 +1491,11 @@ def simulate_stream_batch(
     else:
         tx_file = DATA_DIR / "transactions.csv"
         if tx_file.exists():
-            df_tx = pd.read_csv(tx_file)
+            if "synthetic" not in _CSV_CACHE:
+                _CSV_CACHE["synthetic"] = pd.read_csv(tx_file)
+            df_tx = _CSV_CACHE["synthetic"]
             total_recs = len(df_tx)
+
             slice_end = min(total_recs, offset + num_tx)
             sample_df = df_tx.iloc[offset:slice_end]
             for idx, row in sample_df.iterrows():
