@@ -1445,49 +1445,51 @@ def simulate_stream_batch(
 ):
     """Executes Simulation 1: Live streaming ingestion & auto-triage on real dataset records."""
     events = []
-    
     if dataset.lower() == "ibm":
-        ibm_summary = DATA_DIR / "ibm_graph_summary.csv"
-        if ibm_summary.exists():
-            if "ibm" not in _CSV_CACHE:
-                _CSV_CACHE["ibm"] = pd.read_csv(ibm_summary)
-            df_ibm = _CSV_CACHE["ibm"]
-            df_pos = df_ibm[df_ibm["contains_laundering"] == 1]
-            df_neg = df_ibm[df_ibm["contains_laundering"] == 0]
-            
-            import networkx as nx
-            all_graphs = []
-            max_len = max(len(df_pos), len(df_neg))
-            for i in range(max_len):
-                if i < len(df_neg):
-                    all_graphs.append(df_neg.iloc[i])
-                if i % 4 == 0 and (i // 4) < len(df_pos):
-                    all_graphs.append(df_pos.iloc[i // 4])
-                    
-            for row in all_graphs:
-                sub_id = row['subgraph_id']
-                g_path = DATA_DIR / "ibm_graphs" / f"{sub_id}.graphml"
-                if g_path.exists():
-                    try:
-                        G = nx.read_graphml(g_path)
-                        for u, v, d in G.edges(data=True):
-                            amt = float(d.get('amount', float(row.get('total_transaction_value', 50000.0)) / max(1, int(row.get('num_edges', 1)))))
-                            events.append({
-                                "transaction_id": d.get("transaction_id", f"IBM_TX_{len(events)+1:06d}"),
-                                "sender_entity_id": str(u),
-                                "receiver_entity_id": str(v),
-                                "amount": round(amt, 2),
-                                "timestamp": str(d.get("timestamp", datetime.now(timezone.utc).isoformat())),
-                                "is_cash_out": bool(str(v).startswith("ATM_") or d.get("is_terminal", False)),
-                                "channel": "SWIFT_WIRE",
-                                "ground_truth_illicit": int(row.get("contains_laundering", 0))
-                            })
-                            if len(events) >= num_tx:
-                                break
-                    except Exception:
-                        pass
-                if len(events) >= num_tx:
-                    break
+        if "ibm_events" not in _CSV_CACHE:
+            ibm_summary = DATA_DIR / "ibm_graph_summary.csv"
+            if ibm_summary.exists():
+                df_ibm = pd.read_csv(ibm_summary)
+                df_pos = df_ibm[df_ibm["contains_laundering"] == 1]
+                df_neg = df_ibm[df_ibm["contains_laundering"] == 0]
+                
+                import networkx as nx
+                all_graphs = []
+                max_len = max(len(df_pos), len(df_neg))
+                for i in range(max_len):
+                    if i < len(df_neg):
+                        all_graphs.append(df_neg.iloc[i])
+                    if i % 4 == 0 and (i // 4) < len(df_pos):
+                        all_graphs.append(df_pos.iloc[i // 4])
+                        
+                all_ibm_events = []
+                for row in all_graphs:
+                    sub_id = row['subgraph_id']
+                    g_path = DATA_DIR / "ibm_graphs" / f"{sub_id}.graphml"
+                    if g_path.exists():
+                        try:
+                            G = nx.read_graphml(g_path)
+                            for u, v, d in G.edges(data=True):
+                                amt = float(d.get('amount', float(row.get('total_transaction_value', 50000.0)) / max(1, int(row.get('num_edges', 1)))))
+                                all_ibm_events.append({
+                                    "transaction_id": d.get("transaction_id", f"IBM_TX_{len(all_ibm_events)+1:06d}"),
+                                    "sender_entity_id": str(u),
+                                    "receiver_entity_id": str(v),
+                                    "amount": round(amt, 2),
+                                    "timestamp": str(d.get("timestamp", datetime.now(timezone.utc).isoformat())),
+                                    "is_cash_out": bool(str(v).startswith("ATM_") or d.get("is_terminal", False)),
+                                    "channel": "SWIFT_WIRE",
+                                    "ground_truth_illicit": int(row.get("contains_laundering", 0))
+                                })
+                        except Exception:
+                            pass
+                
+                all_ibm_events.sort(key=lambda x: x["timestamp"])
+                _CSV_CACHE["ibm_events"] = all_ibm_events
+            else:
+                _CSV_CACHE["ibm_events"] = []
+
+        events = _CSV_CACHE["ibm_events"][offset : offset + num_tx]
     else:
         tx_file = DATA_DIR / "transactions.csv"
         if tx_file.exists():
