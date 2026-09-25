@@ -1434,6 +1434,9 @@ def get_geo_corridors():
         session.close()
 
 
+# Global Cache for Serverless environments (Vercel)
+_CSV_CACHE = {}
+
 @app.post("/api/simulate/stream", tags=["Operational Simulations"])
 def simulate_stream_batch(
     dataset: str = Query("synthetic", description="Dataset source: synthetic or ibm"),
@@ -1441,54 +1444,25 @@ def simulate_stream_batch(
     offset: int = Query(0, ge=0, description="Starting offset in dataset")
 ):
     """Executes Simulation 1: Live streaming ingestion & auto-triage on real dataset records."""
-    t_start = time.time()
     events = []
-    
     if dataset.lower() == "ibm":
-        ibm_summary = DATA_DIR / "ibm_graph_summary.csv"
-        if ibm_summary.exists():
-            df_ibm = pd.read_csv(ibm_summary)
-            df_pos = df_ibm[df_ibm["contains_laundering"] == 1]
-            df_neg = df_ibm[df_ibm["contains_laundering"] == 0]
-            
-            import networkx as nx
-            all_graphs = []
-            max_len = max(len(df_pos), len(df_neg))
-            for i in range(max_len):
-                if i < len(df_neg):
-                    all_graphs.append(df_neg.iloc[i])
-                if i % 4 == 0 and (i // 4) < len(df_pos):
-                    all_graphs.append(df_pos.iloc[i // 4])
-                    
-            for row in all_graphs:
-                sub_id = row['subgraph_id']
-                g_path = DATA_DIR / "ibm_graphs" / f"{sub_id}.graphml"
-                if g_path.exists():
-                    try:
-                        G = nx.read_graphml(g_path)
-                        for u, v, d in G.edges(data=True):
-                            amt = float(d.get('amount', float(row.get('total_transaction_value', 50000.0)) / max(1, int(row.get('num_edges', 1)))))
-                            events.append({
-                                "transaction_id": d.get("transaction_id", f"IBM_TX_{len(events)+1:06d}"),
-                                "sender_entity_id": str(u),
-                                "receiver_entity_id": str(v),
-                                "amount": round(amt, 2),
-                                "timestamp": str(d.get("timestamp", datetime.now(timezone.utc).isoformat())),
-                                "is_cash_out": bool(str(v).startswith("ATM_") or d.get("is_terminal", False)),
-                                "channel": "SWIFT_WIRE",
-                                "ground_truth_illicit": int(row.get("contains_laundering", 0))
-                            })
-                            if len(events) >= num_tx:
-                                break
-                    except Exception:
-                        pass
-                if len(events) >= num_tx:
-                    break
+        if "ibm_events" not in _CSV_CACHE:
+            ibm_tx_file = DATA_DIR / "ibm_transactions.csv"
+            if ibm_tx_file.exists():
+                df_ibm = pd.read_csv(ibm_tx_file)
+                _CSV_CACHE["ibm_events"] = df_ibm.to_dict(orient="records")
+            else:
+                _CSV_CACHE["ibm_events"] = []
+
+        events = _CSV_CACHE["ibm_events"][offset : offset + num_tx]
     else:
         tx_file = DATA_DIR / "transactions.csv"
         if tx_file.exists():
-            df_tx = pd.read_csv(tx_file)
+            if "synthetic" not in _CSV_CACHE:
+                _CSV_CACHE["synthetic"] = pd.read_csv(tx_file)
+            df_tx = _CSV_CACHE["synthetic"]
             total_recs = len(df_tx)
+
             slice_end = min(total_recs, offset + num_tx)
             sample_df = df_tx.iloc[offset:slice_end]
             for idx, row in sample_df.iterrows():
@@ -1512,6 +1486,13 @@ def simulate_stream_batch(
     gnn_runs = 0
     total_gnn_lat_ms = 0.0
 
+
+
+    if offset == 0:
+        with STREAMING_LOCK:
+            STREAMING_ENGINE.reset()
+
+    t_start = time.time()
 
     for idx_tx, tx in enumerate(events):
         t_tx_0 = time.time()
