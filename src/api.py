@@ -1441,7 +1441,6 @@ def simulate_stream_batch(
     offset: int = Query(0, ge=0, description="Starting offset in dataset")
 ):
     """Executes Simulation 1: Live streaming ingestion & auto-triage on real dataset records."""
-    t_start = time.time()
     events = []
     
     if dataset.lower() == "ibm":
@@ -1512,6 +1511,8 @@ def simulate_stream_batch(
     gnn_runs = 0
     total_gnn_lat_ms = 0.0
 
+
+    t_start = time.time()
 
     for idx_tx, tx in enumerate(events):
         t_tx_0 = time.time()
