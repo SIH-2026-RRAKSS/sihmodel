@@ -1446,15 +1446,18 @@ def simulate_stream_batch(
     """Executes Simulation 1: Live streaming ingestion & auto-triage on real dataset records."""
     events = []
     if dataset.lower() == "ibm":
-        if "ibm_events" not in _CSV_CACHE:
+        if "ibm" not in _CSV_CACHE:
             ibm_tx_file = DATA_DIR / "ibm_transactions.csv"
             if ibm_tx_file.exists():
-                df_ibm = pd.read_csv(ibm_tx_file)
-                _CSV_CACHE["ibm_events"] = df_ibm.to_dict(orient="records")
+                _CSV_CACHE["ibm"] = pd.read_csv(ibm_tx_file)
             else:
-                _CSV_CACHE["ibm_events"] = []
+                _CSV_CACHE["ibm"] = pd.DataFrame()
 
-        events = _CSV_CACHE["ibm_events"][offset : offset + num_tx]
+        df_ibm = _CSV_CACHE["ibm"]
+        total_recs = len(df_ibm)
+        slice_end = min(total_recs, offset + num_tx)
+        sample_df = df_ibm.iloc[offset:slice_end]
+        events = sample_df.to_dict(orient="records")
     else:
         tx_file = DATA_DIR / "transactions.csv"
         if tx_file.exists():
