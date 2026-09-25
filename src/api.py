@@ -1487,6 +1487,11 @@ def simulate_stream_batch(
     total_gnn_lat_ms = 0.0
 
 
+
+    if offset == 0:
+        with STREAMING_LOCK:
+            STREAMING_ENGINE.reset()
+
     t_start = time.time()
 
     for idx_tx, tx in enumerate(events):

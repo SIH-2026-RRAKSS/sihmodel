@@ -195,7 +195,17 @@ class TemporalTransactionGraph:
             except Exception as e:
                 print(f"[Streaming] Notice: Model checkpoint loading fallback: {e}")
 
+
+    def reset(self):
+        """Resets the engine state for a new simulation."""
+        self.graph.clear()
+        self.events = []
+        self.latest_timestamp = None
+        self.trigger_count = 0
+        self.proactive_alerts = []
+
     def ingest_transaction(self, tx: Dict[str, Any], purge_expired: bool = True) -> Tuple[str, bool, Optional[str], Optional[Dict[str, Any]]]:
+
         """
         Ingests a single transaction event into the sliding window.
         Purges events older than (current_timestamp - window_hours).
