@@ -67,9 +67,19 @@ app.add_middleware(
 )
 
 # Global in-memory streaming graph engine instance
-STREAMING_ENGINE = TemporalTransactionGraph(window_hours=72, max_hops=3)
+STREAMING_ENGINE = TemporalTransactionGraph(window_hours=72, max_hops=3, warmup=False)
 import threading
 STREAMING_LOCK = threading.Lock()
+
+@app.on_event("startup")
+def background_warmup():
+    def _do_warmup():
+        print("[System] Starting background graph warmup...")
+        with STREAMING_LOCK:
+            STREAMING_ENGINE._warmup_recent_transactions()
+        print("[System] Background warmup complete.")
+    threading.Thread(target=_do_warmup, daemon=True).start()
+
 
 
 # ==============================================================================
