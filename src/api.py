@@ -1505,7 +1505,8 @@ def simulate_stream_batch(
                     "timestamp": str(row.get("timestamp", datetime.now(timezone.utc).isoformat())),
                     "is_cash_out": bool(str(row.get("receiver_entity_id", "")).startswith("ATM_")),
                     "channel": str(row.get("channel", "UPI")),
-                    "ground_truth_illicit": int(row.get("is_suspicious", 0))
+                    "ground_truth_illicit": int(row.get("is_suspicious", 0)),
+                    "dataset": dataset
                 })
                 
     if not events:

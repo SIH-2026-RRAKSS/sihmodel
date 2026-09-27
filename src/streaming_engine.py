@@ -80,11 +80,23 @@ class DynamicAnomalyTrigger:
         count = profile["count"]
         mean = profile["mean"]
         
+        is_ibm = (
+            str(tx.get("transaction_id", "")).startswith("IBM") or
+            str(src).startswith("IBM") or
+            str(tx.get("channel", "")).startswith("SWIFT") or
+            str(tx.get("dataset", "")).lower() == "ibm"
+        )
+        
+        # Dynamic scale: Synthetic dataset (INR amounts in ₹) vs IBM dataset (USD amounts in $)
+        cold_start_threshold = 5000.0 if is_ibm else 200000.0
+        z_score_thresh = 3.0 if is_ibm else 3.5
+        outlier_min_amount = 1000.0 if is_ibm else 25000.0
+        velocity_floor = 5000.0 if is_ibm else 50000.0
+
         # Rule 3: Cold-Start Safeguard
         if count == 0:
             self._update_profile(src, amount, date_str)
-            # Lowered cold-start from 200,000 to 5,000 to catch IBM dataset scale
-            if amount >= 5000:
+            if amount >= cold_start_threshold:
                 return True, f"COLD_START_SPIKE (Amt: {amount})"
             return False, None
             
@@ -94,8 +106,7 @@ class DynamicAnomalyTrigger:
         
         # Rule 1: Single Transaction Outlier
         z_score = (amount - mean) / std
-        # Lowered z-score to 3.0 and removed 25k hardcoded floor
-        if z_score >= 3.0 and amount >= 1000:
+        if z_score >= z_score_thresh and amount >= outlier_min_amount:
             self._update_profile(src, amount, date_str)
             return True, f"SINGLE_TX_OUTLIER (Z-Score: {z_score:.2f}, Amt: {amount})"
             
@@ -106,8 +117,7 @@ class DynamicAnomalyTrigger:
         if past_days:
             daily_avg = sum(daily_sums[d] for d in past_days) / len(past_days)
             current_day_sum = daily_sums[date_str] + amount
-            # Lowered daily velocity floor from 50k to 5k
-            if current_day_sum >= max(2.5 * daily_avg, 5000):
+            if current_day_sum >= max(2.5 * daily_avg, velocity_floor):
                 self._update_profile(src, amount, date_str)
                 return True, f"DAILY_VELOCITY_SPIKE (Day Sum: {current_day_sum}, Avg: {daily_avg:.2f})"
         
