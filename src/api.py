@@ -1525,11 +1525,11 @@ def simulate_stream_batch(
 
     t_start = time.time()
 
-    for idx_tx, tx in enumerate(events):
-        t_tx_0 = time.time()
-        
-        # Ingest into live streaming engine (this runs Stage 1 and optionally Stage 2)
-        with STREAMING_LOCK:
+    with STREAMING_LOCK:
+        for idx_tx, tx in enumerate(events):
+            t_tx_0 = time.time()
+            
+            # Ingest into live streaming engine (this runs Stage 1 and optionally Stage 2)
             tx_id, triggered, reason, res = STREAMING_ENGINE.ingest_transaction(tx)
         
         if triggered:
