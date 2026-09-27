@@ -327,48 +327,44 @@ class TemporalTransactionGraph:
         subgraph = nx.MultiDiGraph()
         
         if not self.graph.has_node(seed_entity_id):
-            # Check if entity is known in metadata or DB
-            if seed_entity_id in self.entity_locations or str(seed_entity_id).startswith("ATM_"):
-                loaded = False
-                try:
-                    from src.database import get_db_session, TransactionRecord
-                    session = get_db_session()
-                    records = session.query(TransactionRecord).filter(
-                        (TransactionRecord.sender_entity_id == seed_entity_id) |
-                        (TransactionRecord.receiver_entity_id == seed_entity_id)
-                    ).order_by(TransactionRecord.timestamp.desc()).limit(100).all()
-                    
-                    if records:
-                        dicts = []
-                        for r in records:
-                            dicts.append({
-                                "transaction_id": r.transaction_id,
-                                "sender_entity_id": r.sender_entity_id,
-                                "receiver_entity_id": r.receiver_entity_id,
-                                "amount": float(r.amount),
-                                "timestamp": r.timestamp,
-                                "transaction_type": r.transaction_type,
-                                "channel": r.channel
-                            })
-                        self.ingest_batch(dicts)
-                        loaded = True
-                except Exception as e:
-                    pass
-                finally:
-                    if 'session' in locals(): session.close()
+            loaded = False
+            try:
+                from src.database import get_db_session, TransactionRecord
+                session = get_db_session()
+                records = session.query(TransactionRecord).filter(
+                    (TransactionRecord.sender_entity_id == seed_entity_id) |
+                    (TransactionRecord.receiver_entity_id == seed_entity_id)
+                ).order_by(TransactionRecord.timestamp.desc()).limit(100).all()
 
-                if not loaded and not self.graph.has_node(seed_entity_id):
-                    src_type = "ATM" if str(seed_entity_id).startswith("ATM_") else "ACCOUNT"
-                    self.graph.add_node(
-                        seed_entity_id,
-                        node_type=src_type,
-                        city=self.entity_cities.get(seed_entity_id, "UNKNOWN"),
-                        latitude=self.entity_locations.get(seed_entity_id, (0.0, 0.0))[0],
-                        longitude=self.entity_locations.get(seed_entity_id, (0.0, 0.0))[1],
-                        is_terminal=bool(src_type == "ATM")
-                    )
-            else:
-                raise KeyError(f"Entity {seed_entity_id} not found in database or active streaming index.")
+                if records:
+                    dicts = []
+                    for r in records:
+                        dicts.append({
+                            "transaction_id": r.transaction_id,
+                            "sender_entity_id": r.sender_entity_id,
+                            "receiver_entity_id": r.receiver_entity_id,
+                            "amount": float(r.amount),
+                            "timestamp": r.timestamp,
+                            "transaction_type": r.transaction_type,
+                            "channel": r.channel
+                        })
+                    self.ingest_batch(dicts)
+                    loaded = True
+            except Exception:
+                pass
+            finally:
+                if 'session' in locals(): session.close()
+
+            if not loaded and not self.graph.has_node(seed_entity_id):
+                src_type = "ATM" if str(seed_entity_id).startswith("ATM_") else "ACCOUNT"
+                self.graph.add_node(
+                    seed_entity_id,
+                    node_type=src_type,
+                    city=self.entity_cities.get(seed_entity_id, "UNKNOWN"),
+                    latitude=self.entity_locations.get(seed_entity_id, (0.0, 0.0))[0],
+                    longitude=self.entity_locations.get(seed_entity_id, (0.0, 0.0))[1],
+                    is_terminal=bool(src_type == "ATM")
+                )
             
         # Optional: Start BFS queue from earliest transaction of seed entity to enforce downstream tracking
         start_time = as_of_time
