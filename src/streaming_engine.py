@@ -26,6 +26,11 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import torch
+torch.set_num_threads(1)
+try:
+    torch.set_num_interop_threads(1)
+except Exception:
+    pass
 from torch_geometric.data import Data
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -218,7 +223,12 @@ class TemporalTransactionGraph:
         self.proactive_alerts = []
         self.anomaly_trigger.profiles.clear()
 
-    def ingest_transaction(self, tx: Dict[str, Any], purge_expired: bool = True) -> Tuple[str, bool, Optional[str], Optional[Dict[str, Any]]]:
+    def ingest_transaction(
+        self, 
+        tx: Dict[str, Any], 
+        purge_expired: bool = True,
+        evaluate_triage: bool = True
+    ) -> Tuple[str, bool, Optional[str], Optional[Dict[str, Any]]]:
 
         """
         Ingests a single transaction event into the sliding window.
@@ -293,6 +303,9 @@ class TemporalTransactionGraph:
                     if self.graph.degree(v) == 0:
                         self.graph.remove_node(v)
 
+        if not evaluate_triage:
+            return tx_id, False, None, None
+
         triggered, reason = self.anomaly_trigger.evaluate_transaction(tx)
         res = None
         if triggered:
@@ -315,11 +328,11 @@ class TemporalTransactionGraph:
 
         return tx_id, triggered, reason, res
 
-    def ingest_batch(self, transactions: List[Dict[str, Any]]) -> int:
+    def ingest_batch(self, transactions: List[Dict[str, Any]], evaluate_triage: bool = False) -> int:
         """High-throughput ingestion of transaction batch."""
         count = 0
         for tx in transactions:
-            self.ingest_transaction(tx, purge_expired=False)
+            self.ingest_transaction(tx, purge_expired=False, evaluate_triage=evaluate_triage)
             count += 1
         return count
 

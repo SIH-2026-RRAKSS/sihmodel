@@ -32,6 +32,11 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 import torch
+torch.set_num_threads(1)
+try:
+    torch.set_num_interop_threads(1)
+except Exception:
+    pass
 from fastapi import FastAPI, HTTPException, Query, Depends, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
