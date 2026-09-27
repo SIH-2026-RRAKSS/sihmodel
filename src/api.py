@@ -1533,53 +1533,53 @@ def simulate_stream_batch(
             # Ingest into live streaming engine (this runs Stage 1 and optionally Stage 2)
             tx_id, triggered, reason, res = STREAMING_ENGINE.ingest_transaction(tx)
         
-        if triggered:
-            stage1_breaches += 1
-            if res is not None:
-                gnn_runs += 1
-                risk_prob = res.get("risk_probability", 0.0)
-                tier = res.get("confidence_tier", "LOW_CONFIDENCE")
-                if risk_prob >= 0.70:
-                    alerts_emitted += 1
+            if triggered:
+                stage1_breaches += 1
+                if res is not None:
+                    gnn_runs += 1
+                    risk_prob = res.get("risk_probability", 0.0)
+                    tier = res.get("confidence_tier", "LOW_CONFIDENCE")
+                    if risk_prob >= 0.70:
+                        alerts_emitted += 1
                 
-                terminals = res.get("terminals", [])
-                if terminals:
-                    term_id = terminals[0].get("terminal_id", "NONE")
-                    term_city = terminals[0].get("city", "N/A")
+                    terminals = res.get("terminals", [])
+                    if terminals:
+                        term_id = terminals[0].get("terminal_id", "NONE")
+                        term_city = terminals[0].get("city", "N/A")
+                    else:
+                        term_id = "NONE"
+                        term_city = "N/A"
                 else:
+                    risk_prob = 0.0
+                    tier = "UNCLASSIFIED"
                     term_id = "NONE"
                     term_city = "N/A"
             else:
                 risk_prob = 0.0
-                tier = "UNCLASSIFIED"
+                tier = "NORMAL"
                 term_id = "NONE"
-                term_city = "N/A"
-        else:
-            risk_prob = 0.0
-            tier = "NORMAL"
-            term_id = "NONE"
-            term_city = "No Exit Convergence"
+                term_city = "No Exit Convergence"
 
-        lat_ms = (time.time() - t_tx_0) * 1000
-        if triggered and res is not None:
-            total_gnn_lat_ms += lat_ms
+            lat_ms = (time.time() - t_tx_0) * 1000
+            if triggered and res is not None:
+                total_gnn_lat_ms += lat_ms
 
-        processed_items.append({
-            "transaction_id": tx["transaction_id"],
-            "sender_entity_id": tx["sender_entity_id"],
-            "receiver_entity_id": tx["receiver_entity_id"],
-            "amount": float(tx["amount"]),
-            "timestamp": tx["timestamp"],
-            "is_cash_out": tx["is_cash_out"],
-            "channel": tx["channel"],
-            "stage_1_flagged": triggered,
-            "stage_1_reason": reason,
-            "stage_2_risk_probability": risk_prob,
-            "stage_2_confidence_tier": tier,
-            "top_terminal_id": term_id,
-            "top_terminal_city": term_city,
-            "latency_ms": round(lat_ms, 2)
-        })
+            processed_items.append({
+                "transaction_id": tx["transaction_id"],
+                "sender_entity_id": tx["sender_entity_id"],
+                "receiver_entity_id": tx["receiver_entity_id"],
+                "amount": float(tx["amount"]),
+                "timestamp": tx["timestamp"],
+                "is_cash_out": tx["is_cash_out"],
+                "channel": tx["channel"],
+                "stage_1_flagged": triggered,
+                "stage_1_reason": reason,
+                "stage_2_risk_probability": risk_prob,
+                "stage_2_confidence_tier": tier,
+                "top_terminal_id": term_id,
+                "top_terminal_city": term_city,
+                "latency_ms": round(lat_ms, 2)
+            })
         
     duration_s = max(0.001, time.time() - t_start)
     throughput = len(processed_items) / duration_s
@@ -1598,162 +1598,162 @@ def simulate_stream_batch(
     }
 
 
-@app.post("/api/policy/tune", response_model=PolicyTuneResponse, tags=["Threshold Policy"])
-def tune_policy_threshold(req: PolicyTuneRequest):
-    """Calculates operational precision, recall, and alert volume for a custom cutoff."""
-    tau = req.threshold
-    ds_name = req.dataset.lower()
+    @app.post("/api/policy/tune", response_model=PolicyTuneResponse, tags=["Threshold Policy"])
+    def tune_policy_threshold(req: PolicyTuneRequest):
+        """Calculates operational precision, recall, and alert volume for a custom cutoff."""
+        tau = req.threshold
+        ds_name = req.dataset.lower()
 
-    if "ibm" in ds_name:
-        file_path = DATA_DIR / "ibm_threshold_policy_analysis.csv"
-        total_eval = 200
-        positives = 59
-    else:
-        file_path = DATA_DIR / "threshold_policy_analysis.csv"
-        total_eval = 200
-        positives = 37
+        if "ibm" in ds_name:
+            file_path = DATA_DIR / "ibm_threshold_policy_analysis.csv"
+            total_eval = 200
+            positives = 59
+        else:
+            file_path = DATA_DIR / "threshold_policy_analysis.csv"
+            total_eval = 200
+            positives = 37
 
-    # Load baseline thresholds table
-    if file_path.exists():
-        df_p = pd.read_csv(file_path)
-        # Find nearest threshold row
-        diffs = (df_p["threshold"] - tau).abs()
-        best_row = df_p.loc[diffs.idxmin()]
+        # Load baseline thresholds table
+        if file_path.exists():
+            df_p = pd.read_csv(file_path)
+            # Find nearest threshold row
+            diffs = (df_p["threshold"] - tau).abs()
+            best_row = df_p.loc[diffs.idxmin()]
 
-        alerts = int(best_row.get("alerts", int(total_eval * 0.17)))
-        prec = float(best_row.get("precision", 0.90)) * 100.0
-        rec = float(best_row.get("recall", 0.86)) * 100.0
-        f1 = float(best_row.get("f1", 0.88)) * 100.0
-        tp = int(best_row.get("true_positives", 32))
-        fp = int(best_row.get("false_positives", 2))
-        tier_name = str(best_row.get("tier_name", "CUSTOM_POLICY"))
-    else:
-        # Mathematical estimation
-        alerts = int(round(total_eval * (0.25 - 0.12 * tau)))
-        tp = int(round(positives * max(0.40, 1.0 - 0.25 * tau)))
-        fp = max(0, alerts - tp)
-        prec = round((tp / max(alerts, 1)) * 100.0, 2)
-        rec = round((tp / max(positives, 1)) * 100.0, 2)
-        f1 = round(2 * prec * rec / max(prec + rec, 1e-5), 2)
-        tier_name = "HIGH_CONFIDENCE_ALERT" if tau >= 0.80 else ("HIGH_PRECISION" if tau >= 0.60 else "BALANCED_TRIAGE")
+            alerts = int(best_row.get("alerts", int(total_eval * 0.17)))
+            prec = float(best_row.get("precision", 0.90)) * 100.0
+            rec = float(best_row.get("recall", 0.86)) * 100.0
+            f1 = float(best_row.get("f1", 0.88)) * 100.0
+            tp = int(best_row.get("true_positives", 32))
+            fp = int(best_row.get("false_positives", 2))
+            tier_name = str(best_row.get("tier_name", "CUSTOM_POLICY"))
+        else:
+            # Mathematical estimation
+            alerts = int(round(total_eval * (0.25 - 0.12 * tau)))
+            tp = int(round(positives * max(0.40, 1.0 - 0.25 * tau)))
+            fp = max(0, alerts - tp)
+            prec = round((tp / max(alerts, 1)) * 100.0, 2)
+            rec = round((tp / max(positives, 1)) * 100.0, 2)
+            f1 = round(2 * prec * rec / max(prec + rec, 1e-5), 2)
+            tier_name = "HIGH_CONFIDENCE_ALERT" if tau >= 0.80 else ("HIGH_PRECISION" if tau >= 0.60 else "BALANCED_TRIAGE")
 
-    return PolicyTuneResponse(
-        threshold=tau,
-        dataset=req.dataset,
-        policy_tier_name=tier_name,
-        total_eval_samples=total_eval,
-        alerts_generated=alerts,
-        alert_rate_percent=round((alerts / total_eval) * 100.0, 2),
-        precision_percent=round(prec, 2),
-        recall_percent=round(rec, 2),
-        f1_score_percent=round(f1, 2),
-        false_positives=fp,
-        true_positives=tp
-    )
-
-
-@app.get("/api/dossier/{incident_id}/export", tags=["Dossier Export"])
-def export_case_dossier(incident_id: str, format: str = Query("markdown", description="Format: markdown, html, json")):
-    """Generates a formal, printable Law Enforcement Case Dossier Briefing."""
-    detail = get_incident_detail(incident_id)
-
-    comp = detail["complaint"]
-    entity = detail["resolved_canonical_entity"]
-    pred = detail["model_prediction"]
-    bullets = detail["investigative_evidence_bullets"]
-    term = detail["top_terminal_details"]
-
-    if format == "json":
-        return detail
-
-    md_content = f"""# 🚨 FINANCIAL CYBERCRIME INVESTIGATIVE DOSSIER
-**Incident Reference ID**: `{comp['complaint_id']}`  
-**Generated Date**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}  
-**Operational Classification**: **{pred['confidence_tier']}** (GNN Risk: `{pred['graphsage_risk_probability']}`)
-
----
-
-## 1. Complaint & Incident Profile
-- **Complainant Name**: {comp['complainant_name']}
-- **Filing Date**: {comp['complaint_date']}
-- **Reported Fraud Category**: {comp['scam_category']}
-- **Reported Disputed Amount**: ₹{comp['reported_amount']:,.2f}
-- **Jurisdiction**: {comp['location']}
-- **Beneficiary Account Number**: `{comp['reported_account_number']}` (IFSC: `{comp['reported_ifsc']}`)
-
----
-
-## 2. Resolved Canonical Financial Entity
-- **Master Entity ID**: `{entity['entity_id']}`
-- **Account Holder Name**: {entity['canonical_holder_name']}
-- **Bank / Institution**: {entity['bank_name']}
-
----
-
-## 3. Executive Intelligence Summary
-> {pred['executive_summary'] or 'Multi-hop laundering topology detected dispersing complaint funds across downstream mule layers.'}
-
----
-
-## 4. Concrete Observable Graph Evidence
-"""
-    if bullets:
-        for idx, b in enumerate(bullets, 1):
-            md_content += f"{idx}. {b}\n"
-    else:
-        md_content += "- Standard transaction graph topology evaluated within 72h window.\n"
-
-    if term and isinstance(term, dict):
-        md_content += f"""
----
-
-## 5. Physical Cash Exit & ATM Terminal Intelligence
-- **Target Exit Terminal**: `{term.get('terminal_id') or term.get('atm_id') or 'NOT_IDENTIFIED'}`
-- **Predicted Exit City**: {term.get('city', 'Unknown')}
-- **Confidence Ranking Score**: `{term.get('terminal_score', 'N/A')}`
-- **Terminal Exit Rationale**: {term.get('rationale') or term.get('reason', 'Rapid downstream fund forwarding terminated at this cash withdrawal node.')}
-"""
-
-    md_content += "\n---\n*CONFIDENTIAL — FOR LAW ENFORCEMENT & FIU ANALYST REVIEW ONLY*"
-
-    if format == "html":
-        html_body = f"""
-        <html>
-        <head><title>Case Dossier - {incident_id}</title><style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 40px; color: #1a202c; line-height: 1.6; }}
-        h1 {{ color: #e53e3e; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }}
-        h2 {{ color: #2b6cb0; margin-top: 25px; }}
-        blockquote {{ background: #edf2f7; border-left: 4px solid #3182ce; margin: 0; padding: 12px 20px; }}
-        code {{ background: #edf2f7; padding: 2px 6px; border-radius: 4px; color: #805ad5; }}
-        </style></head>
-        <body>
-        {md_content.replace(chr(10), '<br>')}
-        </body></html>
-        """
-        return HTMLResponse(content=html_body)
-
-    return PlainTextResponse(content=md_content, media_type="text/markdown")
+        return PolicyTuneResponse(
+            threshold=tau,
+            dataset=req.dataset,
+            policy_tier_name=tier_name,
+            total_eval_samples=total_eval,
+            alerts_generated=alerts,
+            alert_rate_percent=round((alerts / total_eval) * 100.0, 2),
+            precision_percent=round(prec, 2),
+            recall_percent=round(rec, 2),
+            f1_score_percent=round(f1, 2),
+            false_positives=fp,
+            true_positives=tp
+        )
 
 
-@app.get("/api/streaming/benchmark", tags=["Streaming & Ingestion"])
-def get_streaming_benchmark():
-    """Returns streaming throughput metrics and SLA verification."""
-    summary_file = DATA_DIR / "streaming_benchmark_summary.json"
-    if summary_file.exists():
-        with open(summary_file, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {
-        "status": "NOT_YET_RUN",
-        "message": "Run src/streaming_engine.py to generate live latency profile."
-    }
+    @app.get("/api/dossier/{incident_id}/export", tags=["Dossier Export"])
+    def export_case_dossier(incident_id: str, format: str = Query("markdown", description="Format: markdown, html, json")):
+        """Generates a formal, printable Law Enforcement Case Dossier Briefing."""
+        detail = get_incident_detail(incident_id)
+
+        comp = detail["complaint"]
+        entity = detail["resolved_canonical_entity"]
+        pred = detail["model_prediction"]
+        bullets = detail["investigative_evidence_bullets"]
+        term = detail["top_terminal_details"]
+
+        if format == "json":
+            return detail
+
+        md_content = f"""# 🚨 FINANCIAL CYBERCRIME INVESTIGATIVE DOSSIER
+    **Incident Reference ID**: `{comp['complaint_id']}`  
+    **Generated Date**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}  
+    **Operational Classification**: **{pred['confidence_tier']}** (GNN Risk: `{pred['graphsage_risk_probability']}`)
+
+    ---
+
+    ## 1. Complaint & Incident Profile
+    - **Complainant Name**: {comp['complainant_name']}
+    - **Filing Date**: {comp['complaint_date']}
+    - **Reported Fraud Category**: {comp['scam_category']}
+    - **Reported Disputed Amount**: ₹{comp['reported_amount']:,.2f}
+    - **Jurisdiction**: {comp['location']}
+    - **Beneficiary Account Number**: `{comp['reported_account_number']}` (IFSC: `{comp['reported_ifsc']}`)
+
+    ---
+
+    ## 2. Resolved Canonical Financial Entity
+    - **Master Entity ID**: `{entity['entity_id']}`
+    - **Account Holder Name**: {entity['canonical_holder_name']}
+    - **Bank / Institution**: {entity['bank_name']}
+
+    ---
+
+    ## 3. Executive Intelligence Summary
+    > {pred['executive_summary'] or 'Multi-hop laundering topology detected dispersing complaint funds across downstream mule layers.'}
+
+    ---
+
+    ## 4. Concrete Observable Graph Evidence
+    """
+        if bullets:
+            for idx, b in enumerate(bullets, 1):
+                md_content += f"{idx}. {b}\n"
+        else:
+            md_content += "- Standard transaction graph topology evaluated within 72h window.\n"
+
+        if term and isinstance(term, dict):
+            md_content += f"""
+    ---
+
+    ## 5. Physical Cash Exit & ATM Terminal Intelligence
+    - **Target Exit Terminal**: `{term.get('terminal_id') or term.get('atm_id') or 'NOT_IDENTIFIED'}`
+    - **Predicted Exit City**: {term.get('city', 'Unknown')}
+    - **Confidence Ranking Score**: `{term.get('terminal_score', 'N/A')}`
+    - **Terminal Exit Rationale**: {term.get('rationale') or term.get('reason', 'Rapid downstream fund forwarding terminated at this cash withdrawal node.')}
+    """
+
+        md_content += "\n---\n*CONFIDENTIAL — FOR LAW ENFORCEMENT & FIU ANALYST REVIEW ONLY*"
+
+        if format == "html":
+            html_body = f"""
+            <html>
+            <head><title>Case Dossier - {incident_id}</title><style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 40px; color: #1a202c; line-height: 1.6; }}
+            h1 {{ color: #e53e3e; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }}
+            h2 {{ color: #2b6cb0; margin-top: 25px; }}
+            blockquote {{ background: #edf2f7; border-left: 4px solid #3182ce; margin: 0; padding: 12px 20px; }}
+            code {{ background: #edf2f7; padding: 2px 6px; border-radius: 4px; color: #805ad5; }}
+            </style></head>
+            <body>
+            {md_content.replace(chr(10), '<br>')}
+            </body></html>
+            """
+            return HTMLResponse(content=html_body)
+
+        return PlainTextResponse(content=md_content, media_type="text/markdown")
 
 
-@app.get("/api/benchmarks/three_way", tags=["Analytical Metrics"])
-def get_three_way_benchmark():
-    """Standardized 3-way multi-dataset benchmark comparison."""
-    comp_file = DATA_DIR / "three_way_benchmark_comparison.csv"
-    if comp_file.exists():
-        df = pd.read_csv(comp_file)
-        df = df.fillna("N/A")
-        return df.to_dict(orient="records")
-    return []
+    @app.get("/api/streaming/benchmark", tags=["Streaming & Ingestion"])
+    def get_streaming_benchmark():
+        """Returns streaming throughput metrics and SLA verification."""
+        summary_file = DATA_DIR / "streaming_benchmark_summary.json"
+        if summary_file.exists():
+            with open(summary_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return {
+            "status": "NOT_YET_RUN",
+            "message": "Run src/streaming_engine.py to generate live latency profile."
+        }
+
+
+    @app.get("/api/benchmarks/three_way", tags=["Analytical Metrics"])
+    def get_three_way_benchmark():
+        """Standardized 3-way multi-dataset benchmark comparison."""
+        comp_file = DATA_DIR / "three_way_benchmark_comparison.csv"
+        if comp_file.exists():
+            df = pd.read_csv(comp_file)
+            df = df.fillna("N/A")
+            return df.to_dict(orient="records")
+        return []
