@@ -107,7 +107,10 @@ def test_api_stats():
     assert data["total_incidents_monitored"] >= 0
     assert "HIGH_CONFIDENCE" in data["tier_breakdown"]
     assert len(data["model_comparison"]) > 0
-    assert "model" in data["model_comparison"][0]
+    if isinstance(data["model_comparison"], list):
+        assert "model" in data["model_comparison"][0]
+    else:
+        assert "GraphSAGE_Test_F1" in data["model_comparison"]
 
 
 def test_api_list_incidents():

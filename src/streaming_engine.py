@@ -16,11 +16,14 @@ import os
 import sys
 import time
 import json
+import logging
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Any, Optional, Set
 import heapq
 from collections import defaultdict, deque
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 import pandas as pd
@@ -373,12 +376,13 @@ class TemporalTransactionGraph:
                         })
                     self.ingest_batch(dicts)
                     loaded = True
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Database fallback query failed for entity {seed_entity_id}: {e}")
             finally:
                 if 'session' in locals(): session.close()
 
             if not loaded and not self.graph.has_node(seed_entity_id):
+                logger.info(f"Entity {seed_entity_id} was not found in in-memory stream or database fallback; creating bare node.")
                 src_type = "ATM" if str(seed_entity_id).startswith("ATM_") else "ACCOUNT"
                 self.graph.add_node(
                     seed_entity_id,
@@ -444,14 +448,18 @@ class TemporalTransactionGraph:
         """
         node_list = list(subgraph.nodes())
         num_nodes = len(node_list)
+        num_edges = subgraph.number_of_edges()
 
-        if self.model is None or num_nodes == 0:
+        if self.model is None or num_nodes == 0 or num_edges == 0:
             return {
                 "risk_probability": 0.0,
                 "confidence_tier": "NORMAL",
                 "is_suspicious": False,
                 "num_nodes": max(1, num_nodes),
-                "num_edges": subgraph.number_of_edges(),
+                "num_edges": num_edges,
+                "subgraph_empty": bool(num_edges == 0),
+                "low_information": True,
+                "status_reason": "Low information: Entity has 0 transactional edges in the current window or fallback database",
                 "terminals": []
             }
 
@@ -561,6 +569,8 @@ class TemporalTransactionGraph:
             "is_suspicious": bool(prob >= 0.50),
             "num_nodes": len(node_list),
             "num_edges": subgraph.number_of_edges(),
+            "subgraph_empty": False,
+            "low_information": False,
             "mule_probabilities": mule_probabilities,
             "terminals": terminal_candidates
         }
